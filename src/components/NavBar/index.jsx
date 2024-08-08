@@ -17,14 +17,14 @@ const NavBar = () => {
         </NavLink>
         <Bars />
         <NavMenu>
-          <NavLink to='/about' activestyle="true">
-            About
-          </NavLink>
+        <NavLink to='/home' activestyle="true">
+            Home
+          </NavLink>          
           <NavLink to='/atlas' activestyle="true">
             Atlas
           </NavLink>
-          <NavLink to='/home' activestyle="true">
-            Home
+          <NavLink to='/about' activestyle="true">
+            About
           </NavLink>
         </NavMenu>
         <NavBtn>
