@@ -44,20 +44,76 @@ const MapBuilder = () => {
   }, []);
 
   //filters style of sites based on attributes
-  const siteStyleDifferentiator = (siteProperties) => {
+  const siteStyleDifferentiator = (siteProperties, latlng) => {
     if (siteProperties.siteType === 'castellum') {
-      return secondaryAgglomerationMarkerStyle;
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(secondaryAgglomerationMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'post_castellum') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(possibleCityMarkerStyle);  
+      return siteMarker;      
+    } else if (siteProperties.siteType === 'legfort') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'watchtower') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'city') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'cem') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'ptum') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'tum') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
     } else if (siteProperties.siteType === 'villa') {
-      return possibleCityMarkerStyle;
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
     } else if (siteProperties.siteType === 'pvilla') {
-      return cityMarkerStyle;
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'sett') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'settS') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'ship') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'pship') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else if (siteProperties.siteType === 'site') {
+      let siteMarker = new L.circleMarker(latlng)
+      siteMarker.setStyle(cityMarkerStyle);  
+      return siteMarker;
+    } else {
+      let siteMarker = new L.circleMarker(latlng)
+      return siteMarker;  
     }
   }
 
   //filters style of roads based on attributes
   const roadStyleDifferentiator = (roadProperties) => {
-    if (roadProperties.type === 'possible road') {
-      console.log("best mogelijk");
+    if (roadProperties.type === 'possible road') {     
       return possibleRoad;
     } else if (roadProperties.type === 'hypothetical route') {
       return hypotheticalRoute;
@@ -71,13 +127,13 @@ const MapBuilder = () => {
 
   //binding popups to points
   // to do: standardize layer-fields
-  const createPopupText = (siteData) => {
-    let name = siteData.name;
-    let status = siteData.status;
-    let status_ref = siteData.statusref;
-    let province = siteData.province;
-    let conventus = siteData.conventus;
-    let pleiades = siteData.plid;
+  const createPopupText = () => { 
+    let name = "test";
+    let status = "test";
+    let status_ref = "test";
+    let province = "test";
+    let conventus = "test";
+    let pleiades = "test";
     if (pleiades === null) {
       var popup_text = "<b>Name : " + name + "</b><br/>Status : " + status + "<br/>Reference : " + status_ref + "<br/>Assize : " + conventus + "<br/>Province : " + province
     } else {
@@ -95,6 +151,7 @@ const MapBuilder = () => {
   } else {
     const position = [51.505, -0.09]
 
+    console.log(siteData);
     return (
       <>        
         <div className="atlas">
@@ -110,13 +167,11 @@ const MapBuilder = () => {
             <LayerGroup>
               <GeoJSON data={siteData} pointToLayer={
                 function (feature, latlng) {  
-                  let style = siteStyleDifferentiator(feature.properties);                           
-                  let siteMarker = new L.circleMarker(latlng)
-                  siteMarker.setStyle(style);             
-                  return siteMarker;
+                  let marker = siteStyleDifferentiator(feature.properties, latlng);
+                  return marker;
                 }
               } onEachFeature={
-                function (feature, layer) {
+                function (feature, layer) {                  
                   let popUpText = createPopupText(feature.properties);
                   layer.bindPopup(popUpText, popUpStyle);
                 }
