@@ -1,14 +1,13 @@
 // MapComponent.js
 import React, { useState, useEffect, useRef } from 'react';
-import 'ol/ol.css';
-import MapDataLoader from './MapDataLoader';
+import MapBuilder from './MapBuilder';
 
 const MapComponent = () => {   
            
     
     return (
         <>
-                <MapDataLoader />
+                <MapBuilder />
         </>
     );
 }
