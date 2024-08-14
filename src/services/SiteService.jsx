@@ -7,6 +7,10 @@ const SiteService = {
     async findAllByIdGeoJson(data) {
         return await apiClient.get('/sites/' + data.id);
     },    
+
+    async testEndpoint() {
+        return await apiClient.get('/sites/test');
+    }
 };
 
 export default SiteService;
