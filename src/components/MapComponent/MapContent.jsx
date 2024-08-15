@@ -1,12 +1,14 @@
 import { useMap, GeoJSON, LayerGroup, TileLayer } from 'react-leaflet';
+import { useState } from "react";
 
 //style
 import 'leaflet/dist/leaflet.css';
 import { popUpStyle, possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/markerStyles';
 
-const MapContent = ({data}) => {
+const MapContent = ({ siteData, roadData }) => {
 
     const map = useMap();
+    const [onselect, setOnselect] = useState({});
 
     //filters style of sites based on attributes
     const siteStyleDifferentiator = (siteProperties, latlng) => {
@@ -80,9 +82,22 @@ const MapContent = ({data}) => {
         }
     }
 
+    //filters style of roads based on attributes
+    const roadStyleDifferentiator = (roadProperties) => {
+        if (roadProperties.type === 'possible road') {            
+            return possibleRoad;
+        } else if (roadProperties.type === 'hypothetical route') {
+            return hypotheticalRoute;
+        } else if (roadProperties.type === 'road') {
+            return road;
+        } else if (roadProperties.type === 'hist_rec') {
+            return histRec;
+        }
+    }
+
     //binding popups to points
     // to do: standardize layer-fields
-    const createPopupText = (properties) => {
+    const createPopupTextSite = (properties) => {
         let name = properties.name;
         let status = properties.siteType;
         let status_ref = "test";
@@ -99,12 +114,46 @@ const MapContent = ({data}) => {
     }
 
     //function to zoom slightly to to left of marker (0.06 degrees) when clicked to allow popup on the right 
-    function clickZoom(e) { 
+    const clickZoomSite = (e) => {
         let latlngClicked = e.target.getLatLng();
         let latClicked = latlngClicked.lat;
         let lngClicked = latlngClicked.lng;
-        map.setView([latClicked, (lngClicked + 0.06)], 12)        
+
+        let xScreen = map.getPixelBounds().getSize().x;
+  
+        if (xScreen > 800) {
+            map.setView([latClicked, (lngClicked + 0.08)], 12)
+        } else if (xScreen > 600 && xScreen < 800) {
+            map.setView([latClicked, (lngClicked + 0.06)], 12)
+        } else if (xScreen > 400 && xScreen < 600) {
+            map.setView([latClicked, (lngClicked + 0.03)], 12)
+        } else {
+            map.setView(latlngClicked, 12)
+        }
         return null;
+    }
+
+    const clickZoomRoad = (e) => {
+        console.log(e.target);
+        let roadBounds = e.target.getBounds();
+        map.fitBounds(roadBounds);
+        return null;
+    }
+
+
+    // function to highlight a road when hovering over it with the cursor
+    const highlightRoad = (e) => {
+        var road = e.target;
+        road.setStyle({
+            weight: 3,
+            color: "yellow"
+        });
+    }
+
+    //function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
+    const resetHighlightroad = (e) => {     
+        let style = roadStyleDifferentiator(e.target.feature.properties)        
+        e.target.setStyle(style)
     }
 
     return (
@@ -114,19 +163,37 @@ const MapContent = ({data}) => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <LayerGroup>
-                <GeoJSON data={data} pointToLayer={
+                <GeoJSON data={siteData} pointToLayer={
                     function (feature, latlng) {
                         let marker = siteStyleDifferentiator(feature.properties, latlng);
                         return marker;
                     }
                 } onEachFeature={
                     function (feature, layer) {
-                        let popUpText = createPopupText(feature.properties);
+                        let popUpText = createPopupTextSite(feature.properties);
                         layer.bindPopup(popUpText, popUpStyle);
-                        layer.on('click', clickZoom)
+                        layer.on({'click': clickZoomSite})
                     }
                 }
                 />
+                <GeoJSON data={roadData} style={function (feature) {
+                    let style = roadStyleDifferentiator(feature.properties);
+                    return style;
+                }} onEachFeature={
+                    function (feature, layer) {
+                        let popUpText = createPopupTextSite(feature.properties);
+                        layer.bindPopup(popUpText, popUpStyle);
+                        layer.on({
+                            'click': clickZoomRoad,
+                            'mouseover': highlightRoad,
+                            'mouseout': resetHighlightroad
+                        })
+
+                    }
+                }
+                />
+
+
             </LayerGroup>
         </>
     );

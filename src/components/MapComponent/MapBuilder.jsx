@@ -15,15 +15,6 @@ import 'leaflet/dist/leaflet.css';
 import { popUpStyle, possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/markerStyles';
 import MapContent from "./MapContent";
 
-// function MyComponent() {
-//   const map = useMapEvent(
-//     'click', () => {
-//       map.setView([50.5, 30.5], map.getZoom())
-//     })
-
-//   return null
-// }
-
 const MapBuilder = () => {
 
   const mapRef=useMap();
@@ -31,6 +22,8 @@ const MapBuilder = () => {
   const [siteData, setSiteData] = useState([]);
   const [roadData, setRoadData] = useState([]);
 
+
+  //loading site and road data from API
   useEffect(() => {
     async function LoadAllData() {
 
@@ -63,7 +56,7 @@ const MapBuilder = () => {
   } else {
     return (
       <>      
-            <MapContent data={siteData} />           
+            <MapContent siteData={siteData} roadData={roadData}/>           
       </>
     )
   }
