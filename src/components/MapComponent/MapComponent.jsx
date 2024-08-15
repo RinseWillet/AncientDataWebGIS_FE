@@ -2,12 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import MapBuilder from './MapBuilder';
 import { MapContainer } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 
-const MapComponent = () => {
+const position = [51.8, 5.8]
 
-    const position = [51.8, 5.8]
-
-    return(
+const MapComponent = () => {             
+    
+    return (
         <>
             <div className="atlas">
                 <MapContainer id="map" center={position} zoom={9} style={{
@@ -20,7 +21,5 @@ const MapComponent = () => {
         </>
     );
 }
-
-
 
 export default MapComponent;

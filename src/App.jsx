@@ -1,5 +1,6 @@
 //styling
 import './App.css'
+import 'leaflet/dist/leaflet.css';
 
 //React
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";

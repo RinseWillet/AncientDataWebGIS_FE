@@ -1,0 +1,13 @@
+.test-popup .leaflet-popup-content-wrapper {
+    border-radius: 2px;
+    opacity: 0.8;
+    text-align: center;
+    height: 100%;
+    margin-top: 1%;
+    color: red;
+    width: 50vw;
+  } 
+
+  .test-popup .leaflet-popup-tip-container {
+    opacity: 0;
+  }
