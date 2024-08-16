@@ -9,8 +9,8 @@ import MapContent from "./MapContent";
 //style
 import 'leaflet/dist/leaflet.css';
 
-const MapBuilder = ({setShowInfoCard, setSearchId}) => {
-  
+const MapBuilder = ({setShowInfoCard, setSearchItem}) => {
+
   const [siteData, setSiteData] = useState([]);
   const [roadData, setRoadData] = useState([]);  
 
@@ -47,7 +47,7 @@ const MapBuilder = ({setShowInfoCard, setSearchId}) => {
   } else {
     return (
       <>      
-            <MapContent siteData={siteData} roadData={roadData} setShowInfoCard={setShowInfoCard} setSearchId={setSearchId}/>           
+            <MapContent siteData={siteData} roadData={roadData} setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem}/>           
       </>
     )
   }

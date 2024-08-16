@@ -1,27 +1,37 @@
 import React, { useRef, useState, useEffect } from 'react';
 import SiteService from '../../services/SiteService';
+import RoadService from '../../services/RoadService';
 
-const infoText =
-    "Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati a deserunt distinctio vitae! Dolores officiis animi ab ut officia consequuntur fuga, possimus et eligendi, facilis libero nulla repellat modi magnam!";
-
-
-const MapInfoCard = ({ searchId }) => {
+const MapInfoCard = ({ searchItem }) => {
 
     const infoRef = useRef(0);
     const [siteInfo, setSiteInfo] = useState([]);
- 
+    const [roadInfo, setRoadInfo] = useState([]);
+
     //loading site and road data from
     useEffect(() => {
         async function LoadSiteData() {
 
-            SiteService
-                .findByIdGeoJson(searchId)
-                .then((response) => {
-                    setSiteInfo(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
+            console.log(searchItem);
+            if (searchItem.type === "site") {
+                SiteService
+                    .findByIdGeoJson(searchItem.id)
+                    .then((response) => {
+                        setSiteInfo(response.data);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    })
+            } else if (searchItem.type === "road") {
+                RoadService
+                    .findByIdGeoJson(searchItem.id)
+                    .then((response) => {
+                        setRoadInfo(response.data);
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    })
+            }
         }
         LoadSiteData();
     }, []);
@@ -65,28 +75,67 @@ const MapInfoCard = ({ searchId }) => {
     }
 
     //renders card only if the data is filled after apicall
-    if (siteInfo.length < 1) {
-        console.log("loading biatch");
+    if (searchItem.type === "site") {
+        if (siteInfo.length < 1) {
+            return (
+                <div className="infoCard" ref={infoRef}>
+                    <p>Loading Data</p>
+                </div>
+            )
+        } else {
+            let comment = siteInfo.features.properties.comment;
+            let siteType = siteTypeConverter(siteInfo.features.properties.siteType)
+            return (
+                <div className="infoCard" ref={infoRef}>
+                    <b>
+                        Identification:
+                    </b><br />{siteType} <br />
+                    <span>
+                        <b>Comment :</b><br />{comment}
+                    </span>
+                </div>
+            );
+        }
+    } else if (searchItem.type === "road") {
+        if (roadInfo.length < 1) {
+            return (
+                <div className="infoCard" ref={infoRef}>
+                    <p>Loading Data</p>
+                </div>
+            )
+        } else {
+            let type = roadInfo.features.properties.type;
+            let typeDescription = roadInfo.features.properties.typeDescription;
+            let location = roadInfo.features.properties.location;
+            let description = roadInfo.features.properties.description;
+            let date = roadInfo.features.properties.date;
+            let references = roadInfo.features.properties.references;
+            let historicalReferences = roadInfo.features.properties.type.historicalReferences;
+            return (
+                <div className="infoCard" ref={infoRef}>
+                    <b>Identification: </b><br />
+                    {type} - {typeDescription} <br />
+                    <b>Location</b><br />
+                    <span>{location}</span><br />
+                    <b>Description :</b><br />
+                    <span>{description}</span><br />
+                    <b>Date :</b> <br />
+                    {date}<br />
+                    <b>References: </b> <br />
+                    <span>{references}</span><br />
+                    <b>Historical references</b><br />
+                    <span>{historicalReferences}</span>
+
+                </div>
+            );
+        }
+    } else {
         return (
             <div className="infoCard" ref={infoRef}>
-            <p>Loading Data</p>
-        </div>
-        )
-    } else {
-        console.log("tadaaaaa");
-        let comment = siteInfo.features.properties.comment;
-        let siteType = siteTypeConverter(siteInfo.features.properties.siteType)
-        return (            
-            <div className="infoCard" ref={infoRef}>                
-                <b>
-                    Identification: 
-                </b><br/>{siteType} <br/>
-                <span>
-                    <b>Comment :</b><br/>{comment}
-                </span>        
+                <p>Not Found</p>
             </div>
-        );
-    }    
+        )
+    }
 }
 
 export default MapInfoCard;

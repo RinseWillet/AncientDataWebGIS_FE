@@ -12,7 +12,10 @@ const MapComponent = () => {
     
     const [map, setMap] = useState(null);
     const [showInfoCard, setShowInfoCard] = useState(false);
-    const [searchId, setSearchId] = useState();
+    const [searchItem, setSearchItem] = useState({
+        type: "",
+        id: ""
+    });
 
     useEffect(() => {       
         if (!map) return;
@@ -50,14 +53,14 @@ const MapComponent = () => {
         <>
             <div className="wrapper">
                 {showInfoCard ? 
-                <MapInfoCard searchId={searchId}/> : null }
+                <MapInfoCard searchItem={searchItem}/> : null }
                 <MapContainer id="map" className='infoMap'
                     whenCreated={setMap}
                     center={position}
                     zoom={9}
                     zoomControl={false}                    
                 >
-                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchId={setSearchId}/>
+                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem}/>
                 </MapContainer>
             </div>
         </>

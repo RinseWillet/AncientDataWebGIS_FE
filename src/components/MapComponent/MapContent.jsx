@@ -8,7 +8,7 @@ import { possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possible
 import './MapContent.css';
 import { useState, useEffect } from 'react';
 
-const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchId }) => {
+const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
     const map = useMap();    
 
@@ -76,7 +76,6 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchId }) => {
     const createPopupTextSite = (properties) => {
         let name = properties.name;
         let type = properties.siteType;
-
         return "<b>Name : " + name + "</b>";
     }
 
@@ -117,8 +116,15 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchId }) => {
 
     const clickSite = (e) => {       
         setShowInfoCard(true);
-        setSearchId(e.sourceTarget.feature.properties.id);
+        setSearchItem((searchItem) => ({...searchItem, type: "site", id: e.sourceTarget.feature.properties.id}))
         clickZoomSite(e);
+        return null;
+    }
+
+    const clickRoad = (e) => {
+        setShowInfoCard(true);    
+        setSearchItem((searchItem) => ({...searchItem, type: "road", id: e.sourceTarget.feature.properties.id}))
+        clickZoomRoad(e);
         return null;
     }
 
@@ -172,9 +178,9 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchId }) => {
                 }} onEachFeature={
                     function (feature, layer) {
                         let popUpContent = createPopupTextSite(feature.properties);
-                        layer.bindPopup(popUpContent);
+                        layer.bindPopup(popUpContent, { className : 'popup' });
                         layer.on({
-                            'click': clickZoomRoad,
+                            'click': clickRoad,
                             'mouseover': highlightRoad,
                             'mouseout': resetHighlightroad
                         })
