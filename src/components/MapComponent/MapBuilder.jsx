@@ -9,11 +9,10 @@ import MapContent from "./MapContent";
 //style
 import 'leaflet/dist/leaflet.css';
 
-
-const MapBuilder = () => {
-
+const MapBuilder = ({setShowInfoCard, setSearchId}) => {
+  
   const [siteData, setSiteData] = useState([]);
-  const [roadData, setRoadData] = useState([]);
+  const [roadData, setRoadData] = useState([]);  
 
   //loading site and road data from
   useEffect(() => {
@@ -48,7 +47,7 @@ const MapBuilder = () => {
   } else {
     return (
       <>      
-            <MapContent siteData={siteData} roadData={roadData}/>           
+            <MapContent siteData={siteData} roadData={roadData} setShowInfoCard={setShowInfoCard} setSearchId={setSearchId}/>           
       </>
     )
   }

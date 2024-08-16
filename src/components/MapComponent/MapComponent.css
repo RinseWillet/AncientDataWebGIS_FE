@@ -1,0 +1,26 @@
+.wrapper {
+  position: relative;
+}
+
+.infoMap {
+  height: 75vh;
+  width: 100%
+}
+
+.infoCard {
+  color: black;
+  font-size: 10px;
+  position: absolute;
+  z-index: 999;
+  border: 2px solid darkgray;
+  opacity: 0.9;
+  top: 5px;
+  bottom: 5px;
+  right: 5px;
+  width: 40%;
+  background: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 10px rgb(0 0 0 / 30%);
+  overflow: scroll;
+}

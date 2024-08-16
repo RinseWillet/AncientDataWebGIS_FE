@@ -1,4 +1,4 @@
-import { useMap, GeoJSON, LayerGroup, TileLayer } from 'react-leaflet';
+import { useMap, GeoJSON, LayerGroup, TileLayer, useMapEvent } from 'react-leaflet';
 //Services
 import SiteService from '../../services/SiteService';
 //style
@@ -8,10 +8,13 @@ import { possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possible
 import './MapContent.css';
 import { useState, useEffect } from 'react';
 
-const MapContent = ({ siteData, roadData }) => {
+const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchId }) => {
 
-    const map = useMap();
-    const [siteInfo, setSiteInfo] = useState([]);
+    const map = useMap();    
+
+    const mapEventListener = useMapEvent('popupclose', () => {
+        setShowInfoCard(false);
+    });
 
     //filters style of sites based on attributes
     const siteStyleDifferentiator = (siteProperties, latlng) => {
@@ -74,7 +77,7 @@ const MapContent = ({ siteData, roadData }) => {
         let name = properties.name;
         let type = properties.siteType;
 
-        return "<b>Name : " + name + "</b><br/>Type : " + type;
+        return "<b>Name : " + name + "</b>";
     }
 
     //function to zoom slightly to to left of marker (0.06 degrees) when clicked to allow popup on the right 
@@ -86,117 +89,101 @@ const MapContent = ({ siteData, roadData }) => {
         let xScreen = map.getPixelBounds().getSize().x;
 
         if (xScreen > 800) {
-            map.setView([latClicked, (lngClicked + 0.08)], 12)
+            map.setView([latClicked, (lngClicked + 0.01)], 14)
         } else if (xScreen > 600 && xScreen < 800) {
-            map.setView([latClicked, (lngClicked + 0.06)], 12)
+            map.setView([latClicked, (lngClicked + 0.005)], 14)
         } else if (xScreen > 400 && xScreen < 600) {
-            map.setView([latClicked, (lngClicked + 0.03)], 12)
+            map.setView([latClicked, (lngClicked + 0.00025)], 14)
         } else {
-            map.setView(latlngClicked, 12)
+            map.setView(latlngClicked, 14)
         }
         return null;
     }
 
-    //calculates where the popup must go (right side of clicked marker, bigger screens - under marker on smallest screens)
-    const offSetCalculator = (e) => {
-        let xScreen = map.getPixelBounds().getSize().x;
+    // //calculates where the popup must go (right side of clicked marker, bigger screens - under marker on smallest screens)
+    // const sizeCalculator = (e) => {
+    //     let xScreen = map.getPixelBounds().getSize().x;
 
-        if (xScreen > 800) {
-            return [400, 0];
-        } else if (xScreen > 600 && xScreen < 800) {
-            return [300, 0];
-        } else if (xScreen > 400 && xScreen < 600) {
-            return [200, 0];
-        } else {
-            return [0, 50]
-        }
-    }
+    //     if (xScreen > 800) {
+    //         return [400, 0];
+    //     } else if (xScreen > 600 && xScreen < 800) {
+    //         return [300, 0];
+    //     } else if (xScreen > 400 && xScreen < 600) {
+    //         return [200, 0];
+    //     } else {
+    //         return [0, 50]
+    //     }
+    // }
 
-    const clickSite = (e) => {
-        async function LoadSiteInfo() {
-
-            await SiteService
-                .findByIdGeoJson(e.sourceTarget.feature.properties.id)
-                .then((response) => {
-                    setSiteInfo(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-        }
-
-        LoadSiteInfo();
-        if (siteInfo.length > 1) {
-            console.log("hiero")
-        }
-        console.log(e)
-        console.log(siteInfo)
+    const clickSite = (e) => {       
+        setShowInfoCard(true);
+        setSearchId(e.sourceTarget.feature.properties.id);
         clickZoomSite(e);
         return null;
     }
 
+    const clickZoomRoad = (e) => {
+        let roadBounds = e.target.getBounds();
+        map.fitBounds(roadBounds);
+        return null;
+    }
 
-const clickZoomRoad = (e) => {
-    let roadBounds = e.target.getBounds();
-    map.fitBounds(roadBounds);
-    return null;
-}
+    // function to highlight a road when hovering over it with the cursor
+    const highlightRoad = (e) => {
+        var road = e.target;
+        road.setStyle({
+            weight: 3,
+            color: "yellow"
+        });
+    }
 
-// function to highlight a road when hovering over it with the cursor
-const highlightRoad = (e) => {
-    var road = e.target;
-    road.setStyle({
-        weight: 3,
-        color: "yellow"
-    });
-}
+    //function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
+    const resetHighlightroad = (e) => {
+        let style = roadStyleDifferentiator(e.target.feature.properties)
+        e.target.setStyle(style)
+    }
 
-//function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
-const resetHighlightroad = (e) => {
-    let style = roadStyleDifferentiator(e.target.feature.properties)
-    e.target.setStyle(style)
-}
 
-return (
-    <>
-        <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <LayerGroup>
-            <GeoJSON data={siteData} pointToLayer={
-                function (feature, latlng) {
-                    let marker = siteStyleDifferentiator(feature.properties, latlng);
-                    return marker;
-                }
-            } onEachFeature={
-                function (feature, layer) {
-                    let popUpContent = createPopupTextSite(feature.properties);
-                    layer.bindPopup(popUpContent, { className: 'test-popup', offset: offSetCalculator() });
-                    layer.on({
-                        'click': clickSite
-                    })
-                }
-            }
+    return (
+        <>
+            <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <GeoJSON data={roadData} style={function (feature) {
-                let style = roadStyleDifferentiator(feature.properties);
-                return style;
-            }} onEachFeature={
-                function (feature, layer) {
-                    let popUpContent = createPopupTextSite(feature.properties);
-                    layer.bindPopup(popUpContent);
-                    layer.on({
-                        'click': clickZoomRoad,
-                        'mouseover': highlightRoad,
-                        'mouseout': resetHighlightroad
-                    })
+            <LayerGroup>
+                <GeoJSON data={siteData} pointToLayer={
+                    function (feature, latlng) {
+                        let marker = siteStyleDifferentiator(feature.properties, latlng);
+                        return marker;
+                    }
+                } onEachFeature={
+                    function (feature, layer) {
+                        let popUpContent = createPopupTextSite(feature.properties);
+                        layer.bindPopup(popUpContent, { className: 'popup' });
+                        layer.on({
+                            'click': clickSite
+                        })
+                    }
                 }
-            }
-            />
-        </LayerGroup>
-    </>
-);
+                />
+                <GeoJSON data={roadData} style={function (feature) {
+                    let style = roadStyleDifferentiator(feature.properties);
+                    return style;
+                }} onEachFeature={
+                    function (feature, layer) {
+                        let popUpContent = createPopupTextSite(feature.properties);
+                        layer.bindPopup(popUpContent);
+                        layer.on({
+                            'click': clickZoomRoad,
+                            'mouseover': highlightRoad,
+                            'mouseout': resetHighlightroad
+                        })
+                    }
+                }
+                />
+            </LayerGroup>
+        </>
+    );
 }
 
 export default MapContent;

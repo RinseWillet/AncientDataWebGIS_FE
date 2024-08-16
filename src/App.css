@@ -15,10 +15,10 @@ html{
 }
 
 body{
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   box-sizing: inherit;
   background-color: var(--background-color);
   color: var(--font-color);
-  padding: 4rem;
+  padding: 1rem;
   font-family: 'Open Sans', sans-serif;
 }
