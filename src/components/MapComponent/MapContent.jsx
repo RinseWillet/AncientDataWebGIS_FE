@@ -3,18 +3,25 @@ import { useMap, GeoJSON, LayerGroup, TileLayer, useMapEvent } from 'react-leafl
 import SiteService from '../../services/SiteService';
 //style
 import 'leaflet/dist/leaflet.css';
-import { possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/markerStyles';
+import { possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
 
 import './MapContent.css';
 import { useState, useEffect } from 'react';
+import { BiCrosshair } from 'react-icons/bi';
 
 const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
-    const map = useMap();    
 
-    const mapEventListener = useMapEvent('popupclose', () => {
-        setShowInfoCard(false);
-    });
+    const map = useMap();
+
+    const [selectedItem, setSelectedItem] = useState(false);
+
+    const mapEventListener = useMapEvent(
+        'popupclose', () => {
+            setShowInfoCard(false);
+            setSelectedItem(false);
+        }
+    );
 
     //filters style of sites based on attributes
     const siteStyleDifferentiator = (siteProperties, latlng) => {
@@ -99,44 +106,52 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
         return null;
     }
 
-    // //calculates where the popup must go (right side of clicked marker, bigger screens - under marker on smallest screens)
-    // const sizeCalculator = (e) => {
-    //     let xScreen = map.getPixelBounds().getSize().x;
-
-    //     if (xScreen > 800) {
-    //         return [400, 0];
-    //     } else if (xScreen > 600 && xScreen < 800) {
-    //         return [300, 0];
-    //     } else if (xScreen > 400 && xScreen < 600) {
-    //         return [200, 0];
-    //     } else {
-    //         return [0, 50]
-    //     }
-    // }
-
-    const clickSite = (e) => {       
+    const clickSite = (e) => {
         setShowInfoCard(true);
-        setSearchItem((searchItem) => ({...searchItem, type: "site", id: e.sourceTarget.feature.properties.id}))
+        setSearchItem((searchItem) => ({ ...searchItem, type: "site", id: e.sourceTarget.feature.properties.id }))
         clickZoomSite(e);
         return null;
     }
 
-    const clickRoad = (e) => {
-        setShowInfoCard(true);    
-        setSearchItem((searchItem) => ({...searchItem, type: "road", id: e.sourceTarget.feature.properties.id}))
-        clickZoomRoad(e);
+    async function clickRoad (e) {
+        var road = e.target;
+        await setShowInfoCard(true);
+        await setSelectedItem(true);
+        await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id })); 
+        clickZoomRoad(road);        
+        highlightRoad(road);
         return null;
     }
 
-    const clickZoomRoad = (e) => {
-        let roadBounds = e.target.getBounds();
-        map.fitBounds(roadBounds);
+    const clickZoomRoad = (road) => {
+        let roadBounds = road.getBounds();    
+        let xScreen = map.getPixelBounds().getSize().x;
+
+        let bottomRightPadding;
+        let topLeftPadding;
+        if (xScreen > 800) {
+            bottomRightPadding = [400, 10];
+            topLeftPadding = [0, 10];
+        } else if (xScreen > 600 && xScreen < 800) {
+            bottomRightPadding = [150, 5];
+            topLeftPadding = [0, 5];
+        } else if (xScreen > 400 && xScreen < 600) {
+            bottomRightPadding = [100, 3];
+            topLeftPadding = [0, 3];
+        } else {
+            bottomRightPadding = [0, 20];
+            topLeftPadding = [0, 0];
+        }
+        map.fitBounds(roadBounds, {
+            paddingBottomRight: bottomRightPadding,
+            paddingTopLeft: topLeftPadding
+        });
         return null;
     }
 
     // function to highlight a road when hovering over it with the cursor
-    const highlightRoad = (e) => {
-        var road = e.target;
+    const highlightRoad = (road) => {
+        console.log("hoi");       
         road.setStyle({
             weight: 3,
             color: "yellow"
@@ -145,10 +160,9 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
     //function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
     const resetHighlightroad = (e) => {
-        let style = roadStyleDifferentiator(e.target.feature.properties)
-        e.target.setStyle(style)
+        let style = roadStyleDifferentiator(e.target.feature.properties);
+        e.target.setStyle(style);
     }
-
 
     return (
         <>
@@ -178,12 +192,11 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
                 }} onEachFeature={
                     function (feature, layer) {
                         let popUpContent = createPopupTextSite(feature.properties);
-                        layer.bindPopup(popUpContent, { className : 'popup' });
+                        layer.bindPopup(popUpContent, { className: 'popup' });
                         layer.on({
                             'click': clickRoad,
-                            'mouseover': highlightRoad,
-                            'mouseout': resetHighlightroad
-                        })
+                            'popupclose': resetHighlightroad
+                        });
                     }
                 }
                 />

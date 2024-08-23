@@ -9,10 +9,9 @@ const MapInfoCard = ({ searchItem }) => {
     const [roadInfo, setRoadInfo] = useState([]);
 
     //loading site and road data from
-    useEffect(() => {
+    useEffect(() => {        
         async function LoadSiteData() {
 
-            console.log(searchItem);
             if (searchItem.type === "site") {
                 SiteService
                     .findByIdGeoJson(searchItem.id)
@@ -34,7 +33,7 @@ const MapInfoCard = ({ searchItem }) => {
             }
         }
         LoadSiteData();
-    }, []);
+    }, [searchItem]);
 
     const siteTypeConverter = (siteType) => {
         if (siteType === 'castellum') {
@@ -96,7 +95,7 @@ const MapInfoCard = ({ searchItem }) => {
                 </div>
             );
         }
-    } else if (searchItem.type === "road") {
+    } else if (searchItem.type === "road") {      
         if (roadInfo.length < 1) {
             return (
                 <div className="infoCard" ref={infoRef}>
@@ -104,28 +103,28 @@ const MapInfoCard = ({ searchItem }) => {
                 </div>
             )
         } else {
+            let name = roadInfo.features.properties.name;
             let type = roadInfo.features.properties.type;
             let typeDescription = roadInfo.features.properties.typeDescription;
             let location = roadInfo.features.properties.location;
             let description = roadInfo.features.properties.description;
             let date = roadInfo.features.properties.date;
             let references = roadInfo.features.properties.references;
-            let historicalReferences = roadInfo.features.properties.type.historicalReferences;
+            let historicalReferences = roadInfo.features.properties.historicalReferences;
             return (
                 <div className="infoCard" ref={infoRef}>
-                    <b>Identification: </b><br />
+                    <h2>{name}</h2><br />
+                    <b>Identification : </b><br />
                     {type} - {typeDescription} <br />
-                    <b>Location</b><br />
-                    <span>{location}</span><br />
+                    <b>Location :</b><br /><span>{location}</span><br />
                     <b>Description :</b><br />
                     <span>{description}</span><br />
                     <b>Date :</b> <br />
                     {date}<br />
-                    <b>References: </b> <br />
+                    <b>References : </b> <br />
                     <span>{references}</span><br />
-                    <b>Historical references</b><br />
+                    <b>Historical references :</b><br />
                     <span>{historicalReferences}</span>
-
                 </div>
             );
         }

@@ -17,9 +17,11 @@ const MapComponent = () => {
         id: ""
     });
 
+   
+
     useEffect(() => {       
         if (!map) return;
-
+        
         const ref = infoRef.current.offsetWidth;
 
         const visibleMarkers = [];
@@ -45,9 +47,7 @@ const MapComponent = () => {
             window.removeEventListener("resize", handleResize);
         };
         
-    }, [map, showInfoCard]);
-
-    // map.onPopupClose(console.log("sluiten hiero"));
+    }, [map]);
 
     return (
         <>
