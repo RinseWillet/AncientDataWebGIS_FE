@@ -110,7 +110,7 @@ const MapInfoCard = ({ searchItem }) => {
             let description = roadInfo.features.properties.description;
             let date = roadInfo.features.properties.date;
             let references = roadInfo.features.properties.references;
-            let historicalReferences = roadInfo.features.properties.historicalReferences;
+            let historicalReferences = roadInfo.features.properties.historicalReferences;           
             return (
                 <div className="infoCard" ref={infoRef}>
                     <h2>{name}</h2><br />

@@ -1,13 +1,12 @@
-import { useMap, GeoJSON, LayerGroup, TileLayer, useMapEvent } from 'react-leaflet';
-//Services
-import SiteService from '../../services/SiteService';
+import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl } from 'react-leaflet';
+
 //style
 import 'leaflet/dist/leaflet.css';
 import { possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
 
 import './MapContent.css';
-import { useState, useEffect } from 'react';
-import { BiCrosshair } from 'react-icons/bi';
+import { useState } from 'react';
+
 
 const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
@@ -81,8 +80,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
     //binding popups to points
     // to do: standardize layer-fields
     const createPopupTextSite = (properties) => {
-        let name = properties.name;
-        let type = properties.siteType;
+        let name = properties.name;      
         return "<b>Name : " + name + "</b>";
     }
 
@@ -113,18 +111,20 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
         return null;
     }
 
-    async function clickRoad (e) {
+    //asynchronous function to make sure all states are set before altering the style
+    //of the selected road (highlightRoad() to prevent nullifyng stylechange due to rerendering)
+    async function clickRoad(e) {
         var road = e.target;
         await setShowInfoCard(true);
         await setSelectedItem(true);
-        await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id })); 
-        clickZoomRoad(road);        
+        await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id }));
+        clickZoomRoad(road);
         highlightRoad(road);
         return null;
     }
 
     const clickZoomRoad = (road) => {
-        let roadBounds = road.getBounds();    
+        let roadBounds = road.getBounds();
         let xScreen = map.getPixelBounds().getSize().x;
 
         let bottomRightPadding;
@@ -139,8 +139,8 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
             bottomRightPadding = [100, 3];
             topLeftPadding = [0, 3];
         } else {
-            bottomRightPadding = [0, 20];
-            topLeftPadding = [0, 0];
+            bottomRightPadding = [10, 20];
+            topLeftPadding = [10, 10];
         }
         map.fitBounds(roadBounds, {
             paddingBottomRight: bottomRightPadding,
@@ -151,10 +151,10 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
     // function to highlight a road when hovering over it with the cursor
     const highlightRoad = (road) => {
-        console.log("hoi");       
         road.setStyle({
             weight: 3,
-            color: "yellow"
+            color: "yellow",
+            zIndex: 20
         });
     }
 
@@ -166,41 +166,61 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
     return (
         <>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <LayerGroup>
-                <GeoJSON data={siteData} pointToLayer={
-                    function (feature, latlng) {
-                        let marker = siteStyleDifferentiator(feature.properties, latlng);
-                        return marker;
+            <LayersControl position="topleft" collapsed="false">                
+                    <LayersControl.BaseLayer checked name="Modern Topographical">
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}"
+                            minZoom={0}
+                            maxZoom={20}
+                            ext="png"
+                        />                        
+                    </LayersControl.BaseLayer>
+                    <LayersControl.BaseLayer name="Satellite">
+                        <TileLayer
+                            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            minZoom={0}
+                            maxZoom={20}
+                            ext="png"
+                        />                        
+                    </LayersControl.BaseLayer>
+           
+                <LayersControl.Overlay checked name="Archaeological Sites">
+                    <GeoJSON data={siteData} pointToLayer={
+                        function (feature, latlng) {
+                            let marker = siteStyleDifferentiator(feature.properties, latlng);
+                            return marker;
+                        }
+                    } onEachFeature={
+                        function (feature, layer) {
+                            let popUpContent = createPopupTextSite(feature.properties);
+                            layer.bindPopup(popUpContent, { className: 'popup' });
+                            layer.on({
+                                'click': clickSite
+                            })
+                        }
                     }
-                } onEachFeature={
-                    function (feature, layer) {
-                        let popUpContent = createPopupTextSite(feature.properties);
-                        layer.bindPopup(popUpContent, { className: 'popup' });
-                        layer.on({
-                            'click': clickSite
-                        })
+                    />
+                </LayersControl.Overlay>                
+                <LayersControl.Overlay checked name="Roads and routes">
+                    <GeoJSON data={roadData} style={function (feature) {
+                        let style = roadStyleDifferentiator(feature.properties);
+                        return style;
+                    }} onEachFeature={
+                        function (feature, layer) {
+                            let popUpContent = createPopupTextSite(feature.properties);
+                            layer.bindPopup(popUpContent, { className: 'popup' });
+                            layer.on({
+                                'click': clickRoad,
+                                'popupclose': resetHighlightroad
+                            });
+                        }
                     }
-                }
-                />
-                <GeoJSON data={roadData} style={function (feature) {
-                    let style = roadStyleDifferentiator(feature.properties);
-                    return style;
-                }} onEachFeature={
-                    function (feature, layer) {
-                        let popUpContent = createPopupTextSite(feature.properties);
-                        layer.bindPopup(popUpContent, { className: 'popup' });
-                        layer.on({
-                            'click': clickRoad,
-                            'popupclose': resetHighlightroad
-                        });
-                    }
-                }
-                />
-            </LayerGroup>
+                    />
+                </LayersControl.Overlay>
+            </LayersControl>
+            <ScaleControl position="bottomleft" />
         </>
     );
 }

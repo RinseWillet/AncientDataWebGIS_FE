@@ -1,0 +1,72 @@
+
+/* .dataList {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+} */
+.typeSwitch{
+    display: inline-flex;
+    width: 100%;    
+    margin-top: 1%;
+    margin-bottom: 1%; 
+    place-content: start space-evenly;
+    /* justify-content: space-between; */
+}
+
+.dataSwitch-label__roads {
+    color: #fff;
+    font-weight: normal;
+}
+
+.dataSwitch-label__roads.switched {
+    color: var(--accent-color-2);
+    font-weight: normal;
+    text-decoration: underline;
+}
+
+.dataSwitch-label__sites{
+    color: #fff;
+    font-weight: normal;
+}
+
+.dataSwitch-label__sites.switched {
+    color: var(--accent-color);
+    font-weight: normal;
+    text-decoration: underline;
+}
+
+.dataSwitch-btn{
+    background-color: var(--accent-color-2);
+    border: 1px solid #aaa;
+    border-radius: 99px;
+    width: 50px;
+    height: 28px;
+    transition: background-color 0.1s ease, border-color 0.2s ease;
+    cursor: pointer;
+    box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
+    position: relative; 
+}
+
+.dataSwitch-btn .thumb {
+    position: relative;
+    height: 20px;
+    width: 20px;
+    background-color: #fff;
+    border-radius: 99px;
+    transition: left 0.15s ease;
+    left: 3px;
+    top: 0%;
+}
+
+.dataSwitch-btn.switched{    
+    background-color: var(--accent-color);
+}
+
+.dataSwitch-btn:hover{
+    border-color: #6f6f6f;
+}
+
+.dataSwitch-btn.switched .thumb{
+    left: calc(26px);
+}

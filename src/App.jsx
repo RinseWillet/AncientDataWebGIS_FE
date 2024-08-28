@@ -11,6 +11,7 @@ import NavBar from './components/NavBar';
 import About from './pages/About';
 import Atlas from './pages/Atlas';
 import Home from './pages/Home';
+import DataList from './pages/DataList';
 
 
 const App = () => {
@@ -23,6 +24,7 @@ const App = () => {
           <Route exact path='/home' element={<Home />} />
           <Route exact path='/about' element={<About />} />
           <Route exact path='/atlas' element={<Atlas />} />
+          <Route exact path='/datalist' element={<DataList />} />
         </Routes>
       </div>      
     </>

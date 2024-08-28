@@ -4,10 +4,28 @@
   padding: 0;
 }
 
+
+/* styling options from paletton.com 1
+Primary color: #FFFDD7,
+Primary color 2: #FFFBBE,
+Primary color 0: #E7E292,
+Primary color 3: #CEC868,
+Primary color 4: #B2AB3F
+ */
+
+ /* styling options from paletton.com 2
+Primary color: #FFF4D7,
+Primary color 2: #FFEEBE,
+Primary color 0: #E7D092,
+Primary color 3: #CEB368,
+Primary color 4: #B2933F
+ */
+
 :root{
   --background-color: #252a34;
   --font-color: #eeeeee;
   --accent-color: #ff2e63;
+  --accent-color-2: #15b58e;
 }
 
 html{
