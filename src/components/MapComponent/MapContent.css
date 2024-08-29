@@ -1,0 +1,14 @@
+.popup .leaflet-popup-content-wrapper {
+    border-radius: 0px;
+    opacity: 0.9;
+    text-align: center;
+    height: 75%;
+    margin-top: 0.5%;
+    color: black;
+    width: auto;
+    box-shadow: 0 0 10px 10px rgb(0 0 0 / 30%);
+  } 
+
+  .popup .leaflet-popup-tip-container {
+    opacity: 0;
+  }

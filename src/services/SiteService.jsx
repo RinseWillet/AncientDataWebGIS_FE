@@ -4,8 +4,8 @@ const SiteService = {
     async findAllGeoJson() {
         return await apiClient.get('/sites/geojson');
     },
-    async findAllByIdGeoJson(data) {
-        return await apiClient.get('/sites/' + data.id);
+    async findByIdGeoJson(id) {
+        return await apiClient.get('/sites/' + id);
     },    
 
     async testEndpoint() {

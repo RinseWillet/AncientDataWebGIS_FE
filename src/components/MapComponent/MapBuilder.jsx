@@ -1,36 +1,20 @@
 //React
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 
 //Services
 import SiteService from '../../services/SiteService';
 import RoadService from '../../services/RoadService';
-
-//Leaflet mapping library
-import { MapContainer, TileLayer, LayerGroup, GeoJSON, useMapEvent,useMap } from 'react-leaflet';
-import L from 'leaflet';
+import MapContent from "./MapContent";
 
 //style
 import 'leaflet/dist/leaflet.css';
-import { popUpStyle, possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/markerStyles';
-import MapContent from "./MapContent";
 
-// function MyComponent() {
-//   const map = useMapEvent(
-//     'click', () => {
-//       map.setView([50.5, 30.5], map.getZoom())
-//     })
-
-//   return null
-// }
-
-const MapBuilder = () => {
-
-  const mapRef=useMap();
+const MapBuilder = ({setShowInfoCard, setSearchItem}) => {
 
   const [siteData, setSiteData] = useState([]);
-  const [roadData, setRoadData] = useState([]);
+  const [roadData, setRoadData] = useState([]);  
 
+  //loading site and road data from
   useEffect(() => {
     async function LoadAllData() {
 
@@ -63,7 +47,7 @@ const MapBuilder = () => {
   } else {
     return (
       <>      
-            <MapContent data={siteData} />           
+            <MapContent siteData={siteData} roadData={roadData} setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem}/>           
       </>
     )
   }

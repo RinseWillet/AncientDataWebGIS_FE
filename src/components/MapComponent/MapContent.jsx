@@ -1,133 +1,226 @@
-import { useMap, GeoJSON, LayerGroup, TileLayer } from 'react-leaflet';
+import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl } from 'react-leaflet';
 
 //style
 import 'leaflet/dist/leaflet.css';
-import { popUpStyle, possibleRoad, hypotheticalRoute, road, histRec, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/markerStyles';
+import { possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
 
-const MapContent = ({data}) => {
+import './MapContent.css';
+import { useState } from 'react';
+
+
+const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
+
 
     const map = useMap();
 
+    const [selectedItem, setSelectedItem] = useState(false);
+
+    const mapEventListener = useMapEvent(
+        'popupclose', () => {
+            setShowInfoCard(false);
+            setSelectedItem(false);
+        }
+    );
+
     //filters style of sites based on attributes
     const siteStyleDifferentiator = (siteProperties, latlng) => {
+        let siteMarker = new L.Marker(latlng, { alt: siteProperties.name });
+
         if (siteProperties.siteType === 'castellum') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(castellumIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'pos_castellum') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(possibleCastellumIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'legfort') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(legionaryFortIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'watchtower') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(watchtowerIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'city') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(cityIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'cem') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(cemeteryIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'ptum') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(tumulusIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'tum') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(tumulusIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'villa') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(villaIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'pvilla') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(possibleVillaIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'sett') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(settlementIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'settS') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(settlementStoneIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'sanctuary') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(sanctuaryIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'ship') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(shipIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'pship') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(possibleShipIcon);
-            return siteMarker;
         } else if (siteProperties.siteType === 'site') {
-            let siteMarker = new L.Marker(latlng)
             siteMarker.setIcon(siteIcon);
-            return siteMarker;
         } else {
-            let siteMarker = new L.circleMarker(latlng)
-            return siteMarker;
+            siteMarker = new L.circleMarker(latlng)
+        }
+        return siteMarker;
+    }
+
+    //filters style of roads based on attributes
+    const roadStyleDifferentiator = (roadProperties) => {
+        if (roadProperties.type === 'possible road') {
+            return possibleRoad;
+        } else if (roadProperties.type === 'hypothetical route') {
+            return hypotheticalRoute;
+        } else if (roadProperties.type === 'road') {
+            return road;
+        } else if (roadProperties.type === 'hist_rec') {
+            return histRec;
         }
     }
 
     //binding popups to points
     // to do: standardize layer-fields
-    const createPopupText = (properties) => {
-        let name = properties.name;
-        let status = properties.siteType;
-        let status_ref = "test";
-        let province = "test";
-        let conventus = "test";
-        let pleiades = "test";
-        if (pleiades === null) {
-            var popup_text = "<b>Name : " + name + "</b><br/>Status : " + status + "<br/>Reference : " + status_ref + "<br/>Assize : " + conventus + "<br/>Province : " + province
-        } else {
-            var popup_text = "<b>Name : " + name + "</b><br/>Status : " + status + "<br/>Reference : " + status_ref + "<br/>Assize : " + conventus + "<br/>Province : " + province +
-                "<br/><a href='https://pleiades.stoa.org/places/" + pleiades + "'>Pleiades : " + pleiades + "</a>"
-        }
-        return popup_text
+    const createPopupTextSite = (properties) => {
+        let name = properties.name;      
+        return "<b>Name : " + name + "</b>";
     }
 
     //function to zoom slightly to to left of marker (0.06 degrees) when clicked to allow popup on the right 
-    function clickZoom(e) { 
+    const clickZoomSite = (e) => {
         let latlngClicked = e.target.getLatLng();
         let latClicked = latlngClicked.lat;
         let lngClicked = latlngClicked.lng;
-        map.setView([latClicked, (lngClicked + 0.06)], 12)        
+
+        let xScreen = map.getPixelBounds().getSize().x;
+
+        if (xScreen > 800) {
+            map.setView([latClicked, (lngClicked + 0.01)], 14)
+        } else if (xScreen > 600 && xScreen < 800) {
+            map.setView([latClicked, (lngClicked + 0.005)], 14)
+        } else if (xScreen > 400 && xScreen < 600) {
+            map.setView([latClicked, (lngClicked + 0.00025)], 14)
+        } else {
+            map.setView(latlngClicked, 14)
+        }
         return null;
+    }
+
+    const clickSite = (e) => {
+        setShowInfoCard(true);
+        setSearchItem((searchItem) => ({ ...searchItem, type: "site", id: e.sourceTarget.feature.properties.id }))
+        clickZoomSite(e);
+        return null;
+    }
+
+    //asynchronous function to make sure all states are set before altering the style
+    //of the selected road (highlightRoad() to prevent nullifyng stylechange due to rerendering)
+    async function clickRoad(e) {
+        var road = e.target;
+        await setShowInfoCard(true);
+        await setSelectedItem(true);
+        await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id }));
+        clickZoomRoad(road);
+        highlightRoad(road);
+        return null;
+    }
+
+    const clickZoomRoad = (road) => {
+        let roadBounds = road.getBounds();
+        let xScreen = map.getPixelBounds().getSize().x;
+
+        let bottomRightPadding;
+        let topLeftPadding;
+        if (xScreen > 800) {
+            bottomRightPadding = [400, 10];
+            topLeftPadding = [0, 10];
+        } else if (xScreen > 600 && xScreen < 800) {
+            bottomRightPadding = [150, 5];
+            topLeftPadding = [0, 5];
+        } else if (xScreen > 400 && xScreen < 600) {
+            bottomRightPadding = [100, 3];
+            topLeftPadding = [0, 3];
+        } else {
+            bottomRightPadding = [10, 20];
+            topLeftPadding = [10, 10];
+        }
+        map.fitBounds(roadBounds, {
+            paddingBottomRight: bottomRightPadding,
+            paddingTopLeft: topLeftPadding
+        });
+        return null;
+    }
+
+    // function to highlight a road when hovering over it with the cursor
+    const highlightRoad = (road) => {
+        road.setStyle({
+            weight: 3,
+            color: "yellow",
+            zIndex: 20
+        });
+    }
+
+    //function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
+    const resetHighlightroad = (e) => {
+        let style = roadStyleDifferentiator(e.target.feature.properties);
+        e.target.setStyle(style);
     }
 
     return (
         <>
-            <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <LayerGroup>
-                <GeoJSON data={data} pointToLayer={
-                    function (feature, latlng) {
-                        let marker = siteStyleDifferentiator(feature.properties, latlng);
-                        return marker;
+            <LayersControl position="topleft" collapsed="false">                
+                    <LayersControl.BaseLayer checked name="Modern Topographical">
+                        <TileLayer
+                            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}"
+                            minZoom={0}
+                            maxZoom={20}
+                            ext="png"
+                        />                        
+                    </LayersControl.BaseLayer>
+                    <LayersControl.BaseLayer name="Satellite">
+                        <TileLayer
+                            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                            minZoom={0}
+                            maxZoom={20}
+                            ext="png"
+                        />                        
+                    </LayersControl.BaseLayer>
+           
+                <LayersControl.Overlay checked name="Archaeological Sites">
+                    <GeoJSON data={siteData} pointToLayer={
+                        function (feature, latlng) {
+                            let marker = siteStyleDifferentiator(feature.properties, latlng);
+                            return marker;
+                        }
+                    } onEachFeature={
+                        function (feature, layer) {
+                            let popUpContent = createPopupTextSite(feature.properties);
+                            layer.bindPopup(popUpContent, { className: 'popup' });
+                            layer.on({
+                                'click': clickSite
+                            })
+                        }
                     }
-                } onEachFeature={
-                    function (feature, layer) {
-                        let popUpText = createPopupText(feature.properties);
-                        layer.bindPopup(popUpText, popUpStyle);
-                        layer.on('click', clickZoom)
+                    />
+                </LayersControl.Overlay>                
+                <LayersControl.Overlay checked name="Roads and routes">
+                    <GeoJSON data={roadData} style={function (feature) {
+                        let style = roadStyleDifferentiator(feature.properties);
+                        return style;
+                    }} onEachFeature={
+                        function (feature, layer) {
+                            let popUpContent = createPopupTextSite(feature.properties);
+                            layer.bindPopup(popUpContent, { className: 'popup' });
+                            layer.on({
+                                'click': clickRoad,
+                                'popupclose': resetHighlightroad
+                            });
+                        }
                     }
-                }
-                />
-            </LayerGroup>
+                    />
+                </LayersControl.Overlay>
+            </LayersControl>
+            <ScaleControl position="bottomleft" />
         </>
     );
 }
