@@ -1,0 +1,21 @@
+.roadinfo-card{
+    margin: 3%;
+}
+
+.back-btn {
+    background-color: var(--accent-color);
+    color: var(--font-color);
+    border: 1px solid #9a5353;
+    border-radius: 99px;
+    width: 50px;
+    height: 28px;
+    transition: background-color 0.1s ease, border-color 0.2s ease;
+    cursor: pointer;
+    box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
+    position: relative;
+}
+
+.back-btn:hover{
+    border-color: white;
+    background-color: red;
+}

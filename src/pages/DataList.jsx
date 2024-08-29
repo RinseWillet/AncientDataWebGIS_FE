@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import RoadService from "../services/RoadService";
 import SiteService from "../services/SiteService";
 
@@ -12,6 +13,11 @@ import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied
 
 const DataList = () => {
 
+
+    //hook for navigation to Info page
+    const navigate = useNavigate();
+
+    //state switch between road and site data
     const [dataSwitch, setDataSwitch] = useState(false)
 
     //data from API
@@ -64,22 +70,22 @@ const DataList = () => {
             setColDefs([
                 { field: "id" },
                 { field: "name" },
-                { field: "type" }                
+                { field: "type" }
             ])
             findAllSites();
         }
     }, [dataSwitch]);
 
     //as soon as the state of data is set (=loaded from API completed - see above) the data is parsed to an array for the rows
-    useEffect(() => {        
+    useEffect(() => {
         function rowFeatureLoader() {
             if (data.length < 1) {
                 console.log("no data");
             } else {
                 console.log(data);
-                let rowFeatures = [];           
+                let rowFeatures = [];
 
-                if(!dataSwitch){
+                if (!dataSwitch) {
                     for (let i = 0; i < data.features.length; i++) {
                         try {
                             let feature = {
@@ -92,14 +98,14 @@ const DataList = () => {
                         } catch (error) {
                             console.error(error);
                             continue;
-                        }                        
-                        
+                        }
+
                     }
                 } else {
                     for (let i = 0; i < data.features.length; i++) {
                         try {
                             let feature = {
-                                id : data.features[i].properties.id,
+                                id: data.features[i].properties.id,
                                 name: data.features[i].properties.name,
                                 type: data.features[i].properties.siteType,
                             }
@@ -107,15 +113,35 @@ const DataList = () => {
                         } catch (error) {
                             console.error(error);
                             continue;
-                        }                        
-                        
+                        }
+
                     }
-                }            
+                }
                 setRowData(rowFeatures);
             }
         }
         rowFeatureLoader();
     }, [data]);
+
+    const autoSizeStrategy = {
+        type: 'fitGridWidth',
+        defaultMinWidth: 100,
+        columnLimits: [
+            {
+                colId: 'country',
+                minWidth: 900
+            }
+        ]
+    };
+
+    const onRowClickHandler = (selected) => {
+        if (!dataSwitch) {
+            navigate("roadinfo/" + selected.data.id)
+        } else {
+            navigate("siteinfo/" + selected.data.id)
+        }
+    }
+
 
     return (
         <>
@@ -135,6 +161,8 @@ const DataList = () => {
                     rowData={rowData}
                     columnDefs={colDefs}
                     pagination={true}
+                    autoSizeStrategy={autoSizeStrategy}
+                    onRowDoubleClicked={onRowClickHandler}
                 />
             </div>
         </>

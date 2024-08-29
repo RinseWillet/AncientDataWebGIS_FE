@@ -8,10 +8,11 @@ import './MapContent.css';
 import { useState } from 'react';
 
 
-const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
-
+const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem }) => {
 
     const map = useMap();
+
+    const markersById = {};
 
     const [selectedItem, setSelectedItem] = useState(false);
 
@@ -80,7 +81,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
     //binding popups to points
     // to do: standardize layer-fields
     const createPopupTextSite = (properties) => {
-        let name = properties.name;      
+        let name = properties.name;
         return "<b>Name : " + name + "</b>";
     }
 
@@ -114,7 +115,8 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
     //asynchronous function to make sure all states are set before altering the style
     //of the selected road (highlightRoad() to prevent nullifyng stylechange due to rerendering)
     async function clickRoad(e) {
-        var road = e.target;
+        let road = e.target;
+        console.log(road);
         await setShowInfoCard(true);
         await setSelectedItem(true);
         await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id }));
@@ -123,6 +125,9 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
         return null;
     }
 
+
+    //function to zoom to road after clicking, basic responsiveness to keep
+    //the map and road to the left and the MapInfoCard on the right
     const clickZoomRoad = (road) => {
         let roadBounds = road.getBounds();
         let xScreen = map.getPixelBounds().getSize().x;
@@ -166,26 +171,26 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
 
     return (
         <>
-            <LayersControl position="topleft" collapsed="false">                
-                    <LayersControl.BaseLayer checked name="Modern Topographical">
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}"
-                            minZoom={0}
-                            maxZoom={20}
-                            ext="png"
-                        />                        
-                    </LayersControl.BaseLayer>
-                    <LayersControl.BaseLayer name="Satellite">
-                        <TileLayer
-                            attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-                            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                            minZoom={0}
-                            maxZoom={20}
-                            ext="png"
-                        />                        
-                    </LayersControl.BaseLayer>
-           
+            <LayersControl position="topleft" collapsed="false">
+                <LayersControl.BaseLayer checked name="Modern Topographical">
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}"
+                        minZoom={0}
+                        maxZoom={20}
+                        ext="png"
+                    />
+                </LayersControl.BaseLayer>
+                <LayersControl.BaseLayer name="Satellite">
+                    <TileLayer
+                        attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                        minZoom={0}
+                        maxZoom={20}
+                        ext="png"
+                    />
+                </LayersControl.BaseLayer>
+
                 <LayersControl.Overlay checked name="Archaeological Sites">
                     <GeoJSON data={siteData} pointToLayer={
                         function (feature, latlng) {
@@ -202,19 +207,42 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem }) => {
                         }
                     }
                     />
-                </LayersControl.Overlay>                
+                </LayersControl.Overlay>
                 <LayersControl.Overlay checked name="Roads and routes">
                     <GeoJSON data={roadData} style={function (feature) {
-                        let style = roadStyleDifferentiator(feature.properties);
-                        return style;
+                        if (queryItem.queryItem.type === "road") { 
+                            if (queryItem.queryItem.id == feature.properties.id) {
+                                let highlightstyle = {
+                                    weight: 3,
+                                    color: "yellow",
+                                    zIndex: 20
+                                }
+                                return highlightstyle;
+                            } else {
+                                let style = roadStyleDifferentiator(feature.properties);
+                                return style;
+                            }
+                        } else {
+                            let style = roadStyleDifferentiator(feature.properties);
+                            return style;
+                        }
+                        
                     }} onEachFeature={
                         function (feature, layer) {
                             let popUpContent = createPopupTextSite(feature.properties);
                             layer.bindPopup(popUpContent, { className: 'popup' });
-                            layer.on({
-                                'click': clickRoad,
-                                'popupclose': resetHighlightroad
-                            });
+                            //part dealing with zooming to queried road from params
+                            if (queryItem.queryItem.type === "road") {
+                                if (queryItem.queryItem.id == feature.properties.id) { 
+                                    console.log(feature.properties)                                   
+                                    map.fitBounds(layer.getBounds());                                  
+                                }
+                            } else {                               
+                                layer.on({
+                                    'click': clickRoad,
+                                    'popupclose': resetHighlightroad
+                                });
+                            } 
                         }
                     }
                     />

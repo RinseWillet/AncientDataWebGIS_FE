@@ -8,7 +8,7 @@ import './MapComponent.css';
 
 const position = [51.8, 5.8]
 
-const MapComponent = () => {
+const MapComponent = (queryItem) => { 
     
     const [map, setMap] = useState(null);
     const [showInfoCard, setShowInfoCard] = useState(false);
@@ -16,8 +16,6 @@ const MapComponent = () => {
         type: "",
         id: ""
     });
-
-   
 
     useEffect(() => {       
         if (!map) return;
@@ -60,7 +58,7 @@ const MapComponent = () => {
                     zoom={9}
                     zoomControl={false}                    
                 >
-                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem}/>
+                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem}/>
                 </MapContainer>
             </div>
         </>
