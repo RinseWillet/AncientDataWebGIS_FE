@@ -8,8 +8,8 @@ import './MapComponent.css';
 
 const position = [51.8, 5.8]
 
-const MapComponent = (queryItem) => { 
-    
+const MapComponent = (queryItem) => {
+
     const [map, setMap] = useState(null);
     const [showInfoCard, setShowInfoCard] = useState(false);
     const [searchItem, setSearchItem] = useState({
@@ -17,9 +17,9 @@ const MapComponent = (queryItem) => {
         id: ""
     });
 
-    useEffect(() => {       
+    useEffect(() => {
         if (!map) return;
-        
+
         const ref = infoRef.current.offsetWidth;
 
         const visibleMarkers = [];
@@ -29,7 +29,7 @@ const MapComponent = (queryItem) => {
             }
         });
 
-        const featureGroup = L.featureGroup(visibleMarkers).getBounds();        
+        const featureGroup = L.featureGroup(visibleMarkers).getBounds();
 
         function handleResize() {
             map.fitBounds(featureGroup, {
@@ -44,24 +44,22 @@ const MapComponent = (queryItem) => {
         return (_) => {
             window.removeEventListener("resize", handleResize);
         };
-        
+
     }, [map]);
 
     return (
-        <>
-            <div className="wrapper">
-                {showInfoCard ? 
-                <MapInfoCard searchItem={searchItem}/> : null }
-                <MapContainer id="map" className='infoMap'
-                    whenCreated={setMap}
-                    center={position}
-                    zoom={9}
-                    zoomControl={false}                    
-                >
-                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem}/>
-                </MapContainer>
-            </div>
-        </>
+        <div className="wrapper">
+            {showInfoCard ?
+                <MapInfoCard searchItem={searchItem} /> : null}
+            <MapContainer id="map" className='infoMap'
+                whenCreated={setMap}
+                center={position}
+                zoom={9}
+                zoomControl={false}
+            >
+                <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
+            </MapContainer>
+        </div>
     );
 }
 

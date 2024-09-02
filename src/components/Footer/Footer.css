@@ -24,7 +24,7 @@
 
 .sb__footer-links_div {
     width: 150px;
-    margin: 0.5rem;
+    margin: 0.1rem;
     display: flex;
     justify-content: flex-start;
     flex-direction: column;
@@ -47,15 +47,15 @@ a {
 
 .sb__footer-links_div h4{
     font-size: 1rem;
-    line-height: 0.9rem;
+    line-height: 1rem;
     margin: 0.5rem 0;
     cursor: pointer;
 }
 
 .sb__footer-links_div p{
-    font-size: 0.9rem;
-    line-height: 0.75rem;
-    margin: 0.5rem 0;
+    font-size: 1rem;
+    line-height: 1rem;
+    margin: 0.4rem 0;
     cursor: pointer;
 }
 
@@ -65,8 +65,8 @@ a {
 }
 
 .sb__footer-below-links p{
-    font-size: 1rem;
-    line-height: 1.3rem;
+    font-size: 0.8rem;
+    line-height: 1.2rem;
     margin-left: 2rem;
     color: var(--font-color-2);
     font-weight: 600;
@@ -78,8 +78,8 @@ hr{
 }
 
 .sb__footer-copyright p{
-    font-size: 1rem;
-    line-height: 1.2rem;
+    font-size: 0.8rem;
+    line-height: 1rem;
     color: var(--font-color-1);
     font-weight: 500;
 }

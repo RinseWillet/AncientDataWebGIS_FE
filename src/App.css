@@ -35,6 +35,7 @@ Primary color 4: #B2933F
   --font-color-3: #333333;
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
+  --shadow-color: rgb(0 0 0 / 30%);
 }
 
 /* dev style */
@@ -51,19 +52,20 @@ html{
 }
 
 body{
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   box-sizing: inherit;
   background-image: linear-gradient(to top left, var(--background-color_1), var(--box-color_2));  
   color: var(--font-color);
-  padding: 1rem;
+  padding: 0.5rem;
   font-family: 'Open Sans', sans-serif;
 }
 
 .pagebox {
-  padding: 1%;
-  margin-top: 1%;
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
   background-color: var(--background-color_2);
-  height: 60vh;
+  min-height: 64vh;
 }
 
 .back-btn {

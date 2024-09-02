@@ -9,18 +9,18 @@ const Atlas = () => {
 
     if (typeof (id) == 'undefined') {
         return (
-            <>
+            <div className="pagebox">
                 <MapComponent queryItem="" />
-            </>
+            </div>
         )
     } else {
         let queryData = id;
 
         if (!(queryData.includes("road_") || queryData.includes("site_"))) {
             return (
-                <>
+                <div className="pagebox">
                     <MapComponent queryItem="" />
-                </>
+                </div>
             )
         }
 

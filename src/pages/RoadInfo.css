@@ -1,3 +1,4 @@
 .roadinfo-card{
     margin: 3%;
+    overflow: auto;
 }

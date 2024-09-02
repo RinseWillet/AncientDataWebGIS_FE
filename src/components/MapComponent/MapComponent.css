@@ -3,7 +3,8 @@
 }
 
 .infoMap {
-  height: 60vh;
+  box-sizing: border-box;
+  height: 62vh;
   width: 100%; 
 }
 
@@ -21,6 +22,6 @@
   background: #fff;
   padding: 15px;
   border-radius: 5px;
-  box-shadow: 0 0 10px 10px rgb(0 0 0 / 30%);
-  overflow: scroll;
+  box-shadow: 0 0 10px 10px var(--shadow-color);
+  overflow: auto;
 }
