@@ -4,6 +4,9 @@
   padding: 0;
 }
 
+html, body {
+  height:100%;
+}
 
 /* styling options from paletton.com 1
 Primary color: #FFFDD7,
@@ -21,22 +24,64 @@ Primary color 3: #CEB368,
 Primary color 4: #B2933F
  */
 
+ /* testing style 1 */
 :root{
+  --background-color_1: #C7B7A3;
+  --background-color_2: #E8D8C4; 
+  --box-color_1: #561C24;
+  --box-color_2: #6D2932;
+  --font-color-1: #eeeeee;
+  --font-color-2: #c9c9c9;
+  --font-color-3: #333333;
+  --accent-color: #ff2e63;
+  --accent-color-2: #15b58e;
+  --shadow-color: rgb(0 0 0 / 30%);
+}
+
+/* dev style */
+ /* :root{
   --background-color: #252a34;
   --font-color: #eeeeee;
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
-}
+} */
+
 
 html{
   font-size: 62.5%;
 }
 
 body{
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   box-sizing: inherit;
-  background-color: var(--background-color);
+  background-image: linear-gradient(to top left, var(--background-color_1), var(--box-color_2));  
   color: var(--font-color);
-  padding: 1rem;
+  padding: 0.5rem;
   font-family: 'Open Sans', sans-serif;
+}
+
+.pagebox {
+  font-size: 1rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  background-color: var(--background-color_2);
+  min-height: 64vh;
+}
+
+.back-btn {
+  background-color: var(--accent-color);
+  color: var(--font-color);
+  border: 1px solid #9a5353;
+  border-radius: 99px;
+  width: 50px;
+  height: 28px;
+  transition: background-color 0.1s ease, border-color 0.2s ease;
+  cursor: pointer;
+  box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
+  position: relative;
+}
+
+.back-btn:hover{
+  border-color: white;
+  background-color: red;
 }

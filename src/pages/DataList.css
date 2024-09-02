@@ -1,16 +1,21 @@
+.ag-theme-customized {
+    --ag-grid-size: 8px;
+    --ag-border-color: red;
+}
 
-/* .dataList {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-} */
+.ag-theme-mycustomtheme .ag-header {
+    /* or with CSS selectors targeting grid DOM elements */
+    font-style: italic;
+    color:purple !important;
+}
+
 .typeSwitch{
     display: inline-flex;
     width: 100%;    
     margin-top: 1%;
     margin-bottom: 1%; 
     place-content: start space-evenly;
+    font-size: 1.4rem;
     /* justify-content: space-between; */
 }
 
@@ -26,7 +31,7 @@
 }
 
 .dataSwitch-label__sites{
-    color: #fff;
+    color: var(--font-color-1);
     font-weight: normal;
 }
 
@@ -40,8 +45,8 @@
     background-color: var(--accent-color-2);
     border: 1px solid #aaa;
     border-radius: 99px;
-    width: 50px;
-    height: 28px;
+    width: 5rem;
+    height: 2.8rem;
     transition: background-color 0.1s ease, border-color 0.2s ease;
     cursor: pointer;
     box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
@@ -50,8 +55,8 @@
 
 .dataSwitch-btn .thumb {
     position: relative;
-    height: 20px;
-    width: 20px;
+    height: 2rem;
+    width: 2rem;
     background-color: #fff;
     border-radius: 99px;
     transition: left 0.15s ease;
@@ -68,5 +73,5 @@
 }
 
 .dataSwitch-btn.switched .thumb{
-    left: calc(26px);
+    left: calc(2.6rem);
 }

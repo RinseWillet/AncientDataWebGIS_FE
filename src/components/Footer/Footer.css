@@ -1,0 +1,122 @@
+.section__padding{
+    padding: 0.3rem 0.3rem;
+}
+
+.footer{
+    bottom: #2d2d32;
+}
+
+.sb__footer{
+    display: flex;
+    flex-direction: column;
+}
+
+.sb__footer-links{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 0.1rem;
+}
+
+.sb__footer-links_div {
+    width: 150px;
+    margin: 0.1rem;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    color: var(--font-color-1);    
+}
+
+a {
+    color: var(--font-color-2);
+    text-decoration: none;
+}
+
+.socialmedia {
+    display: flex;
+    flex-direction: row;
+}
+
+.socialmedia img{
+    width: 40%;
+}
+
+.sb__footer-links_div h4{
+    font-size: 1rem;
+    line-height: 1rem;
+    margin: 0.5rem 0;
+    cursor: pointer;
+}
+
+.sb__footer-links_div p{
+    font-size: 1rem;
+    line-height: 1rem;
+    margin: 0.4rem 0;
+    cursor: pointer;
+}
+
+.sb__footer-below-links{
+    display: flex;
+    flex-direction: row;
+}
+
+.sb__footer-below-links p{
+    font-size: 0.8rem;
+    line-height: 1.2rem;
+    margin-left: 2rem;
+    color: var(--font-color-2);
+    font-weight: 600;
+}
+
+hr{
+    color: var(--font-color-1) !important;
+    width: 100%;
+}
+
+.sb__footer-copyright p{
+    font-size: 0.8rem;
+    line-height: 1rem;
+    color: var(--font-color-1);
+    font-weight: 500;
+}
+
+@media screen and (max-width: 850px) {
+    .sb__footer-heading h1{
+        font-size: 3.4rem;
+        line-height: 4.2rem;
+    }
+
+    .sb__footer-links div{
+        margin: 1rem 0;        
+    }
+
+    .sb__footer-btn p{
+        font-size: 1.2rem;
+        line-height: 0.8rem;
+    }
+
+    .sb__footer-below{
+        flex-direction: column;
+        justify-content: left;
+    }
+
+    .sb__footer-below-links {
+        flex-direction: column;
+    }
+
+    .sb__footer-below-links p{
+        margin-left: 0rem;
+        margin-top: 1rem;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .sb__footer-heading h1{
+        font-size: 2.7rem;
+        line-height: 3.8rem;
+    }
+}

@@ -6,12 +6,16 @@ import 'leaflet/dist/leaflet.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import NavBar from './components/NavBar';
+import Footer from './components/Footer/Footer';
 
 //pages
 import About from './pages/About';
 import Atlas from './pages/Atlas';
 import Home from './pages/Home';
+import RoadInfo from './pages/RoadInfo';
+import SiteInfo from './pages/SiteInfo';
 import DataList from './pages/DataList';
+import NoPage from './pages/NoPage';
 
 
 const App = () => {
@@ -24,8 +28,13 @@ const App = () => {
           <Route exact path='/home' element={<Home />} />
           <Route exact path='/about' element={<About />} />
           <Route exact path='/atlas' element={<Atlas />} />
+          <Route exact path='/atlas/:id?' element={<Atlas />} />
           <Route exact path='/datalist' element={<DataList />} />
+          <Route exact path='/datalist/roadinfo/:id?' element={<RoadInfo />} />
+          <Route exact path='/datalist/siteinfo/:id?' element={<SiteInfo />} />
+          <Route exact path='/nopage' element={<NoPage />} />
         </Routes>
+        <Footer />
       </div>      
     </>
   )
