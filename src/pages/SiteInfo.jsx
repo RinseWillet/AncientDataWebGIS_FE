@@ -5,12 +5,12 @@ import './SiteInfo.css'
 
 const SiteInfo = (e) => {
 
-    const {id} = useParams();
+    const { id } = useParams();
 
-    console.log(id)
+    const [data, setData] = useState();
+
     //hook for navigation to go back to DataList or go to Atlas page
     const navigate = useNavigate();
-
 
     const siteTypeConverter = (siteType) => {
         if (siteType === 'castellum') {
@@ -52,7 +52,9 @@ const SiteInfo = (e) => {
 
 
     return (
-        <p>site info hoi</p>
+        <div className="pagebox">
+                <p>site info hoi</p>
+        </div>    
     )
 }
 

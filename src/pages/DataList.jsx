@@ -125,7 +125,7 @@ const DataList = () => {
 
     const autoSizeStrategy = {
         type: 'fitGridWidth',
-        defaultMinWidth: 100,
+        defaultMinWidth: 50,
         columnLimits: [
             {
                 colId: 'country',
@@ -145,16 +145,16 @@ const DataList = () => {
     return (
         <div className="pagebox">
             <div className="typeSwitch">
-                <h3 className={`dataSwitch-label__roads ${dataSwitch ? "" : "switched"}`}>Roads</h3>
+                <p className={`dataSwitch-label__roads ${dataSwitch ? "" : "switched"}`}>Roads</p>
                 <button className={`dataSwitch-btn ${dataSwitch ? "switched" : ""}`}
                     onClick={() => setDataSwitch(!dataSwitch)}>
                     <div className="thumb" />
                 </button>
-                <h3 className={`dataSwitch-label__sites ${dataSwitch ? "switched" : ""}`}>Sites</h3>
+                <p className={`dataSwitch-label__sites ${dataSwitch ? "switched" : ""}`}>Sites</p>
             </div>
             <div
-                className="ag-theme-quartz" // applying the Data Grid theme
-                style={{ height: 500 }} // the Data Grid will fill the size of the parent container
+                className="ag-theme-customized" // applying the Data Grid theme
+                style={{ height: 250 }} // the Data Grid will fill the size of the parent container
             >
                 <AgGridReact
                     rowData={rowData}

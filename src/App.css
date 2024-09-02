@@ -30,12 +30,12 @@ Primary color 4: #B2933F
   --background-color_2: #E8D8C4; 
   --box-color_1: #561C24;
   --box-color_2: #6D2932;
-  --font-color: #eeeeee;
+  --font-color-1: #eeeeee;
+  --font-color-2: #c9c9c9;
+  --font-color-3: #333333;
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
-
 }
-
 
 /* dev style */
  /* :root{
@@ -51,7 +51,7 @@ html{
 }
 
 body{
-  font-size: 1.4rem;
+  font-size: 1.8rem;
   box-sizing: inherit;
   background-image: linear-gradient(to top left, var(--background-color_1), var(--box-color_2));  
   color: var(--font-color);
@@ -63,7 +63,7 @@ body{
   padding: 1%;
   margin-top: 1%;
   background-color: var(--background-color_2);
-  height: 80%;
+  height: 60vh;
 }
 
 .back-btn {

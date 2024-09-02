@@ -19,7 +19,7 @@ const Footer = () => {
                             <p>About</p>
                         </a>
                         <a href="/datalist">
-                            <>DataList</>
+                            <p>DataList</p>
                         </a>
                         <a href="/atlas">
                             <p>Atlas</p>
@@ -31,7 +31,7 @@ const Footer = () => {
                             <p>Github</p>
                         </a>
                         <a href="https://archaeologydataservice.ac.uk/archives/view/icrates_lt_2018/">
-                            <>ICRATES</>
+                            <p>Inventory of Crafts and Trade in the Roman East (ICRATES)</p>
                         </a>
                         <a href="https://books.ub.uni-heidelberg.de/propylaeum/catalog/book/571">
                             <p>Asia Minor</p>
