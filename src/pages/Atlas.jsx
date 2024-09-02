@@ -13,7 +13,7 @@ const Atlas = () => {
                 <MapComponent queryItem="" />
             </>
         )
-    } else {  
+    } else {
         let queryData = id;
 
         if (!(queryData.includes("road_") || queryData.includes("site_"))) {
@@ -29,7 +29,7 @@ const Atlas = () => {
             id: ""
         }
 
-        let queryId = queryData.split("_").pop();   
+        let queryId = queryData.split("_").pop();
 
         if (queryData.includes("road_")) {
             query = {
@@ -43,9 +43,9 @@ const Atlas = () => {
             }
         }
         return (
-            <>
+            <div className="pagebox">
                 <MapComponent queryItem={query} />
-            </>
+            </div>
         )
     };
 };

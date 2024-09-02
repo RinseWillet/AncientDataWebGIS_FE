@@ -1,5 +1,10 @@
 const NoPage = () => {
-    return <h1>Something went wrong!</h1>;
-  };
-  
-  export default NoPage;
+
+  return (
+    <div className="pagebox">
+      <h1>Something went wrong!</h1>;
+    </div>
+  )
+};
+
+export default NoPage;

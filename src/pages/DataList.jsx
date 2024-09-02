@@ -142,9 +142,8 @@ const DataList = () => {
         }
     }
 
-
     return (
-        <>
+        <div className="pagebox">
             <div className="typeSwitch">
                 <h3 className={`dataSwitch-label__roads ${dataSwitch ? "" : "switched"}`}>Roads</h3>
                 <button className={`dataSwitch-btn ${dataSwitch ? "switched" : ""}`}
@@ -165,8 +164,7 @@ const DataList = () => {
                     onRowDoubleClicked={onRowClickHandler}
                 />
             </div>
-        </>
-
+        </div>
     );
 }
 
