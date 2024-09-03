@@ -65,7 +65,7 @@ body{
   padding: 0.5rem;
   margin-top: 0.5rem;
   background-color: var(--background-color_2);
-  min-height: 64vh;
+  height: 64vh;
 }
 
 .back-btn {
@@ -81,9 +81,16 @@ body{
   cursor: pointer;
   box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
   position: relative;
+  z-index: 999;
 }
 
 .back-btn:hover{
   border-color: white;
   background-color: red;
+}
+
+@media screen and (max-width: 400px) {
+  .pagebox{
+    height: 52vh;
+  }
 }
