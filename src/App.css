@@ -65,7 +65,7 @@ body{
   padding: 0.5rem;
   margin-top: 0.5rem;
   background-color: var(--background-color_2);
-  height: 64vh;
+  min-height: 64vh;
 }
 
 .back-btn {
