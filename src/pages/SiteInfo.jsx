@@ -92,25 +92,25 @@ const SiteInfo = (e) => {
         let status = data.features.properties.status;
         let statusReferences = data.features.properties.statusref;
         let province = data.features.properties.province;
-        let pleiadesLink = data.features.properties.pleiadesid;
+        let pleiadesLink = data.features.properties.pleiadesid; 
 
         return (
             <div className="pagebox">
                 <div className="siteinfo-card"></div>
-                <h3>Information</h3>
-                <h4>{name}</h4>
+                <h4>Information</h4>
+                <h2>{name}</h2>
                 <h4>Identification : </h4>
                 <span>{type}</span>
                 <h4>Description : </h4>
                 <span>{description}</span>
-                <h4>Status : </h4>
-                <span>{status}</span>
-                <h4>Status references : </h4>
-                <span>{statusReferences}</span>
-                <h4>Province : </h4>
-                <span>{province}</span>
-                <h4>Pleiades</h4>
-                <span>{pleiadesLink}</span>
+                {(status === undefined) ? null : <h4>Status : </h4>}
+                {(status === undefined) ? null : <span>{status}</span>}
+                {(statusReferences === undefined) ? null : <h4>Status references : </h4>}
+                {(statusReferences === undefined) ? null : <span>{statusReferences}</span>}                
+                {(province === undefined) ? null : <h4>Province :</h4>}
+                {(province === undefined) ? null : <span>{province}</span>}
+                {(pleiadesLink === undefined) ? null : <h4>Pleiades</h4>}
+                {(pleiadesLink === undefined) ? null : <span>{pleiadesLink}</span>}
                 <br></br>
                 <button className="back-btn" onClick={backButtonHandler}>BACK</button>
                 <button className="location-btn" onClick={atlasButtonHandler}>TO MAP</button>
