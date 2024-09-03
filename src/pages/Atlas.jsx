@@ -7,12 +7,12 @@ const Atlas = () => {
     // denote a specific query for a road or site from the RoadInfo or SiteInfo pages
     const { id } = useParams()
 
-     //hook for navigation to go back to DataList or go to Atlas page
-     const navigate = useNavigate();
+    //hook for navigation to go back to DataList or go to Atlas page
+    const navigate = useNavigate();
 
     //back button when map is queried from DataList and SiteInfo/RoadInfo pages
     const backButtonHandler = () => {
-       if(id.includes("road")){        
+        if (id.includes("road")) {
             navigate("/datalist/roadinfo/" + id.split("_").pop());
         } else if (id.includes("site")) {
             navigate("/datalist/siteinfo/" + id.split("_").pop());
@@ -28,11 +28,11 @@ const Atlas = () => {
     } else {
         let queryData = id;
 
+        //this catches incompatible params
         if (!(queryData.includes("road_") || queryData.includes("site_"))) {
             return (
                 <div className="pagebox">
                     <MapComponent queryItem="" />
-                    <button className="back-btn" onClick={backButtonHandler}>BACK</button>
                 </div>
             )
         }

@@ -197,7 +197,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                         ext="png"
                     />
                 </LayersControl.BaseLayer>
-
+                
                 <LayersControl.Overlay checked name="Archaeological Sites">
                     {/* if a site is queried, a queryIcon is returned for the queried site 
                     and the map is zoomed and centred on the queried site */}
