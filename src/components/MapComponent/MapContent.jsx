@@ -23,6 +23,14 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
         }
     );
 
+    //this is the Icon for queried sites. The css is styled in MapContent.css
+    const queryIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: "<div class='marker-pin'></div><i class='material-icons'></i><div class='pulse'></div>",
+        iconSize: [30, 42],
+        iconAnchor: [15, 42]
+    });
+
     //filters style of sites based on attributes
     const siteStyleDifferentiator = (siteProperties, latlng) => {
         let siteMarker = new L.Marker(latlng, { alt: siteProperties.name });
@@ -116,7 +124,6 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
     //of the selected road (highlightRoad() to prevent nullifyng stylechange due to rerendering)
     async function clickRoad(e) {
         let road = e.target;
-        console.log(road);
         await setShowInfoCard(true);
         await setSelectedItem(true);
         await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id }));
@@ -167,7 +174,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
     const resetHighlightroad = (e) => {
         let style = roadStyleDifferentiator(e.target.feature.properties);
         e.target.setStyle(style);
-    }
+    }   
 
     return (
         <>
@@ -192,57 +199,68 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                 </LayersControl.BaseLayer>
 
                 <LayersControl.Overlay checked name="Archaeological Sites">
+                    {/* if a site is queried, a queryIcon is returned for the queried site 
+                    and the map is zoomed and centred on the queried site */}
                     <GeoJSON data={siteData} pointToLayer={
                         function (feature, latlng) {
-                            let marker = siteStyleDifferentiator(feature.properties, latlng);
-                            return marker;
+                            if (queryItem.queryItem.type === "site") {                      
+                                if (queryItem.queryItem.id == feature.properties.id) {
+                                    return new L.Marker(latlng, { alt: feature.properties.name }).setIcon(queryIcon);                                  
+                                } else {
+                                    return siteStyleDifferentiator(feature.properties, latlng);                         
+                                }
+                            } else {
+                                return siteStyleDifferentiator(feature.properties, latlng);                             
+                            }
+                        }} onEachFeature={
+                            function (feature, layer) {
+                                let popUpContent = createPopupTextSite(feature.properties);
+                                layer.bindPopup(popUpContent, { className: 'popup' });
+                                if (queryItem.queryItem.type === "site") {
+                                    if (queryItem.queryItem.id == feature.properties.id) {
+                                        map.setView(layer.getLatLng(), 14);
+                                    }
+                                }
+                                layer.on({
+                                    'click': clickSite
+                                })
+                            }
                         }
-                    } onEachFeature={
-                        function (feature, layer) {
-                            let popUpContent = createPopupTextSite(feature.properties);
-                            layer.bindPopup(popUpContent, { className: 'popup' });
-                            layer.on({
-                                'click': clickSite
-                            })
-                        }
-                    }
                     />
                 </LayersControl.Overlay>
                 <LayersControl.Overlay checked name="Roads and routes">
+                    {/* if road is queried, a specific highlightstyle is returned for the queried road
+                    and the map is centred on the queried road  */}
                     <GeoJSON data={roadData} style={function (feature) {
-                        if (queryItem.queryItem.type === "road") { 
+                        if (queryItem.queryItem.type === "road") {
                             if (queryItem.queryItem.id == feature.properties.id) {
-                                let highlightstyle = {
+                                return {
                                     weight: 3,
                                     color: "yellow",
                                     zIndex: 20
                                 }
-                                return highlightstyle;
                             } else {
-                                let style = roadStyleDifferentiator(feature.properties);
-                                return style;
+                                return roadStyleDifferentiator(feature.properties);                              
                             }
                         } else {
-                            let style = roadStyleDifferentiator(feature.properties);
-                            return style;
+                            return roadStyleDifferentiator(feature.properties);                            
                         }
-                        
+
                     }} onEachFeature={
                         function (feature, layer) {
                             let popUpContent = createPopupTextSite(feature.properties);
                             layer.bindPopup(popUpContent, { className: 'popup' });
                             //part dealing with zooming to queried road from params
                             if (queryItem.queryItem.type === "road") {
-                                if (queryItem.queryItem.id == feature.properties.id) { 
-                                    console.log(feature.properties)                                   
-                                    map.fitBounds(layer.getBounds());                                  
+                                if (queryItem.queryItem.id == feature.properties.id) {
+                                    map.fitBounds(layer.getBounds());
                                 }
-                            } else {                               
+                            } else {
                                 layer.on({
                                     'click': clickRoad,
                                     'popupclose': resetHighlightroad
                                 });
-                            } 
+                            }
                         }
                     }
                     />

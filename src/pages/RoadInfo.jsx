@@ -57,20 +57,20 @@ const RoadInfo = (e) => {
             <>
                 <div className="pagebox">
                     <div className="roadinfo-card">
-                        <h3>Information</h3>
-                        <h4>{name}</h4>
+                        <h4>Information</h4>
+                        <h2>{name}</h2>
                         <h4>Identification : </h4>
                         <span> {type} - {typeDescription}</span>
-                        <h4>Location : </h4>
-                        <span>{location}</span>
-                        <h4>Description : </h4>
-                        <span>{description}</span>
-                        <h4>Date : </h4>
-                        <span>{date}</span>
-                        <h4>References : </h4>
-                        <span>{references}</span>
-                        <h4>Historical references : </h4>
-                        <span>{historicalReferences}</span>
+                        {(location === undefined) ? null : <h4>Location : </h4>}
+                        {(location === undefined) ? null : <span>{location}</span>}
+                        {(description === undefined) ? null : <h4>Description : </h4>}
+                        {(description === undefined) ? null : <span>{description}</span>}
+                        {(date === undefined) ? null : <h4>Date : </h4>}
+                        {(date === undefined) ? null : <span>{date}</span>}
+                        {(references === undefined) ? null : <h4>References : </h4>}
+                        {(references === undefined) ? null : <span>{references}</span>}
+                        {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
+                        {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}                        
                         <br></br>
                         <button className="back-btn" onClick={backButtonHandler}>BACK</button>
                         <button className="location-btn" onClick={atlasButtonHandler}>TO MAP</button>
