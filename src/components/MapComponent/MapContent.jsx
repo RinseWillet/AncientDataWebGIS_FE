@@ -2,7 +2,7 @@ import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl } 
 
 //style
 import 'leaflet/dist/leaflet.css';
-import { possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
+import { notShowRoad, possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
 
 import './MapContent.css';
 import { useState } from 'react';
@@ -68,7 +68,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
         } else if (siteProperties.siteType === 'site') {
             siteMarker.setIcon(siteIcon);
         } else {
-            siteMarker = new L.circleMarker(latlng)
+            siteMarker = null;
         }
         return siteMarker;
     }
@@ -83,6 +83,8 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
             return road;
         } else if (roadProperties.type === 'hist_rec') {
             return histRec;
+        } else {
+            return notShowRoad;
         }
     }
 
