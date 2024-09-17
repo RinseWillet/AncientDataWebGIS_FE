@@ -1,8 +1,8 @@
 import React from "react";
 import './Footer.css';
-import yt from '../../assets/images/youtube.png';
-import linkedin from '../../assets/images/linkedin.png';
-import insta from '../../assets/images/instagram.png';
+import yt from '../../assets/youtube.png';
+import linkedin from '../../assets/linkedin.png';
+import insta from '../../assets/instagram.png';
 
 const Footer = () => {
 
