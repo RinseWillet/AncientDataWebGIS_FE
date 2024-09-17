@@ -1,12 +1,12 @@
 import { Icon } from 'leaflet';
 
 export const castellumIcon = new Icon({
-    iconUrl: '../../assets/images/fort.png',
+    iconUrl: '../src/assets/fort.png',
     iconSize: [20, 20]
 });
 
 export const possibleCastellumIcon = new Icon({
-    iconUrl: '../../assets/images/pfort.png',
+    iconUrl: '../src/assets/pfort.png',
     iconSize: [20, 20]
 });
 
