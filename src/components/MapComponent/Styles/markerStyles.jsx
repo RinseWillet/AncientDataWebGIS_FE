@@ -6,7 +6,7 @@ export const castellumIcon = new Icon({
 });
 
 export const possibleCastellumIcon = new Icon({
-    iconUrl: '../../assets/images/pfort.png',
+    iconUrl: '/../../assets/images/pfort.png',
     iconSize: [20, 20]
 });
 
