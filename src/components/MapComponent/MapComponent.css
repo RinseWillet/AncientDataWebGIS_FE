@@ -3,13 +3,13 @@
 }
 
 .infoMap {
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   height: 62vh;
   width: 100%; 
 }
 
 .infoMap[AdjustMapHeight="true"] {
-  height: 55vh;
+  height: 55vh !important;
 }
 
 .infoCard {
