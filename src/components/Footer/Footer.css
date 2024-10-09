@@ -46,14 +46,14 @@ a {
 }
 
 .sb__footer-links_div h4{
-    font-size: 1rem;
+    font-size: 1.2rem;
     line-height: 1rem;
     margin: 0.5rem 0;
     cursor: pointer;
 }
 
 .sb__footer-links_div p{
-    font-size: 1rem;
+    font-size: 1.2rem;
     line-height: 1rem;
     margin: 0.4rem 0;
     cursor: pointer;
@@ -65,7 +65,7 @@ a {
 }
 
 .sb__footer-below-links p{
-    font-size: 0.8rem;
+    font-size: 1rem;
     line-height: 1.2rem;
     margin-left: 2rem;
     color: var(--font-color-2);
@@ -78,7 +78,7 @@ hr{
 }
 
 .sb__footer-copyright p{
-    font-size: 0.8rem;
+    font-size: 1rem;
     line-height: 1rem;
     color: var(--font-color-1);
     font-weight: 500;

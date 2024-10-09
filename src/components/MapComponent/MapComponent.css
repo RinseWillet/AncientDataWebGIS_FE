@@ -4,17 +4,18 @@
 
 .infoMap {
   /* box-sizing: border-box; */
-  height: 62vh;
+  height: 77vh;
   width: 100%; 
 }
 
-.infoMap[AdjustMapHeight="true"] {
-  height: 55vh !important;
+.infoMap.adjusted {
+  height: 50vh;
+  width: 100%;
 }
 
 .infoCard {
   color: black;
-  font-size: 10px;
+  font-size: 1.6rem;
   position: absolute;
   z-index: 999;
   border: 2px solid darkgray;
@@ -30,8 +31,14 @@
   overflow: auto;
 }
 
+@media screen and (max-width: 850px) {
+  .infoMap{
+      height: 70vh;
+  }
+}
+
 @media screen and (max-width: 400px) {
   .infoMap{
-      height: 50vh;
+      height: 64vh;
   }
 }

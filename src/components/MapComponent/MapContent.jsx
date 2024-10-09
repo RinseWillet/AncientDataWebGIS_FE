@@ -176,20 +176,31 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
     const resetHighlightroad = (e) => {
         let style = roadStyleDifferentiator(e.target.feature.properties);
         e.target.setStyle(style);
-    }   
+    }
 
     return (
         <>
             <LayersControl position="topleft" collapsed="false">
-                <LayersControl.BaseLayer checked name="Modern Topographical">
+                <LayersControl.BaseLayer checked name="Positron Modern Topographical">
                     <TileLayer
-                        attribution='&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.{ext}"
+                        attribution="© OpenStreetMap contributors, © CartoDB"
+                        url="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
                         minZoom={0}
                         maxZoom={20}
                         ext="png"
                     />
                 </LayersControl.BaseLayer>
+
+                <LayersControl.BaseLayer name="Open Street Map Topographical">
+                    <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        minZoom={0}
+                        maxZoom={20}
+                        ext="png"
+                    />
+                </LayersControl.BaseLayer>
+
                 <LayersControl.BaseLayer name="Satellite">
                     <TileLayer
                         attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
@@ -199,20 +210,20 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                         ext="png"
                     />
                 </LayersControl.BaseLayer>
-                
+
                 <LayersControl.Overlay checked name="Archaeological Sites">
                     {/* if a site is queried, a queryIcon is returned for the queried site 
                     and the map is zoomed and centred on the queried site */}
                     <GeoJSON data={siteData} pointToLayer={
                         function (feature, latlng) {
-                            if (queryItem.queryItem.type === "site") {                      
+                            if (queryItem.queryItem.type === "site") {
                                 if (queryItem.queryItem.id == feature.properties.id) {
-                                    return new L.Marker(latlng, { alt: feature.properties.name }).setIcon(queryIcon);                                  
+                                    return new L.Marker(latlng, { alt: feature.properties.name }).setIcon(queryIcon);
                                 } else {
-                                    return siteStyleDifferentiator(feature.properties, latlng);                         
+                                    return siteStyleDifferentiator(feature.properties, latlng);
                                 }
                             } else {
-                                return siteStyleDifferentiator(feature.properties, latlng);                             
+                                return siteStyleDifferentiator(feature.properties, latlng);
                             }
                         }} onEachFeature={
                             function (feature, layer) {
@@ -242,10 +253,10 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                                     zIndex: 20
                                 }
                             } else {
-                                return roadStyleDifferentiator(feature.properties);                              
+                                return roadStyleDifferentiator(feature.properties);
                             }
                         } else {
-                            return roadStyleDifferentiator(feature.properties);                            
+                            return roadStyleDifferentiator(feature.properties);
                         }
 
                     }} onEachFeature={

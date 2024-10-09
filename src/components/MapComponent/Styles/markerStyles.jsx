@@ -1,108 +1,124 @@
 import { Icon } from 'leaflet';
+import fort from '../../../assets/fort.png';
+import pfort from '../../../assets/pfort.png';
+import watchtower from '../../../assets/watchtower.png';
+import city from '../../../assets/city.png';
+import villa from '../../../assets/villa.png';
+import pvilla from '../../../assets/pvilla.png';
+import legfort from '../../../assets/legfort.png';
+import settS from '../../../assets/settS.png';
+import sett from '../../../assets/sett.png';
+import tumulus from '../../../assets/tumulus.png';
+import ptumulus from '../../../assets/ptumulus.png';
+import cemetery from '../../../assets/cemetery.png';
+import sanctuary from '../../../assets/sanctuary.png';
+import ship from '../../../assets/ship.png';
+import pship from '../../../assets/pship.png';
+import site from '../../../assets/site.png';
 
 export const castellumIcon = new Icon({
-    iconUrl: '../src/assets/fort.png',
-    iconSize: [20, 20]
+    iconUrl: fort,
+    iconSize: [30, 30]
 });
 
 export const possibleCastellumIcon = new Icon({
-    iconUrl: '../src/assets/pfort.png',
-    iconSize: [20, 20]
+    iconUrl: pfort,
+    iconSize: [30, 30]
 });
 
 export const legionaryFortIcon = new Icon({
-    iconUrl: '../../assets/images/legfort.png',
-    iconSize: [20, 20]
+    iconUrl: legfort,
+    iconSize: [30, 30]
 });
 
 export const watchtowerIcon = new Icon({
-    iconUrl: '../../assets/images/watchtower.png',
-    iconSize: [20, 20]
+    iconUrl: watchtower,
+    iconSize: [30, 30]
 });
 
 export const cityIcon = new Icon({
-    iconUrl: '../../assets/images/city.png',
-    iconSize: [20, 20]
+    iconUrl: city,
+    iconSize: [30, 30]
 });
 
 export const villaIcon = new Icon({
-    iconUrl: '../../assets/images/villa.png',
-    iconSize: [20, 20]
+    iconUrl: villa,
+    iconSize: [30, 30]
 });
 
 export const possibleVillaIcon = new Icon({
-    iconUrl: '../../assets/images/pvilla.png',
-    iconSize: [20, 20]
+    iconUrl: pvilla,
+    iconSize: [30, 30]
 });
 
 export const settlementStoneIcon = new Icon({
-    iconUrl: '../../assets/images/settS.png',
-    iconSize: [20, 20]
+    iconUrl: settS,
+    iconSize: [30, 30]
 });
 
 export const settlementIcon = new Icon({
-    iconUrl: '../../assets/images/sett.png',
-    iconSize: [20, 20]
+    iconUrl: sett,
+    iconSize: [30, 30]
 });
 
 export const siteIcon = new Icon({
-    iconUrl: '../../assets/images/site.png',
-    iconSize: [20, 20]
+    iconUrl: site,
+    iconSize: [30, 30]
 });
 
 export const shipIcon = new Icon({
-    iconUrl: '../../assets/images/ship.png',
-    iconSize: [20, 20]
+    iconUrl: ship,
+    iconSize: [30, 30]
 });
 
 export const possibleShipIcon = new Icon({
-    iconUrl: '../../assets/images/pship.png',
-    iconSize: [20, 20]
+    iconUrl: pship,
+    iconSize: [30, 30]
 });
 
 export const cemeteryIcon = new Icon({
-    iconUrl: '../../assets/images/cemetery.png',
-    iconSize: [20, 20]
+    iconUrl: cemetery,
+    iconSize: [30, 30]
 });
 
 export const sanctuaryIcon = new Icon({
-    iconUrl: '../../assets/images/sanctuary.png',
-    iconSize: [20, 20]
+    iconUrl: sanctuary,
+    iconSize: [30, 30]
 });
 
 export const tumulusIcon = new Icon({
-    iconUrl: '../../assets/images/tumulus.png',
-    iconSize: [20, 20]
+    iconUrl: tumulus,
+    iconSize: [30, 30]
 });
 
 export const possibleTumulusIcon = new Icon({
-    iconUrl: '../../assets/images/ptumulus.png',
-    iconSize: [20, 20]
+    iconUrl: ptumulus,
+    iconSize: [30, 30]
 });
 
 export const possibleRoad = {
     color:  '#000000',
-    weight: 2,
+    weight: 2.5,
     opacity: 0.65,
     dashArray: [2,3]    
 };
 
 export const hypotheticalRoute = {
     color: '#878787',
-    weight: 1.5,
+    weight: 2,
     opacity: 1,
     dashArray: [2,3],
 };
 
 export const road = {
     color: '#ff0000',
-    weight: 2,
+    weight: 3,
     opacity: 1.0
 };
 
 export const histRec = {
     color: '#006400',
-    weight: 1.5,
+    weight: 2,
     opacity: 0.65,
     dashArray: [2,3],
 };

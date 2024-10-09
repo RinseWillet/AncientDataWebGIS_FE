@@ -1,4 +1,5 @@
 .popup .leaflet-popup-content-wrapper {
+  font-size: 1rem;
   border-radius: 0px;
   opacity: 0.9;
   text-align: center;
@@ -21,7 +22,7 @@
 .custom-div-icon i {
   position: absolute;
   width: 12px;
-  font-size: 22px;
+  font-size: 2.2rem;
   left: 0;
   right: 0;
   margin: 10px auto;

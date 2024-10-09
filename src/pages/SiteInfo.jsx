@@ -28,8 +28,6 @@ const SiteInfo = (e) => {
         LoadSiteInfo();
     }, []);
 
-    console.log(data);
-
     const backButtonHandler = () => {
         navigate("/datalist/")
     }

@@ -8,14 +8,14 @@ import './MapComponent.css';
 
 const position = [51.8, 5.8]
 
-const MapComponent = (queryItem) => {
+const MapComponent = (queryItem, adjustMapHeight) => {
 
     //standard hook state fpr the Leaflet Map
     const [map, setMap] = useState(null);
 
     //boolean hook state that switched the height of the map in css, when a Back Button
     //is rendered
-    const [adjustMapHeight, setAdjustMapHeight] = useState(false);
+    // const [adjustMapHeight, setAdjustMapHeight] = useState(true);
 
     //boolean hook state to render (or not) the MapInfoCard component
     const [showInfoCard, setShowInfoCard] = useState(false);
@@ -26,11 +26,7 @@ const MapComponent = (queryItem) => {
         id: ""
     });
 
-    useEffect(() => {
-
-        if (!queryItem.queryItem) {
-            setAdjustMapHeight(true);            
-        };
+    useEffect(() => {  
 
         console.log(adjustMapHeight);
 
@@ -66,16 +62,18 @@ const MapComponent = (queryItem) => {
 
     }, [map]);
 
+    // {`infoMap ${adjustMapHeight.adjustMapHeight ? "": "adjusted"}`}
     return (  
-        <div>
-            {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
-            <MapContainer id="map" className='infoMap'
+        <div>          
+            <MapContainer id="map" className="infoMap"
                 whenCreated={setMap}
                 center={position}
                 zoom={9}
                 zoomControl={false}
                 adjustMapHeight={adjustMapHeight}
+                tapTolerance={30}
             >
+                {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
                 <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
             </MapContainer>
         </div>                   
