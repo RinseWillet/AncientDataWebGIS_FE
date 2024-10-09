@@ -67,15 +67,16 @@ const MapComponent = (queryItem) => {
     }, [map]);
 
     return (  
-        <div>
-            {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
+        <div>            
             <MapContainer id="map" className='infoMap'
                 whenCreated={setMap}
                 center={position}
                 zoom={9}
                 zoomControl={false}
                 adjustMapHeight={adjustMapHeight}
+                tapTolerance={30}
             >
+                {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
                 <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
             </MapContainer>
         </div>                   

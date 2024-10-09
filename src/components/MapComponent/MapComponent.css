@@ -14,7 +14,7 @@
 
 .infoCard {
   color: black;
-  font-size: 10px;
+  font-size: 1.6rem;
   position: absolute;
   z-index: 999;
   border: 2px solid darkgray;

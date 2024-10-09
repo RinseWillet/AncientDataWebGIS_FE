@@ -98,27 +98,27 @@ export const possibleTumulusIcon = new Icon({
 
 export const possibleRoad = {
     color:  '#000000',
-    weight: 2,
+    weight: 2.5,
     opacity: 0.65,
     dashArray: [2,3]    
 };
 
 export const hypotheticalRoute = {
     color: '#878787',
-    weight: 1.5,
+    weight: 2,
     opacity: 1,
     dashArray: [2,3],
 };
 
 export const road = {
     color: '#ff0000',
-    weight: 2,
+    weight: 3,
     opacity: 1.0
 };
 
 export const histRec = {
     color: '#006400',
-    weight: 1.5,
+    weight: 2,
     opacity: 0.65,
     dashArray: [2,3],
 };
