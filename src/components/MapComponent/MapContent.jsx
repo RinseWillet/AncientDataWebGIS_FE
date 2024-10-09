@@ -181,7 +181,17 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
     return (
         <>
             <LayersControl position="topleft" collapsed="false">
-                <LayersControl.BaseLayer checked name="Modern Topographical">
+                <LayersControl.BaseLayer checked name="Positron Modern Topographical">
+                    <TileLayer
+                        attribution="© OpenStreetMap contributors, © CartoDB"
+                        url="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+                        minZoom={0}
+                        maxZoom={20}
+                        ext="png"
+                    />
+                </LayersControl.BaseLayer>
+
+                <LayersControl.BaseLayer name="Open Street Map Topographical">
                     <TileLayer
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -189,9 +199,8 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                         maxZoom={20}
                         ext="png"
                     />
-
-
                 </LayersControl.BaseLayer>
+
                 <LayersControl.BaseLayer name="Satellite">
                     <TileLayer
                         attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"

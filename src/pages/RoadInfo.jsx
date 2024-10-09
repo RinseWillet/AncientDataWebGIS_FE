@@ -28,8 +28,6 @@ const RoadInfo = (e) => {
         LoadRoadInfo();
     }, []);
 
-    console.log(data);
-
     const backButtonHandler = () => {
         navigate("/datalist/")
     }

@@ -81,8 +81,7 @@ const DataList = () => {
         function rowFeatureLoader() {
             if (data.length < 1) {
                 console.log("no data");
-            } else {
-                console.log(data);
+            } else {        
                 let rowFeatures = [];
 
                 if (!dataSwitch) {
@@ -153,8 +152,8 @@ const DataList = () => {
                 <p className={`dataSwitch-label__sites ${dataSwitch ? "switched" : ""}`}>Sites</p>
             </div>
             <div
-                className="ag-theme-customized" // applying the Data Grid theme
-                style={{ height: 250 }} // the Data Grid will fill the size of the parent container
+                className="ag-theme-quartz" // applying the Data Grid theme
+                style={{ height: '91%', width: '100%'}}  // the Data Grid will fill the size of the parent container
             >
                 <AgGridReact
                     rowData={rowData}

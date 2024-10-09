@@ -18,82 +18,82 @@ import site from '../../../assets/site.png';
 
 export const castellumIcon = new Icon({
     iconUrl: fort,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const possibleCastellumIcon = new Icon({
     iconUrl: pfort,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const legionaryFortIcon = new Icon({
     iconUrl: legfort,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const watchtowerIcon = new Icon({
     iconUrl: watchtower,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const cityIcon = new Icon({
     iconUrl: city,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const villaIcon = new Icon({
     iconUrl: villa,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const possibleVillaIcon = new Icon({
     iconUrl: pvilla,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const settlementStoneIcon = new Icon({
     iconUrl: settS,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const settlementIcon = new Icon({
     iconUrl: sett,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const siteIcon = new Icon({
     iconUrl: site,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const shipIcon = new Icon({
     iconUrl: ship,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const possibleShipIcon = new Icon({
     iconUrl: pship,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const cemeteryIcon = new Icon({
     iconUrl: cemetery,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const sanctuaryIcon = new Icon({
     iconUrl: sanctuary,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const tumulusIcon = new Icon({
     iconUrl: tumulus,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const possibleTumulusIcon = new Icon({
     iconUrl: ptumulus,
-    iconSize: [20, 20]
+    iconSize: [30, 30]
 });
 
 export const possibleRoad = {

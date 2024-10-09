@@ -65,7 +65,7 @@ body{
   padding: 0.5rem;
   margin-top: 0.5rem;
   background-color: var(--background-color_2);
-  min-height: 78vh;
+  height: 78vh;
 }
 
 .back-btn {
@@ -89,8 +89,14 @@ body{
   background-color: red;
 }
 
+@media screen and (max-width: 850px) {
+  .pagebox{
+    height: 71vh;
+  }
+}
+
 @media screen and (max-width: 400px) {
   .pagebox{
-    height: 52vh;
+    height: 65vh;
   }
 }

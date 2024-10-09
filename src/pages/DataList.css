@@ -1,6 +1,7 @@
 .ag-theme-customized {
-    --ag-grid-size: 8px;
+    --ag-grid-size: 1rem;
     --ag-border-color: red;
+    --ag-font-size: 20rem;
 }
 
 .ag-theme-mycustomtheme .ag-header {
@@ -15,8 +16,7 @@
     margin-top: 1%;
     margin-bottom: 1%; 
     place-content: start space-evenly;
-    font-size: 1.8rem;
-    /* justify-content: space-between; */
+    font-size: 1.8rem; 
 }
 
 .dataSwitch-label__roads {
