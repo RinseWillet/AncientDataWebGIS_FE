@@ -66,6 +66,7 @@ body{
   margin-top: 0.5rem;
   background-color: var(--background-color_2);
   height: 78vh;
+  overflow: auto;
 }
 
 .back-btn {

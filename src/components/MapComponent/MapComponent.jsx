@@ -26,10 +26,8 @@ const MapComponent = (queryItem, adjustMapHeight) => {
         id: ""
     });
 
-    useEffect(() => {  
-
-        console.log(adjustMapHeight);
-
+    useEffect(() => {
+    
         if (!map) return;
 
         //code dealing with handling resizing of the map
@@ -61,23 +59,23 @@ const MapComponent = (queryItem, adjustMapHeight) => {
         };
 
     }, [map]);
-
-    // {`infoMap ${adjustMapHeight.adjustMapHeight ? "": "adjusted"}`}
+    
+    //check for adjustMapheight in className -> if true (and a BackButton must be displayed below the map, InfoMap_adjusted otherwise fullmap as configured in css class infoMap)
     return (  
-        <div>          
-            <MapContainer id="map" className="infoMap"
-                whenCreated={setMap}
-                center={position}
-                zoom={9}
-                zoomControl={false}
-                adjustMapHeight={adjustMapHeight}
-                tapTolerance={30}
-            >
-                {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
-                <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
-            </MapContainer>
-        </div>                   
-    );
+            <div>          
+                <MapContainer id="map" className={`${queryItem.adjustMapHeight ? "infoMap_adjusted" : "infoMap"}`}
+                    whenCreated={setMap}
+                    center={position}
+                    zoom={9}
+                    zoomControl={false}
+                    adjustMapHeight={adjustMapHeight}
+                    tapTolerance={30}
+                >
+                    {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
+                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
+                </MapContainer>
+            </div>                   
+        );   
 }
 
 export default MapComponent;

@@ -22,7 +22,7 @@ const Atlas = () => {
     if (typeof (id) == 'undefined') {
         return (
             <div className="pagebox">
-                <MapComponent queryItem="" adjustMapHeight='false'/>
+                <MapComponent queryItem="" adjustMapHeight={false}/>
             </div>
         )
     } else {
@@ -32,7 +32,7 @@ const Atlas = () => {
         if (!(queryData.includes("road_") || queryData.includes("site_"))) {
             return (
                 <div className="pagebox">
-                    <MapComponent queryItem="" adjustMapHeight='false'/>
+                    <MapComponent queryItem="" adjustMapHeight={false}/>
                 </div>
             )
         }
@@ -57,7 +57,7 @@ const Atlas = () => {
         }
         return (
             <div className="pagebox">
-                <MapComponent queryItem={query} adjustMapHeight='true'/>
+                <MapComponent queryItem={query} adjustMapHeight={true}/>
                 <button className="back-btn" onClick={backButtonHandler}>BACK</button>
             </div>
         )
