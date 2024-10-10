@@ -3,8 +3,3 @@
     display: block;
     overflow: auto;
 }
-
-.roadinfo-card__paragraph {
-    overflow-y: auto;
-    overflow-x: none;
-}
