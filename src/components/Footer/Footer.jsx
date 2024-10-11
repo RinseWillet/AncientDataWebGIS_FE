@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 import './Footer.css';
 import yt from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
@@ -12,18 +13,18 @@ const Footer = () => {
                 <div className="sb__footer-links">
                     <div className="sb__footer-links_div">
                         <h4>Navigation</h4>
-                        <a href="/home">
+                        <Link to='/home' activestyle="true">
                             <p>Home</p>
-                        </a>
-                        <a href="/about">
+                        </Link>
+                        <Link to='/about' activestyle="true">
                             <p>About</p>
-                        </a>
-                        <a href="/datalist">
+                        </Link>
+                        <Link to='/datalist' activestyle="true">
                             <p>DataList</p>
-                        </a>
-                        <a href="/atlas">
+                        </Link>
+                        <Link>
                             <p>Atlas</p>
-                        </a>
+                        </Link>
                     </div>
                     <div className="sb__footer-links_div">
                         <h4>Resources</h4>
@@ -64,26 +65,26 @@ const Footer = () => {
                     <div className="sb__footer-links_div">
                         <h4>Social Media</h4>
                         <div className="socialmedia">
-                            <p><img src={yt} alt=""/></p>
-                            <p><img src={linkedin} alt=""/></p>
-                            <p><img src={insta} alt=""/></p>                       
-                        </div>                       
+                            <p><img src={yt} alt="" /></p>
+                            <p><img src={linkedin} alt="" /></p>
+                            <p><img src={insta} alt="" /></p>
+                        </div>
                     </div>
                 </div>
-            <hr></hr>
-            <div className="sb__footer-below">
-                <div className="sb__footer-copyright">
-                    <p>
-                        ©{new Date().getFullYear()} Rinse Willet. All rights reserved.
-                    </p>
+                <hr></hr>
+                <div className="sb__footer-below">
+                    <div className="sb__footer-copyright">
+                        <p>
+                            ©{new Date().getFullYear()} Rinse Willet. All rights reserved.
+                        </p>
+                    </div>
+                    <div className="sb__footer-below-links">
+                        <a href="/terms"><div><p>Terms & Conditions</p></div></a>
+                        <a href="/terms"><div><p>Privacy</p></div></a>
+                        <a href="/terms"><div><p>Security</p></div></a>
+                        <a href="/terms"><div><p>Cookie Declaration</p></div></a>
+                    </div>
                 </div>
-                <div className="sb__footer-below-links">
-                    <a href="/terms"><div><p>Terms & Conditions</p></div></a>
-                    <a href="/terms"><div><p>Privacy</p></div></a>
-                    <a href="/terms"><div><p>Security</p></div></a>
-                    <a href="/terms"><div><p>Cookie Declaration</p></div></a>
-                </div>
-            </div>
             </div>
         </div>
     );
