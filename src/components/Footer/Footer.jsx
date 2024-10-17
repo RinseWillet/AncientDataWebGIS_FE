@@ -22,7 +22,7 @@ const Footer = () => {
                         <Link to='/datalist' activestyle="true">
                             <p>DataList</p>
                         </Link>
-                        <Link>
+                        <Link to='/atlas' activestyle="true">
                             <p>Atlas</p>
                         </Link>
                     </div>

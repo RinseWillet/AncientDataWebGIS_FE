@@ -10,6 +10,16 @@
     color:purple !important;
 }
 
+.reference-listitem__link{
+    color: var(--accent-color);
+    font-size: 1.4rem;
+}
+
+.reference-listitem__nolink{
+    color: var(--font-color-3);
+    font-size: 1.4rem;
+}
+
 .typeSwitch{
     display: inline-flex;
     width: 100%;    
