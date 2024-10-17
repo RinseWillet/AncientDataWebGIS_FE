@@ -10,6 +10,7 @@ const RoadInfo = (e) => {
     const { id } = useParams();
 
     const [data, setData] = useState();
+    const [modRef, setModRef] = useState();
 
     //hook for navigation to go back to DataList or go to Atlas page
     const navigate = useNavigate();
@@ -23,6 +24,14 @@ const RoadInfo = (e) => {
                 })
                 .catch((error) => {
                     console.error(error);
+                });
+            RoadService
+                .findModernReferenceByRoadId(id)
+                .then((response) => {
+                    setModRef(response.data);
+                })
+                .catch((error) => {
+                    console.log(error);
                 });
         }
         LoadRoadInfo();
@@ -42,6 +51,12 @@ const RoadInfo = (e) => {
                 <p>Loading data</p>
             </div>
         );
+    } else if (typeof (modRef) === 'undefined') {
+        return (
+            <div className="roadinfo-card">
+                <p>Loading data</p>
+            </div>
+        );
     } else {
         let name = data.features.properties.name;
         let type = data.features.properties.type;
@@ -51,6 +66,13 @@ const RoadInfo = (e) => {
         let date = data.features.properties.date;
         let references = data.features.properties.references;
         let historicalReferences = data.features.properties.historicalReferences;
+
+        const modernReferenceRenderer = (modRef) => {
+            let modernReferences = [];
+            modRef.forEach((element) => modernReferences.push(element));
+            return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
+                <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
+        }
         return (
             <>
                 <div className="pagebox">
@@ -67,8 +89,9 @@ const RoadInfo = (e) => {
                         {(date === undefined) ? null : <span>{date}</span>}
                         {(references === undefined) ? null : <h4>References : </h4>}
                         {(references === undefined) ? null : <span>{references}</span>}
+                        {(modRef === undefined) ? null : modernReferenceRenderer(modRef)}
                         {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
-                        {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}                        
+                        {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
                         <br></br>
                         <button className="back-btn" onClick={backButtonHandler}>BACK</button>
                         <button className="location-btn" onClick={atlasButtonHandler}>TO MAP</button>
