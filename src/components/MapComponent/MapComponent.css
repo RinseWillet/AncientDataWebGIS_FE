@@ -6,11 +6,13 @@
   /* box-sizing: border-box; */
   height: 76vh;
   width: 100%;
+  z-index: var(--z-map);
 }
 
 .infoMap_adjusted {
   height: 72vh;
   width: 100%;
+  z-index: var(--z-map);
 }
 
 .infoCard {

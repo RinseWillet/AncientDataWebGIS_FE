@@ -23,7 +23,7 @@ const Footer = () => {
                             <p>DataList</p>
                         </Link>
                         <Link to='/atlas' activestyle="true">
-                            <p>Atlas</p>
+                            <p>To the Map</p>
                         </Link>
                     </div>
                     <div className="sb__footer-links_div">
@@ -66,7 +66,9 @@ const Footer = () => {
                         <h4>Social Media</h4>
                         <div className="socialmedia">
                             <p><img src={yt} alt="" /></p>
-                            <p><img src={linkedin} alt="" /></p>
+                            <a href="https://www.linkedin.com/in/rinse-willet-9b520693/">
+                                <p><img src={linkedin} alt="" /></p>
+                            </a>                        
                             <p><img src={insta} alt="" /></p>
                         </div>
                     </div>

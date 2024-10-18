@@ -26,6 +26,7 @@ Primary color 4: #B2933F
 
  /* testing style 1 */
 :root{
+  /* colors */
   --background-color_1: #C7B7A3;
   --background-color_2: #E8D8C4; 
   --box-color_1: #561C24;
@@ -36,6 +37,16 @@ Primary color 4: #B2933F
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
   --shadow-color: rgb(0 0 0 / 30%);
+  /* font*/
+  --header-height: 3.5rem;
+  --h2-font-size: 1.25rem;
+  --small-font-size: 0.813rem;
+  --font-semi-bold: 600;
+  --body-font: "Open Sans", sans-serif;
+  --z-tooltip: 10;
+  --z-fixed: 100;
+  --z-map: 50;
+  --header-height: 6rem;
 }
 
 /* dev style */
@@ -45,7 +56,6 @@ Primary color 4: #B2933F
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
 } */
-
 
 html{
   font-size: 62.5%;
@@ -57,7 +67,7 @@ body{
   background-image: linear-gradient(to top left, var(--background-color_1), var(--box-color_2));  
   color: var(--font-color);
   padding: 0.5rem;
-  font-family: 'Open Sans', sans-serif;
+  font-family: var(--body-font);
 }
 
 .pagebox {
@@ -67,6 +77,14 @@ body{
   background-color: var(--background-color_2);
   height: 78vh;
   overflow: auto;
+}
+
+ul {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
 }
 
 .back-btn {
@@ -93,11 +111,13 @@ body{
 @media screen and (max-width: 850px) {
   .pagebox{
     height: 71vh;
+    font-size: 1.6rem;
   }
 }
 
 @media screen and (max-width: 400px) {
   .pagebox{
     height: 65vh;
+    font-size: 1.4rem;
   }
 }
