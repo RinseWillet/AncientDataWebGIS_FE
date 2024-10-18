@@ -23,7 +23,7 @@ const Footer = () => {
                             <p>DataList</p>
                         </Link>
                         <Link to='/atlas' activestyle="true">
-                            <p>Atlas</p>
+                            <p>To the Map</p>
                         </Link>
                     </div>
                     <div className="sb__footer-links_div">
@@ -49,25 +49,19 @@ const Footer = () => {
                         <a>
                             <p>Games (under construction)</p>
                         </a>
-                    </div>
-                    <div className="sb__footer-links_div">
-                        <h4>Other Links</h4>
-                        <a>
-                            <p>under construction</p>
-                        </a>
-                        <a>
-                            <p>under construction</p>
-                        </a>
-                        <a>
-                            <p>under construction</p>
-                        </a>
-                    </div>
+                    </div>               
                     <div className="sb__footer-links_div">
                         <h4>Social Media</h4>
                         <div className="socialmedia">
-                            <p><img src={yt} alt="" /></p>
-                            <p><img src={linkedin} alt="" /></p>
-                            <p><img src={insta} alt="" /></p>
+                            <a href="https://www.youtube.com/@rinsewillet1934">
+                                <p><img src={yt} alt="" /></p>
+                            </a>                            
+                            <a href="https://www.linkedin.com/in/rinse-willet-9b520693/">
+                                <p><img src={linkedin} alt="" /></p>
+                            </a>
+                            <a href="">
+                                <p><img src={insta} alt="https://www.instagram.com/rinsedoesarchaeology/" /></p>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -78,12 +72,12 @@ const Footer = () => {
                             ©{new Date().getFullYear()} Rinse Willet. All rights reserved.
                         </p>
                     </div>
-                    <div className="sb__footer-below-links">
+                    {/* <div className="sb__footer-below-links">
                         <a href="/terms"><div><p>Terms & Conditions</p></div></a>
                         <a href="/terms"><div><p>Privacy</p></div></a>
                         <a href="/terms"><div><p>Security</p></div></a>
                         <a href="/terms"><div><p>Cookie Declaration</p></div></a>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

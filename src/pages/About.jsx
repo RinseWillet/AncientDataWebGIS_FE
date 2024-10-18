@@ -5,13 +5,13 @@ const About = () => {
     <>
       <main>
         <div className='pagebox'>
-          <h2>A website on Roman Roads</h2>
-          <h4>
+          <h1>A website on Roman Roads</h1>
+          <blockquote>
             The areas into which Roman hegemony expanded were anything but a tabula rasa and existing settlements and infrastructure facilitated the conquests of these areas and ultimately were expanded upon with provincial organization.
             During the first century BCE, the Romans began building infrastructural projects in north-western Europe and although the Netherlands, with its unique river delta topography, were lacking major Iron Age hillforts, other types of settlement and (wooden) roads already existed. Yet in several phases, roads would be constructed. Furthermore, the rivers Rhine, Meuse, Waal and so on would start to play a vital role in the supply of military bases in the Netherlands and these waterways would be improved.
             Two cities (Voorburg and Nijmegen) emerged in the Netherlands, but while cities have played a significant role in the study of Roman regional settlement systems, small towns, villages and hamlets played a central role in local cultural, commercial, artisanal, and religious life for the majority of the population.
             Therefore, in case (innovation in) infrastructure was to have a real knock-on effect, this is not to be read from the initial uses (which are military), but from the new ideas, goods, practices, and people coming in, in a sustainable way, and from the impact on rural life by changing the structure of and connectivity within local settlement systems.
-          </h4>
+          </blockquote>
 
           <br></br>
           <p>

@@ -6,16 +6,19 @@
   /* box-sizing: border-box; */
   height: 76vh;
   width: 100%;
+  z-index: var(--z-map);
 }
 
 .infoMap_adjusted {
   height: 72vh;
   width: 100%;
+  z-index: var(--z-map);
 }
 
 .infoCard {
   color: black;
   font-size: 1.6rem;
+  font-family: var(--project-font-family);
   position: absolute;
   z-index: 999;
   border: 2px solid darkgray;
@@ -38,6 +41,11 @@
 
   .infoMap_adjusted {
     height: 65vh;
+  }
+
+  .infoCard{
+    width: 45%;
+    font-size: 1.4rem;
   }
 }
 
