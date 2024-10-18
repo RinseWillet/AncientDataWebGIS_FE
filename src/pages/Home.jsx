@@ -3,7 +3,7 @@ const Home = () => {
     <>
       <div className='pagebox'>
         <main>
-          <h2>Welcome to the homepage!</h2>
+          <h1>Welcome to the homepage!</h1>
           <p>You can do this, I believe in you.</p>
         </main>       
       </div>

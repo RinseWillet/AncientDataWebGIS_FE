@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+// import { useNavigate } from "react-router-dom";
 import SiteService from '../../services/SiteService';
 import RoadService from '../../services/RoadService';
 
@@ -7,6 +8,10 @@ const MapInfoCard = ({ searchItem }) => {
     const infoRef = useRef(0);
     const [siteInfo, setSiteInfo] = useState([]);
     const [roadInfo, setRoadInfo] = useState([]);
+
+    // //hook for navigation to go back to DataList or go to Atlas page
+    // const navigate = useNavigate();
+
 
     //loading site and road data from
     useEffect(() => {        
@@ -73,6 +78,11 @@ const MapInfoCard = ({ searchItem }) => {
         }
     }
 
+    // const MoreRoadInfoButtonHandler = () => {
+    //     console.log("joepie");
+    //     navigate("/datalist/roadinfo/" + roadInfo.features.properties.id);
+    // }
+
     //renders card only if the data is filled after apicall
     if (searchItem.type === "site") {
         if (siteInfo.length < 1) {
@@ -84,6 +94,7 @@ const MapInfoCard = ({ searchItem }) => {
         } else {
             let comment = siteInfo.features.properties.comment;
             let siteType = siteTypeConverter(siteInfo.features.properties.siteType)
+            console.log(siteInfo);
             return (
                 <div className="infoCard" ref={infoRef}>
                     <b>
@@ -103,28 +114,23 @@ const MapInfoCard = ({ searchItem }) => {
                 </div>
             )
         } else {
+            console.log(roadInfo);
             let name = roadInfo.features.properties.name;
             let type = roadInfo.features.properties.type;
-            let typeDescription = roadInfo.features.properties.typeDescription;
-            let location = roadInfo.features.properties.location;
+            let typeDescription = roadInfo.features.properties.typeDescription;         
             let description = roadInfo.features.properties.description;
-            let date = roadInfo.features.properties.date;
-            let references = roadInfo.features.properties.references;
-            let historicalReferences = roadInfo.features.properties.historicalReferences;           
+            let date = roadInfo.features.properties.date;          
+
             return (
                 <div className="infoCard" ref={infoRef}>
                     <h2>{name}</h2><br />
                     <b>Identification : </b><br />
-                    {type} - {typeDescription} <br />
-                    <b>Location :</b><br /><span>{location}</span><br />
+                    {type} - {(typeDescription === undefined) ? null : <span>{typeDescription}</span>} <br />                    
                     <b>Description :</b><br />
                     <span>{description}</span><br />
-                    <b>Date :</b> <br />
-                    {date}<br />
-                    <b>References : </b> <br />
-                    <span>{references}</span><br />
-                    <b>Historical references :</b><br />
-                    <span>{historicalReferences}</span>
+                    {(date === undefined) ? null : <h4>Date : </h4>}
+                    {(date === undefined) ? null : <span>{date}</span>}                  
+                    {/* <button className="location-btn" onClick={MoreRoadInfoButtonHandler}>More Info?</button>                     */}
                 </div>
             );
         }

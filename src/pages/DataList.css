@@ -30,7 +30,7 @@
 }
 
 .dataSwitch-label__roads {
-    color: #fff;
+    color: var(--font-color-3);
     font-weight: normal;
 }
 
@@ -41,7 +41,7 @@
 }
 
 .dataSwitch-label__sites{
-    color: var(--font-color-1);
+    color: var(--font-color-3);
     font-weight: normal;
 }
 

@@ -13,7 +13,7 @@
   justify-content: space-between;
   position: relative;
   height: var(--header-height);
-  margin: 1rem;
+  margin: 0.5rem;
 }
 
 .nav__logo {
@@ -26,7 +26,7 @@
 .nav__toggle,
 .nav__close {
   font-size: 1.5rem;
-  color: var(--font-color-1);
+  color: var(--accent-color);
   cursor: pointer;
 }
 
@@ -73,7 +73,7 @@
 .nav__list__web {
   display: flex;
   flex-direction: row;
-  column-gap: 2.5rem;
+  column-gap: 3rem;
   align-items: center;
   list-style-type: none;
   padding: 0;

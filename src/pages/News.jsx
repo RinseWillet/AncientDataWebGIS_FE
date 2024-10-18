@@ -5,7 +5,7 @@ const News = () => {
     <>
       <div className='pagebox'>
         <main>
-          <h2>News</h2>
+          <h1>News</h1>
           <p>This app is in state of development and occasional technical and informational updates will be provided here</p>
         </main>        
       </div>

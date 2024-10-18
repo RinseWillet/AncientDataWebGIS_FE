@@ -1,5 +1,5 @@
 .section__padding{
-    padding: 0.3rem 0.3rem;
+    padding: 0.2rem 0.3rem;
 }
 
 .footer{
@@ -46,14 +46,14 @@ a {
 }
 
 .sb__footer-links_div h4{
-    font-size: 1.2rem;
-    line-height: 1rem;
-    margin: 0.5rem 0;
+    font-size: 1.4rem;
+    line-height: 2.3rem;
+    margin: 0.2rem 0;
     cursor: pointer;
 }
 
 .sb__footer-links_div p{
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     line-height: 1rem;
     margin: 0.4rem 0;
     cursor: pointer;
@@ -78,10 +78,10 @@ hr{
 }
 
 .sb__footer-copyright p{
-    font-size: 1rem;
-    line-height: 1rem;
+    font-size: 1.4rem;
+    line-height: 2.3rem;
     color: var(--font-color-1);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 @media screen and (max-width: 850px) {
@@ -93,6 +93,11 @@ hr{
     .sb__footer-links div{
         margin: 1rem 0;        
     }
+
+    .sb__footer-links div p{
+        font-size: 1.2rem;
+        line-height: 1.2rem;        
+    }    
 
     .sb__footer-btn p{
         font-size: 1.2rem;
@@ -111,6 +116,13 @@ hr{
     .sb__footer-below-links p{
         margin-left: 0rem;
         margin-top: 1rem;
+    }
+
+    .sb__footer-copyright p{
+        font-size: 1rem;
+        line-height: 1.2rem;
+        color: var(--font-color-1);
+        font-weight: 500;
     }
 }
 
