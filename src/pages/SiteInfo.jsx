@@ -44,7 +44,7 @@ const SiteInfo = (e) => {
     }
 
     const atlasButtonHandler = () => {
-        navigate("/atlas/site_" + data.features.properties.id);
+        navigate("/atlas/site_" + siteData.features.properties.id);
     }
 
     const siteTypeConverter = (siteType) => {
@@ -94,6 +94,13 @@ const SiteInfo = (e) => {
             </div>
 
         );
+
+    } else if (typeof (modRef) === 'undefined') {
+        return (
+            <div className="roadinfo-card">
+                <p>Loading data</p>
+            </div>
+        );
     } else {
         let name = siteData.features.properties.name;
         let type = siteTypeConverter(siteData.features.properties.siteType);
@@ -102,6 +109,22 @@ const SiteInfo = (e) => {
         let references = siteData.features.properties.references;
         let province = siteData.features.properties.province;
         let pleiadesLink = siteData.features.properties.pleiadesid;
+
+        const modernReferenceRenderer = (modRef) => {
+
+            if (modRef.length > 0) {
+                let modernReferences = [];
+                modRef.forEach((element) => modernReferences.push(element));
+                
+                return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
+                    <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>
+                )
+            } else {
+                return (
+                    <span>{references}</span>
+                )
+            }
+        }
 
         return (
             <div className="pagebox">
@@ -113,7 +136,7 @@ const SiteInfo = (e) => {
                 <h4>Description : </h4>
                 <span>{description}</span>
                 {(status === undefined) ? null : <h4>Status : </h4>}
-                {(status === undefined) ? null : <span>{status}</span>}      
+                {(status === undefined) ? null : <span>{status}</span>}
                 {(references === undefined) ? null : <h4>References : </h4>}
                 {(references === undefined) ? null : modernReferenceRenderer(modRef)}
                 {(province === undefined) ? null : <h4>Province :</h4>}
