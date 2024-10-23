@@ -9,7 +9,9 @@ const SiteInfo = (e) => {
 
     const { id } = useParams();
 
-    const [data, setData] = useState();
+    const [siteData, setSiteData] = useState();
+    const [modRef, setModRef] = useState();
+
 
     //hook for navigation to go back to DataList or go to Atlas page
     const navigate = useNavigate();
@@ -19,12 +21,21 @@ const SiteInfo = (e) => {
             SiteService
                 .findByIdGeoJson(id)
                 .then((response) => {
-                    setData(response.data);
+                    setSiteData(response.data);
                 })
                 .catch((error) => {
                     console.error(error);
                 });
+            SiteService
+                .findModernReferenceBySiteId(id)
+                .then((response) => {
+                    setModRef(response.data);
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         }
+
         LoadSiteInfo();
     }, []);
 
@@ -74,7 +85,7 @@ const SiteInfo = (e) => {
         }
     }
 
-    if (typeof (data) == 'undefined') {
+    if (typeof (siteData) == 'undefined') {
         return (
             <div className="pagebox">
                 <div className="roadinfo-card">
@@ -83,14 +94,14 @@ const SiteInfo = (e) => {
             </div>
 
         );
-    } else {        
-        let name = data.features.properties.name;
-        let type = siteTypeConverter(data.features.properties.siteType);
-        let description = data.features.properties.comment;
-        let status = data.features.properties.status;
-        let statusReferences = data.features.properties.statusref;
-        let province = data.features.properties.province;
-        let pleiadesLink = data.features.properties.pleiadesid; 
+    } else {
+        let name = siteData.features.properties.name;
+        let type = siteTypeConverter(siteData.features.properties.siteType);
+        let description = siteData.features.properties.description;
+        let status = siteData.features.properties.status;
+        let references = siteData.features.properties.references;
+        let province = siteData.features.properties.province;
+        let pleiadesLink = siteData.features.properties.pleiadesid;
 
         return (
             <div className="pagebox">
@@ -102,9 +113,9 @@ const SiteInfo = (e) => {
                 <h4>Description : </h4>
                 <span>{description}</span>
                 {(status === undefined) ? null : <h4>Status : </h4>}
-                {(status === undefined) ? null : <span>{status}</span>}
-                {(statusReferences === undefined) ? null : <h4>Status references : </h4>}
-                {(statusReferences === undefined) ? null : <span>{statusReferences}</span>}                
+                {(status === undefined) ? null : <span>{status}</span>}      
+                {(references === undefined) ? null : <h4>References : </h4>}
+                {(references === undefined) ? null : modernReferenceRenderer(modRef)}
                 {(province === undefined) ? null : <h4>Province :</h4>}
                 {(province === undefined) ? null : <span>{province}</span>}
                 {(pleiadesLink === undefined) ? null : <h4>Pleiades</h4>}

@@ -2,15 +2,14 @@ import apiClient from "../api/config";
 
 const SiteService = {        
     async findAllGeoJson() {
-        return await apiClient.get('/sites/geojson');
+        return await apiClient.get('/sites/all');
     },
     async findByIdGeoJson(id) {
         return await apiClient.get('/sites/' + id);
-    },    
-
-    async testEndpoint() {
-        return await apiClient.get('/sites/test');
-    }
+    },
+    async findModernReferenceBySiteId(id) {
+        return await apiClient.get('sites/modref/' + id);
+    } 
 };
 
 export default SiteService;

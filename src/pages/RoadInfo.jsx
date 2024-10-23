@@ -67,8 +67,6 @@ const RoadInfo = (e) => {
         let references = data.features.properties.references;
         let historicalReferences = data.features.properties.historicalReferences;
 
-        console.log(references);
-        console.log(modRef);
         const modernReferenceRenderer = (modRef) => {
             if(modRef.length > 0) {
                 let modernReferences = [];
@@ -79,7 +77,7 @@ const RoadInfo = (e) => {
                 return (
                     <span>{references}</span>
                 )
-            }            
+            }
         }
 
         return (
