@@ -29,7 +29,7 @@ const MapComponent = (queryItem, adjustMapHeight) => {
     useEffect(() => {
     
         if (!map) return;
-
+       
         //code dealing with handling resizing of the map
 
         const ref = infoRef.current.offsetWidth;
@@ -50,6 +50,7 @@ const MapComponent = (queryItem, adjustMapHeight) => {
             });
         }
 
+
         handleResize();
 
         window.addEventListener("resize", handleResize);
@@ -57,6 +58,7 @@ const MapComponent = (queryItem, adjustMapHeight) => {
         return (_) => {
             window.removeEventListener("resize", handleResize);
         };
+        
 
     }, [map]);
     
