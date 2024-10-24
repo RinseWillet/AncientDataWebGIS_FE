@@ -68,11 +68,11 @@ const RoadInfo = (e) => {
         let historicalReferences = data.features.properties.historicalReferences;
 
         const modernReferenceRenderer = (modRef) => {
-            if(modRef.length > 0) {
+            if (modRef.length > 0) {
                 let modernReferences = [];
-            modRef.forEach((element) => modernReferences.push(element));
-            return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
-                <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
+                modRef.forEach((element) => modernReferences.push(element));
+                return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
+                    <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
             } else {
                 return (
                     <span>{references}</span>
@@ -95,7 +95,7 @@ const RoadInfo = (e) => {
                         {(date === undefined) ? null : <h4>Date : </h4>}
                         {(date === undefined) ? null : <span>{date}</span>}
                         {(references === undefined) ? null : <h4>References : </h4>}
-                        {(references === undefined) ? null : modernReferenceRenderer(modRef)}                    
+                        {(references === undefined) ? null : modernReferenceRenderer(modRef)}
                         {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
                         {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
                         <br></br>

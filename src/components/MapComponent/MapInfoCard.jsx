@@ -92,16 +92,15 @@ const MapInfoCard = ({ searchItem }) => {
                 </div>
             )
         } else {
-            let comment = siteInfo.features.properties.comment;
-            let siteType = siteTypeConverter(siteInfo.features.properties.siteType)
-            console.log(siteInfo);
+            let description = siteInfo.features.properties.description;
+            let siteType = siteTypeConverter(siteInfo.features.properties.siteType);
             return (
                 <div className="infoCard" ref={infoRef}>
                     <b>
                         Identification:
                     </b><br />{siteType} <br />
                     <span>
-                        <b>Comment :</b><br />{comment}
+                        <b>Description :</b><br />{description}
                     </span>
                 </div>
             );
@@ -114,7 +113,6 @@ const MapInfoCard = ({ searchItem }) => {
                 </div>
             )
         } else {
-            console.log(roadInfo);
             let name = roadInfo.features.properties.name;
             let type = roadInfo.features.properties.type;
             let typeDescription = roadInfo.features.properties.typeDescription;         

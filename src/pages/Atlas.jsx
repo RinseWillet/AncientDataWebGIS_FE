@@ -55,6 +55,7 @@ const Atlas = () => {
                 id: queryId
             }
         }
+
         return (
             <div className="pagebox">
                 <MapComponent queryItem={query} adjustMapHeight={true}/>
