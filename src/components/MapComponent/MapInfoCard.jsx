@@ -9,10 +9,6 @@ const MapInfoCard = ({ searchItem }) => {
     const [siteInfo, setSiteInfo] = useState([]);
     const [roadInfo, setRoadInfo] = useState([]);
 
-    // //hook for navigation to go back to DataList or go to Atlas page
-    // const navigate = useNavigate();
-
-
     //loading site and road data from
     useEffect(() => {        
         async function LoadSiteData() {
@@ -78,11 +74,6 @@ const MapInfoCard = ({ searchItem }) => {
         }
     }
 
-    // const MoreRoadInfoButtonHandler = () => {
-    //     console.log("joepie");
-    //     navigate("/datalist/roadinfo/" + roadInfo.features.properties.id);
-    // }
-
     //renders card only if the data is filled after apicall
     if (searchItem.type === "site") {
         if (siteInfo.length < 1) {
@@ -127,8 +118,7 @@ const MapInfoCard = ({ searchItem }) => {
                     <b>Description :</b><br />
                     <span>{description}</span><br />
                     {(date === undefined) ? null : <h4>Date : </h4>}
-                    {(date === undefined) ? null : <span>{date}</span>}                  
-                    {/* <button className="location-btn" onClick={MoreRoadInfoButtonHandler}>More Info?</button>                     */}
+                    {(date === undefined) ? null : <span>{date}</span>}
                 </div>
             );
         }

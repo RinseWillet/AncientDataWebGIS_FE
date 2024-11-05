@@ -3,14 +3,13 @@
 }
 
 .infoMap {
-  /* box-sizing: border-box; */
   height: 76vh;
   width: 100%;
   z-index: var(--z-map);
 }
 
 .infoMap_adjusted {
-  height: 72vh;
+  height: 40vh;
   width: 100%;
   z-index: var(--z-map);
 }
@@ -40,7 +39,7 @@
   }
 
   .infoMap_adjusted {
-    height: 65vh;
+    height: 35vh;
   }
 
   .infoCard{

@@ -1,4 +1,4 @@
-import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl } from 'react-leaflet';
+import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl, WMSTileLayer } from 'react-leaflet';
 
 //style
 import 'leaflet/dist/leaflet.css';
@@ -210,6 +210,37 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                         ext="png"
                     />
                 </LayersControl.BaseLayer>
+
+                <LayersControl.BaseLayer name="1801 - 1828: Kartenaufnahme der Rheinlande 1:25000">
+                    <WMSTileLayer                       
+                        url="http://www.wms.nrw.de/geobasis/wms_nw_tranchot?"
+                        layers='nw_tranchot'
+                    />
+                </LayersControl.BaseLayer>
+
+                <LayersControl.BaseLayer name="1836 - 1850: Preußische Kartenaufnahme 1:25000">
+                    <WMSTileLayer                       
+                        url="http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?"
+                        layers='nw_uraufnahme_rw'
+                    />
+                </LayersControl.BaseLayer>
+
+                <LayersControl.BaseLayer name="1891 - 1912: Preußische Kartenaufnahme 1:25000">
+                    <WMSTileLayer                       
+                        url="http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?"
+                        layers='nw_neuaufnahme'
+                    />
+                </LayersControl.BaseLayer>
+
+                {/* <LayersControl.BaseLayer name="Topographical map Netherlands 1850">
+                    <TileLayer                       
+                        url="https://tiles.arcgis.com/tiles/nSZVuSZjHpEZZbRo/arcgis/rest/services/Historische_tijdreis_1860/MapServer"     
+                        layers='Historische_tijdreis_1850'
+                        minZoom={0}
+                        maxZoom={20}
+                        ext="image/png"                
+                    />
+                </LayersControl.BaseLayer> */}
 
                 <LayersControl.Overlay checked name="Archaeological Sites">
                     {/* if a site is queried, a queryIcon is returned for the queried site 

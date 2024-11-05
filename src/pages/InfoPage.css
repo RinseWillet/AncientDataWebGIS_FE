@@ -1,0 +1,48 @@
+/* styling for RoadInfo and SiteInfo pages */
+
+.infopage-box{
+    display: flex;
+    margin: 0.5rem;    
+}
+
+.infopage-card{     
+    display: block;
+    overflow: auto;
+    width: 60%;
+    margin: 1rem;
+}
+
+.infopage-illustrationbox{
+    flex-direction: column;
+    width: 40%; 
+}
+
+.infopage-map{   
+    margin: 1rem;
+}
+
+.infopageo-image{
+    margin: 1rem;
+}
+
+@media screen and (max-width: 1125px) {
+    .infopage-box {
+      flex-direction: column;
+    }
+
+    .infopage-card{
+        width:100%;
+    }
+    
+    .infopage-illustrationbox{
+            width: 100%;  
+    }
+
+    .infopage-map{   
+        margin: 0.5rem;
+    }
+
+    .infopage-image{
+        margin: 0.5rem;
+    }
+}

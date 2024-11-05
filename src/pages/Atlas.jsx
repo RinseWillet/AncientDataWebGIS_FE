@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapComponent/MapComponent";
+import { useEffect, useState } from "react";
 
 const Atlas = () => {
 
@@ -9,6 +10,8 @@ const Atlas = () => {
 
     //hook for navigation to go back to DataList or go to Atlas page
     const navigate = useNavigate();
+
+    const [queryItemData, setQueryItemData] = useState();
 
     //back button when map is queried from DataList and SiteInfo/RoadInfo pages
     const backButtonHandler = () => {
