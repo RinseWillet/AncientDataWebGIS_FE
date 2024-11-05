@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import RoadService from "../services/RoadService";
+import MapComponent from "../components/MapComponent/MapComponent";
 
 //style
-import './RoadInfo.css'
+import './InfoPage.css';
+
 
 const RoadInfo = (e) => {
 
@@ -12,8 +14,13 @@ const RoadInfo = (e) => {
     const [data, setData] = useState();
     const [modRef, setModRef] = useState();
 
-    //hook for navigation to go back to DataList or go to Atlas page
+    //hook for navigation and function to go back to DataList using back button
     const navigate = useNavigate();
+
+    const backButtonHandler = () => {
+        navigate("/datalist/")
+    }
+
 
     useEffect(() => {
         async function LoadRoadInfo() {
@@ -35,16 +42,15 @@ const RoadInfo = (e) => {
                 });
         }
         LoadRoadInfo();
-    }, []);
+    }, []);   
 
-    const backButtonHandler = () => {
-        navigate("/datalist/")
+    //query to feed to the mapcomponent
+    let query = {
+        type: "road",
+        id: id
     }
 
-    const atlasButtonHandler = () => {
-        navigate("/atlas/road_" + data.features.properties.id);
-    }
-
+    //logic to deal with loading data and ultimately loading the data and rendering the page
     if (typeof (data) == 'undefined') {
         return (
             <div className="roadinfo-card">
@@ -83,24 +89,31 @@ const RoadInfo = (e) => {
         return (
             <>
                 <div className="pagebox">
-                    <div className="roadinfo-card">
-                        <h4>Information</h4>
-                        <h2>{name}</h2>
-                        <h4>Identification : </h4>
-                        <span> {type} - {typeDescription}</span>
-                        {(location === undefined) ? null : <h4>Location : </h4>}
-                        {(location === undefined) ? null : <span>{location}</span>}
-                        {(description === undefined) ? null : <h4>Description : </h4>}
-                        {(description === undefined) ? null : <span>{description}</span>}
-                        {(date === undefined) ? null : <h4>Date : </h4>}
-                        {(date === undefined) ? null : <span>{date}</span>}
-                        {(references === undefined) ? null : <h4>References : </h4>}
-                        {(references === undefined) ? null : modernReferenceRenderer(modRef)}
-                        {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
-                        {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
-                        <br></br>
-                        <button className="back-btn" onClick={backButtonHandler}>BACK</button>
-                        <button className="location-btn" onClick={atlasButtonHandler}>TO MAP</button>
+                    <div className="infopage-box">
+                        <div className="infopage-card">
+                            <h4>Information</h4>
+                            <h2>{name}</h2>
+                            <h4>Identification : </h4>
+                            <span> {type} - {typeDescription}</span>
+                            {(location === undefined) ? null : <h4>Location : </h4>}
+                            {(location === undefined) ? null : <span>{location}</span>}
+                            {(description === undefined) ? null : <h4>Description : </h4>}
+                            {(description === undefined) ? null : <span>{description}</span>}
+                            {(date === undefined) ? null : <h4>Date : </h4>}
+                            {(date === undefined) ? null : <span>{date}</span>}
+                            {(references === undefined) ? null : <h4>References : </h4>}
+                            {(references === undefined) ? null : modernReferenceRenderer(modRef)}
+                            {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
+                            {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
+                        </div>
+                        <div className="infopage-illustrationbox">
+                            <div className="infopage-map">
+                                <MapComponent queryItem={query} adjustMapHeight={true} />
+                            </div>
+                            <div className="infopage-image">
+                            </div>
+                            <button className="back-btn" onClick={backButtonHandler}>BACK</button>
+                        </div>
                     </div>
                 </div>
             </>

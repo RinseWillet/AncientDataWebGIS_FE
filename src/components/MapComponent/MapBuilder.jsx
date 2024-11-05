@@ -40,6 +40,8 @@ const MapBuilder = ({setShowInfoCard, setSearchItem, queryItem}) => {
     LoadAllData();
   }, []);
 
+  
+
   //renders map only if the data is filled after apicall
   if (roadData.length < 1) {
     return (

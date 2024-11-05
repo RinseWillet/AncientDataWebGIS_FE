@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import SiteService from "../services/SiteService";
+import MapComponent from "../components/MapComponent/MapComponent";
 
 //style
-import './SiteInfo.css'
+import './InfoPage.css';
 
 const SiteInfo = (e) => {
 
@@ -12,9 +13,12 @@ const SiteInfo = (e) => {
     const [siteData, setSiteData] = useState();
     const [modRef, setModRef] = useState();
 
-
-    //hook for navigation to go back to DataList or go to Atlas page
+    //hook for navigation and function to go back to DataList using back button
     const navigate = useNavigate();
+
+    const backButtonHandler = () => {
+        navigate("/datalist/")
+    }
 
     useEffect(() => {
         async function LoadSiteInfo() {
@@ -39,12 +43,10 @@ const SiteInfo = (e) => {
         LoadSiteInfo();
     }, []);
 
-    const backButtonHandler = () => {
-        navigate("/datalist/")
-    }
-
-    const atlasButtonHandler = () => {
-        navigate("/atlas/site_" + siteData.features.properties.id);
+    //query to feed to the mapcomponent
+    let query = {
+        type: "site",
+        id: id
     }
 
     const siteTypeConverter = (siteType) => {
@@ -85,6 +87,7 @@ const SiteInfo = (e) => {
         }
     }
 
+    //logic to deal with loading data and ultimately loading the data and rendering the page
     if (typeof (siteData) == 'undefined') {
         return (
             <div className="pagebox">
@@ -115,7 +118,7 @@ const SiteInfo = (e) => {
             if (modRef.length > 0) {
                 let modernReferences = [];
                 modRef.forEach((element) => modernReferences.push(element));
-                
+
                 return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
                     <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>
                 )
@@ -128,24 +131,32 @@ const SiteInfo = (e) => {
 
         return (
             <div className="pagebox">
-                <div className="siteinfo-card"></div>
-                <h4>Information</h4>
-                <h2>{name}</h2>
-                <h4>Identification : </h4>
-                <span>{type}</span>
-                <h4>Description : </h4>
-                <span>{description}</span>
-                {(status === undefined) ? null : <h4>Status : </h4>}
-                {(status === undefined) ? null : <span>{status}</span>}
-                {(references === undefined) ? null : <h4>References : </h4>}
-                {(references === undefined) ? null : modernReferenceRenderer(modRef)}
-                {(province === undefined) ? null : <h4>Province :</h4>}
-                {(province === undefined) ? null : <span>{province}</span>}
-                {(pleiadesLink === undefined) ? null : <h4>Pleiades</h4>}
-                {(pleiadesLink === undefined) ? null : <span>{pleiadesLink}</span>}
-                <br></br>
-                <button className="back-btn" onClick={backButtonHandler}>BACK</button>
-                <button className="location-btn" onClick={atlasButtonHandler}>TO MAP</button>
+                <div className="infopage-box">
+                    <div className="infopage-card">
+                        <h4>Information</h4>
+                        <h2>{name}</h2>
+                        <h4>Identification : </h4>
+                        <span>{type}</span>
+                        <h4>Description : </h4>
+                        <span>{description}</span>
+                        {(status === undefined) ? null : <h4>Status : </h4>}
+                        {(status === undefined) ? null : <span>{status}</span>}
+                        {(references === undefined) ? null : <h4>References : </h4>}
+                        {(references === undefined) ? null : modernReferenceRenderer(modRef)}
+                        {(province === undefined) ? null : <h4>Province :</h4>}
+                        {(province === undefined) ? null : <span>{province}</span>}
+                        {(pleiadesLink === undefined) ? null : <h4>Pleiades</h4>}
+                        {(pleiadesLink === undefined) ? null : <span>{pleiadesLink}</span>}
+                    </div>
+                    <div className="infopage-illustrationbox">
+                        <div className="infopage-map">
+                            <MapComponent queryItem={query} adjustMapHeight={true} />
+                        </div>
+                        <div className="infopage-image">
+                        </div>
+                        <button className="back-btn" onClick={backButtonHandler}>BACK</button>
+                    </div>
+                </div>
             </div>
         )
     }
