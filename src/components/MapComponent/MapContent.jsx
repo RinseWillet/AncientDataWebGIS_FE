@@ -1,11 +1,12 @@
 import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl, WMSTileLayer } from 'react-leaflet';
+import { useState } from 'react';
 
 //style
 import 'leaflet/dist/leaflet.css';
-import { notShowRoad, possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon } from './Styles/MarkerStyles';
+import { notShowRoad, possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon, mileStoneIcon } from './Styles/MarkerStyles';
 
 import './MapContent.css';
-import { useState } from 'react';
+
 
 
 const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem }) => {
@@ -66,7 +67,9 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
         } else if (siteProperties.siteType === 'pship') {
             siteMarker.setIcon(possibleShipIcon);
         } else if (siteProperties.siteType === 'site') {
-            siteMarker.setIcon(siteIcon);
+            siteMarker.setIcon(siteIcon);            
+        } else if (siteProperties.siteType === 'milestone') {
+            siteMarker.setIcon(mileStoneIcon);            
         } else {
             siteMarker = null;
         }
@@ -212,25 +215,25 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
                 </LayersControl.BaseLayer>
 
                 <LayersControl.BaseLayer name="1801 - 1828: Kartenaufnahme der Rheinlande 1:25000">
-                    <WMSTileLayer                       
+                    <WMSTileLayer
                         url="http://www.wms.nrw.de/geobasis/wms_nw_tranchot?"
                         layers='nw_tranchot'
                     />
                 </LayersControl.BaseLayer>
 
                 <LayersControl.BaseLayer name="1836 - 1850: Preußische Kartenaufnahme 1:25000">
-                    <WMSTileLayer                       
+                    <WMSTileLayer
                         url="http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?"
                         layers='nw_uraufnahme_rw'
                     />
                 </LayersControl.BaseLayer>
 
                 <LayersControl.BaseLayer name="1891 - 1912: Preußische Kartenaufnahme 1:25000">
-                    <WMSTileLayer                       
+                    <WMSTileLayer
                         url="http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?"
                         layers='nw_neuaufnahme'
                     />
-                </LayersControl.BaseLayer>
+                </LayersControl.BaseLayer>    
 
                 {/* <LayersControl.BaseLayer name="Topographical map Netherlands 1850">
                     <TileLayer                       
