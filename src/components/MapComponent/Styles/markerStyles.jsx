@@ -15,6 +15,7 @@ import sanctuary from '../../../assets/sanctuary.png';
 import ship from '../../../assets/ship.png';
 import pship from '../../../assets/pship.png';
 import site from '../../../assets/site.png';
+import milestone from '../../../assets/milestone.png'
 
 export const castellumIcon = new Icon({
     iconUrl: fort,
@@ -93,6 +94,11 @@ export const tumulusIcon = new Icon({
 
 export const possibleTumulusIcon = new Icon({
     iconUrl: ptumulus,
+    iconSize: [30, 30]
+});
+
+export const mileStoneIcon = new Icon({
+    iconUrl: milestone,
     iconSize: [30, 30]
 });
 
