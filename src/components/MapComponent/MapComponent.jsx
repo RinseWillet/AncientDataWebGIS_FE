@@ -1,4 +1,3 @@
-// MapComponent.js
 import React, { useState, useEffect } from 'react';
 import MapBuilder from './MapBuilder';
 import MapInfoCard from './MapInfoCard';
@@ -6,78 +5,60 @@ import { MapContainer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import './MapComponent.css';
 
-const position = [51.8, 5.8]
+const position = [51.8, 5.8];
 
-const MapComponent = (queryItem, adjustMapHeight) => {
+const MapComponent = ({ queryItem, adjustMapHeight }) => {
+  const [map, setMap] = useState(null);
+  const [showInfoCard, setShowInfoCard] = useState(false);
+  const [searchItem, setSearchItem] = useState({ type: "", id: "" });
 
-    //standard hook state fpr the Leaflet Map
-    const [map, setMap] = useState(null);
+  useEffect(() => {
+    if (!map) return;
 
-    //boolean hook state that switched the height of the map in css, when a Back Button
-    //is rendered
-    // const [adjustMapHeight, setAdjustMapHeight] = useState(true);
+    const visibleMarkers = [];
 
-    //boolean hook state to render (or not) the MapInfoCard component
-    const [showInfoCard, setShowInfoCard] = useState(false);
-
-    //hook to pass a searchItem from MapContent towards MapInfoCard
-    const [searchItem, setSearchItem] = useState({
-        type: "",
-        id: ""
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        visibleMarkers.push(layer);
+      }
     });
 
-    useEffect(() => {
-    
-        if (!map) return;
-       
-        //code dealing with handling resizing of the map
+    if (visibleMarkers.length === 0) return;
 
-        const ref = infoRef.current.offsetWidth;
+    const featureGroup = L.featureGroup(visibleMarkers).getBounds();
 
-        const visibleMarkers = [];
+    const handleResize = () => {
+      map.fitBounds(featureGroup, {
+        paddingTopLeft: [300, 10], // Adjust as needed
+      });
+    };
 
-        map.eachLayer((layer) => {
-            if (layer instanceof L.Marker) {
-                visibleMarkers.push(layer);
-            }
-        });
+    handleResize(); // Initial adjustment
+    window.addEventListener("resize", handleResize);
 
-        const featureGroup = L.featureGroup(visibleMarkers).getBounds();
+    return () => window.removeEventListener("resize", handleResize);
+  }, [map]);
 
-        function handleResize() {
-            map.fitBounds(featureGroup, {
-                paddingTopLeft: [ref + 10, 10],
-            });
-        }
-
-
-        handleResize();
-
-        window.addEventListener("resize", handleResize);
-
-        return (_) => {
-            window.removeEventListener("resize", handleResize);
-        };
-        
-
-    }, [map]);
-    
-    //check for adjustMapheight in className -> if true (and a BackButton must be displayed below the map, InfoMap_adjusted otherwise fullmap as configured in css class infoMap)
-    return (  
-            <div>          
-                <MapContainer id="map" className={`${queryItem.adjustMapHeight ? "infoMap_adjusted" : "infoMap"}`}
-                    whenCreated={setMap}
-                    center={position}
-                    zoom={9}
-                    zoomControl={false}
-                    adjustMapHeight={adjustMapHeight}
-                    tapTolerance={30}
-                >
-                    {showInfoCard ? <MapInfoCard searchItem={searchItem} /> : null}
-                    <MapBuilder setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem} />
-                </MapContainer>
-            </div>                   
-        );   
-}
+  return (
+    <div>
+      <MapContainer
+        id="map"
+        className={adjustMapHeight ? "infoMap_adjusted" : "infoMap"}
+        whenCreated={setMap}
+        center={position}
+        zoom={9}
+        zoomControl={false}
+        tapTolerance={30}
+      >
+        {showInfoCard && <MapInfoCard searchItem={searchItem} />}
+        <MapBuilder
+          setShowInfoCard={setShowInfoCard}
+          setSearchItem={setSearchItem}
+          queryItem={queryItem}
+        />
+      </MapContainer>
+    </div>
+  );
+};
 
 export default MapComponent;

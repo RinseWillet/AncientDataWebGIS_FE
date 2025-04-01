@@ -1,60 +1,52 @@
-//React
+// React
 import { useEffect, useState } from "react";
 
-//Services
-import SiteService from '../../services/SiteService';
-import RoadService from '../../services/RoadService';
+// Services
+import SiteService from "../../services/SiteService";
+import RoadService from "../../services/RoadService";
 import MapContent from "./MapContent";
 
-//style
+// Style
 import 'leaflet/dist/leaflet.css';
 
-const MapBuilder = ({setShowInfoCard, setSearchItem, queryItem}) => {
+const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem }) => {
+  const [siteData, setSiteData] = useState(null);
+  const [roadData, setRoadData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [siteData, setSiteData] = useState([]);
-  const [roadData, setRoadData] = useState([]);  
-
-  //loading site and road data from
   useEffect(() => {
-    async function LoadAllData() {
+    async function loadAllData() {
+      try {
+        const [siteResponse, roadResponse] = await Promise.all([
+          SiteService.findAllGeoJson(),
+          RoadService.findAllGeoJson(),
+        ]);
 
-      SiteService
-        .findAllGeoJson()
-        .then((response) => {
-          setSiteData(response.data);
-        })
-        .catch((error) => {
-          console.error(error);
-        })
-
-      RoadService
-        .findAllGeoJson()
-        .then((response) => {
-          setRoadData(response.data)
-        })
-        .catch((error) => {
-          console.error(error)
-        })
+        setSiteData(siteResponse.data);
+        setRoadData(roadResponse.data);
+      } catch (error) {
+        console.error("Error loading map data:", error);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    LoadAllData();
+    loadAllData();
   }, []);
 
-  
-
-  //renders map only if the data is filled after apicall
-  if (roadData.length < 1) {
-    return (
-      <p>Loading</p>
-    )
-  } else {
-    return (
-      <>      
-            <MapContent siteData={siteData} roadData={roadData} setShowInfoCard={setShowInfoCard} setSearchItem={setSearchItem} queryItem={queryItem}/>           
-      </>
-    )
+  if (loading || !siteData || !roadData) {
+    return <p>Loading map data...</p>;
   }
-}
+
+  return (
+    <MapContent
+      siteData={siteData}
+      roadData={roadData}
+      setShowInfoCard={setShowInfoCard}
+      setSearchItem={setSearchItem}
+      queryItem={queryItem}
+    />
+  );
+};
 
 export default MapBuilder;
-

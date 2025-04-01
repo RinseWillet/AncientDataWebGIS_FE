@@ -1,321 +1,205 @@
 import { useMap, GeoJSON, TileLayer, useMapEvent, LayersControl, ScaleControl, WMSTileLayer } from 'react-leaflet';
 import { useState } from 'react';
-
-//style
-import 'leaflet/dist/leaflet.css';
-import { notShowRoad, possibleRoad, road, histRec, hypotheticalRoute, castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon, watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon, settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon, sanctuaryIcon, mileStoneIcon } from './Styles/MarkerStyles';
-
+import {
+  notShowRoad, possibleRoad, road, histRec, hypotheticalRoute,
+  castellumIcon, possibleCastellumIcon, cemeteryIcon, legionaryFortIcon,
+  watchtowerIcon, cityIcon, tumulusIcon, villaIcon, possibleVillaIcon, siteIcon,
+  settlementStoneIcon, shipIcon, possibleShipIcon, settlementIcon,
+  sanctuaryIcon, mileStoneIcon
+} from './Styles/MarkerStyles';
 import './MapContent.css';
 
-
-
 const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem }) => {
+  const map = useMap();
+  const [selectedRoadId, setSelectedRoadId] = useState(null);
+  const { type, id } = queryItem || {};
 
-    const map = useMap();
+  useMapEvent('popupclose', () => {
+    setShowInfoCard(false);
+  });
 
-    const markersById = {};
+  const queryIcon = L.divIcon({
+    className: 'custom-div-icon',
+    html: "<div class='marker-pin'></div><i class='material-icons'></i><div class='pulse'></div>",
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
+  });
 
-    const [selectedItem, setSelectedItem] = useState(false);
+  const siteStyleDifferentiator = (siteProperties, latlng) => {
+    const iconMap = {
+      'castellum': castellumIcon,
+      'pos_castellum': possibleCastellumIcon,
+      'legfort': legionaryFortIcon,
+      'watchtower': watchtowerIcon,
+      'city': cityIcon,
+      'cem': cemeteryIcon,
+      'ptum': tumulusIcon,
+      'tum': tumulusIcon,
+      'villa': villaIcon,
+      'pvilla': possibleVillaIcon,
+      'sett': settlementIcon,
+      'settS': settlementStoneIcon,
+      'sanctuary': sanctuaryIcon,
+      'ship': shipIcon,
+      'pship': possibleShipIcon,
+      'site': siteIcon,
+      'milestone': mileStoneIcon,
+    };
 
-    const mapEventListener = useMapEvent(
-        'popupclose', () => {
-            setShowInfoCard(false);
-            setSelectedItem(false);
-        }
-    );
+    const icon = iconMap[siteProperties.siteType];
+    return icon ? new L.Marker(latlng, { icon, alt: siteProperties.name }) : null;
+  };
 
-    //this is the Icon for queried sites. The css is styled in MapContent.css
-    const queryIcon = L.divIcon({
-        className: 'custom-div-icon',
-        html: "<div class='marker-pin'></div><i class='material-icons'></i><div class='pulse'></div>",
-        iconSize: [30, 42],
-        iconAnchor: [15, 42]
+  const roadStyleDifferentiator = (roadProperties) => {
+    switch (roadProperties.type) {
+      case 'possible road': return possibleRoad;
+      case 'hypothetical route': return hypotheticalRoute;
+      case 'road': return road;
+      case 'hist_rec': return histRec;
+      default: return notShowRoad;
+    }
+  };
+
+  const createPopupTextSite = (properties) => `<b>Name : ${properties.name}</b>`;
+
+  const clickZoomSite = (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    const xScreen = map.getPixelBounds().getSize().x;
+    const lngOffset = xScreen > 800 ? 0.01 : xScreen > 600 ? 0.005 : xScreen > 400 ? 0.00025 : 0;
+    map.setView([lat, lng + lngOffset], 14);
+  };
+
+  const clickZoomRoad = (road) => {
+    const bounds = road.getBounds();
+    const xScreen = map.getPixelBounds().getSize().x;
+
+    const padding = xScreen > 800
+      ? { bottomRight: [400, 10], topLeft: [0, 10] }
+      : xScreen > 600
+        ? { bottomRight: [150, 5], topLeft: [0, 5] }
+        : xScreen > 400
+          ? { bottomRight: [100, 3], topLeft: [0, 3] }
+          : { bottomRight: [10, 20], topLeft: [10, 10] };
+
+    map.fitBounds(bounds, {
+      paddingBottomRight: padding.bottomRight,
+      paddingTopLeft: padding.topLeft,
     });
+  };
 
-    //filters style of sites based on attributes
-    const siteStyleDifferentiator = (siteProperties, latlng) => {
-        let siteMarker = new L.Marker(latlng, { alt: siteProperties.name });
+  const clickSite = (e) => {
+    setShowInfoCard(true);
+    setSearchItem({ type: "site", id: e.sourceTarget.feature.properties.id });
+    clickZoomSite(e);
+  };
 
-        if (siteProperties.siteType === 'castellum') {
-            siteMarker.setIcon(castellumIcon);
-        } else if (siteProperties.siteType === 'pos_castellum') {
-            siteMarker.setIcon(possibleCastellumIcon);
-        } else if (siteProperties.siteType === 'legfort') {
-            siteMarker.setIcon(legionaryFortIcon);
-        } else if (siteProperties.siteType === 'watchtower') {
-            siteMarker.setIcon(watchtowerIcon);
-        } else if (siteProperties.siteType === 'city') {
-            siteMarker.setIcon(cityIcon);
-        } else if (siteProperties.siteType === 'cem') {
-            siteMarker.setIcon(cemeteryIcon);
-        } else if (siteProperties.siteType === 'ptum') {
-            siteMarker.setIcon(tumulusIcon);
-        } else if (siteProperties.siteType === 'tum') {
-            siteMarker.setIcon(tumulusIcon);
-        } else if (siteProperties.siteType === 'villa') {
-            siteMarker.setIcon(villaIcon);
-        } else if (siteProperties.siteType === 'pvilla') {
-            siteMarker.setIcon(possibleVillaIcon);
-        } else if (siteProperties.siteType === 'sett') {
-            siteMarker.setIcon(settlementIcon);
-        } else if (siteProperties.siteType === 'settS') {
-            siteMarker.setIcon(settlementStoneIcon);
-        } else if (siteProperties.siteType === 'sanctuary') {
-            siteMarker.setIcon(sanctuaryIcon);
-        } else if (siteProperties.siteType === 'ship') {
-            siteMarker.setIcon(shipIcon);
-        } else if (siteProperties.siteType === 'pship') {
-            siteMarker.setIcon(possibleShipIcon);
-        } else if (siteProperties.siteType === 'site') {
-            siteMarker.setIcon(siteIcon);            
-        } else if (siteProperties.siteType === 'milestone') {
-            siteMarker.setIcon(mileStoneIcon);            
-        } else {
-            siteMarker = null;
-        }
-        return siteMarker;
-    }
+  const clickRoad = (e) => {
+    const road = e.target;
+    setShowInfoCard(true);
+    setSearchItem({ type: "road", id: road.feature.properties.id });
+    setSelectedRoadId(road.feature.properties.id);
+    clickZoomRoad(road);
+  };
 
-    //filters style of roads based on attributes
-    const roadStyleDifferentiator = (roadProperties) => {
-        if (roadProperties.type === 'possible road') {
-            return possibleRoad;
-        } else if (roadProperties.type === 'hypothetical route') {
-            return hypotheticalRoute;
-        } else if (roadProperties.type === 'road') {
-            return road;
-        } else if (roadProperties.type === 'hist_rec') {
-            return histRec;
-        } else {
-            return notShowRoad;
-        }
-    }
+  const resetHighlightRoad = (e) => {
+    const style = roadStyleDifferentiator(e.target.feature.properties);
+    e.target.setStyle(style);
+  };
 
-    //binding popups to points
-    // to do: standardize layer-fields
-    const createPopupTextSite = (properties) => {
-        let name = properties.name;
-        return "<b>Name : " + name + "</b>";
-    }
+  return (
+    <>
+      <LayersControl position="topleft" collapsed={true}>
+        <LayersControl.BaseLayer checked name="Positron Modern Topographical">
+          <TileLayer
+            attribution="© OpenStreetMap contributors, © CartoDB"
+            url="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
 
-    //function to zoom slightly to to left of marker (0.06 degrees) when clicked to allow popup on the right 
-    const clickZoomSite = (e) => {
-        let latlngClicked = e.target.getLatLng();
-        let latClicked = latlngClicked.lat;
-        let lngClicked = latlngClicked.lng;
+        <LayersControl.BaseLayer name="Open Street Map Topographical">
+          <TileLayer
+            attribution="© OpenStreetMap"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
 
-        let xScreen = map.getPixelBounds().getSize().x;
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            attribution="Tiles © Esri"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        </LayersControl.BaseLayer>
 
-        if (xScreen > 800) {
-            map.setView([latClicked, (lngClicked + 0.01)], 14)
-        } else if (xScreen > 600 && xScreen < 800) {
-            map.setView([latClicked, (lngClicked + 0.005)], 14)
-        } else if (xScreen > 400 && xScreen < 600) {
-            map.setView([latClicked, (lngClicked + 0.00025)], 14)
-        } else {
-            map.setView(latlngClicked, 14)
-        }
-        return null;
-    }
+        <LayersControl.BaseLayer name="1801–1828: Kartenaufnahme der Rheinlande">
+          <WMSTileLayer
+            url="http://www.wms.nrw.de/geobasis/wms_nw_tranchot?"
+            layers="nw_tranchot"
+          />
+        </LayersControl.BaseLayer>
 
-    const clickSite = (e) => {
-        setShowInfoCard(true);
-        setSearchItem((searchItem) => ({ ...searchItem, type: "site", id: e.sourceTarget.feature.properties.id }))
-        clickZoomSite(e);
-        return null;
-    }
+        <LayersControl.BaseLayer name="1836–1850: Preußische Kartenaufnahme">
+          <WMSTileLayer
+            url="http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?"
+            layers="nw_uraufnahme_rw"
+          />
+        </LayersControl.BaseLayer>
 
-    //asynchronous function to make sure all states are set before altering the style
-    //of the selected road (highlightRoad() to prevent nullifyng stylechange due to rerendering)
-    async function clickRoad(e) {
-        let road = e.target;
-        await setShowInfoCard(true);
-        await setSelectedItem(true);
-        await setSearchItem((searchItem) => ({ ...searchItem, type: "road", id: road.feature.properties.id }));
-        clickZoomRoad(road);
-        highlightRoad(road);
-        return null;
-    }
+        <LayersControl.BaseLayer name="1891–1912: Preußische Kartenaufnahme">
+          <WMSTileLayer
+            url="http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?"
+            layers="nw_neuaufnahme"
+          />
+        </LayersControl.BaseLayer>
 
+        <LayersControl.Overlay checked name="Archaeological Sites">
+          <GeoJSON
+            data={siteData}
+            pointToLayer={(feature, latlng) => {
+              const isQuery = type === "site" && id == feature.properties.id;
+              return isQuery
+                ? new L.Marker(latlng, { icon: queryIcon, alt: feature.properties.name })
+                : siteStyleDifferentiator(feature.properties, latlng);
+            }}
+            onEachFeature={(feature, layer) => {
+              layer.bindPopup(createPopupTextSite(feature.properties), { className: 'popup' });
+              if (type === "site" && id == feature.properties.id) {
+                map.setView(layer.getLatLng(), 14);
+              }
+              layer.on({ click: clickSite });
+            }}
+          />
+        </LayersControl.Overlay>
 
-    //function to zoom to road after clicking, basic responsiveness to keep
-    //the map and road to the left and the MapInfoCard on the right
-    const clickZoomRoad = (road) => {
-        let roadBounds = road.getBounds();
-        let xScreen = map.getPixelBounds().getSize().x;
+        <LayersControl.Overlay checked name="Roads and Routes">
+          <GeoJSON
+            data={roadData}
+            style={(feature) => {
+              const isSelected =
+                feature.properties.id === selectedRoadId ||
+                (type === "road" && id == feature.properties.id);
 
-        let bottomRightPadding;
-        let topLeftPadding;
-        if (xScreen > 800) {
-            bottomRightPadding = [400, 10];
-            topLeftPadding = [0, 10];
-        } else if (xScreen > 600 && xScreen < 800) {
-            bottomRightPadding = [150, 5];
-            topLeftPadding = [0, 5];
-        } else if (xScreen > 400 && xScreen < 600) {
-            bottomRightPadding = [100, 3];
-            topLeftPadding = [0, 3];
-        } else {
-            bottomRightPadding = [10, 20];
-            topLeftPadding = [10, 10];
-        }
-        map.fitBounds(roadBounds, {
-            paddingBottomRight: bottomRightPadding,
-            paddingTopLeft: topLeftPadding
-        });
-        return null;
-    }
+              return isSelected
+                ? { weight: 3, color: "yellow", zIndex: 20 }
+                : roadStyleDifferentiator(feature.properties);
+            }}
+            onEachFeature={(feature, layer) => {
+              layer.bindPopup(createPopupTextSite(feature.properties), { className: 'popup' });
 
-    // function to highlight a road when hovering over it with the cursor
-    const highlightRoad = (road) => {
-        road.setStyle({
-            weight: 3,
-            color: "yellow",
-            zIndex: 20
-        });
-    }
+              if (type === "road" && id == feature.properties.id) {
+                map.fitBounds(layer.getBounds());
+              }
 
-    //function to reset the style of a road when the cursor is no longer hovering over it (see highlightRoad)
-    const resetHighlightroad = (e) => {
-        let style = roadStyleDifferentiator(e.target.feature.properties);
-        e.target.setStyle(style);
-    }
-
-    return (
-        <>
-            <LayersControl position="topleft" collapsed="false">
-                <LayersControl.BaseLayer checked name="Positron Modern Topographical">
-                    <TileLayer
-                        attribution="© OpenStreetMap contributors, © CartoDB"
-                        url="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-                        minZoom={0}
-                        maxZoom={20}
-                        ext="png"
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="Open Street Map Topographical">
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        minZoom={0}
-                        maxZoom={20}
-                        ext="png"
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="Satellite">
-                    <TileLayer
-                        attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
-                        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                        minZoom={0}
-                        maxZoom={20}
-                        ext="png"
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="1801 - 1828: Kartenaufnahme der Rheinlande 1:25000">
-                    <WMSTileLayer
-                        url="http://www.wms.nrw.de/geobasis/wms_nw_tranchot?"
-                        layers='nw_tranchot'
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="1836 - 1850: Preußische Kartenaufnahme 1:25000">
-                    <WMSTileLayer
-                        url="http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?"
-                        layers='nw_uraufnahme_rw'
-                    />
-                </LayersControl.BaseLayer>
-
-                <LayersControl.BaseLayer name="1891 - 1912: Preußische Kartenaufnahme 1:25000">
-                    <WMSTileLayer
-                        url="http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?"
-                        layers='nw_neuaufnahme'
-                    />
-                </LayersControl.BaseLayer>    
-
-                {/* <LayersControl.BaseLayer name="Topographical map Netherlands 1850">
-                    <TileLayer                       
-                        url="https://tiles.arcgis.com/tiles/nSZVuSZjHpEZZbRo/arcgis/rest/services/Historische_tijdreis_1860/MapServer"     
-                        layers='Historische_tijdreis_1850'
-                        minZoom={0}
-                        maxZoom={20}
-                        ext="image/png"                
-                    />
-                </LayersControl.BaseLayer> */}
-
-                <LayersControl.Overlay checked name="Archaeological Sites">
-                    {/* if a site is queried, a queryIcon is returned for the queried site 
-                    and the map is zoomed and centred on the queried site */}
-                    <GeoJSON data={siteData} pointToLayer={
-                        function (feature, latlng) {
-                            if (queryItem.queryItem.type === "site") {
-                                if (queryItem.queryItem.id == feature.properties.id) {
-                                    return new L.Marker(latlng, { alt: feature.properties.name }).setIcon(queryIcon);
-                                } else {
-                                    return siteStyleDifferentiator(feature.properties, latlng);
-                                }
-                            } else {
-                                return siteStyleDifferentiator(feature.properties, latlng);
-                            }
-                        }} onEachFeature={
-                            function (feature, layer) {
-                                let popUpContent = createPopupTextSite(feature.properties);
-                                layer.bindPopup(popUpContent, { className: 'popup' });
-                                if (queryItem.queryItem.type === "site") {
-                                    if (queryItem.queryItem.id == feature.properties.id) {
-                                        map.setView(layer.getLatLng(), 14);
-                                    }
-                                }
-                                layer.on({
-                                    'click': clickSite
-                                })
-                            }
-                        }
-                    />
-                </LayersControl.Overlay>
-                <LayersControl.Overlay checked name="Roads and routes">
-                    {/* if road is queried, a specific highlightstyle is returned for the queried road
-                    and the map is centred on the queried road  */}
-                    <GeoJSON data={roadData} style={function (feature) {
-                        if (queryItem.queryItem.type === "road") {
-                            if (queryItem.queryItem.id == feature.properties.id) {
-                                return {
-                                    weight: 3,
-                                    color: "yellow",
-                                    zIndex: 20
-                                }
-                            } else {
-                                return roadStyleDifferentiator(feature.properties);
-                            }
-                        } else {
-                            return roadStyleDifferentiator(feature.properties);
-                        }
-
-                    }} onEachFeature={
-                        function (feature, layer) {
-                            let popUpContent = createPopupTextSite(feature.properties);
-                            layer.bindPopup(popUpContent, { className: 'popup' });
-                            //part dealing with zooming to queried road from params
-                            if (queryItem.queryItem.type === "road") {
-                                if (queryItem.queryItem.id == feature.properties.id) {
-                                    map.fitBounds(layer.getBounds());
-                                }
-                            } else {
-                                layer.on({
-                                    'click': clickRoad,
-                                    'popupclose': resetHighlightroad
-                                });
-                            }
-                        }
-                    }
-                    />
-                </LayersControl.Overlay>
-            </LayersControl>
-            <ScaleControl position="bottomleft" />
-        </>
-    );
-}
+              layer.on({
+                click: clickRoad,
+                popupclose: resetHighlightRoad,
+              });
+            }}
+          />
+        </LayersControl.Overlay>
+      </LayersControl>
+      <ScaleControl position="bottomleft" />
+    </>
+  );
+};
 
 export default MapContent;

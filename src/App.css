@@ -30,16 +30,21 @@ Primary color 4: #B2933F
 /* testing style 1 */
 :root {
   /* colors */
-  --background-color_1: #C7B7A3;
-  --background-color_2: #E8D8C4;
-  --box-color_1: #561C24;
-  --box-color_2: #6D2932;
+  --background-color-1: #C7B7A3;
+  --background-color-2: #E8D8C4;
+  --background-color-hover: #f4f4f4;
+  --box-color-1: #561C24;
+  --box-color-2: #6D2932;
   --font-color-1: #eeeeee;
   --font-color-2: #c9c9c9;
   --font-color-3: #333333;
+  --font-color-3-accent: black;
   --accent-color: #ff2e63;
   --accent-color-2: #15b58e;
   --shadow-color: rgb(0 0 0 / 30%);
+
+
+
   /* font*/
   --header-height: 3.5rem;
   --font-semi-bold: 400;
@@ -65,18 +70,33 @@ html {
 
 body {
   box-sizing: inherit;
-  background-image: linear-gradient(to top left, var(--background-color_1), var(--box-color_2));
+  background-image: linear-gradient(to top left, var(--background-color-1), var(--box-color-2));
   color: var(--font-color);
   padding: 0.5rem;
   font-family: var(--project-font-family);  
   font-size: 1.8rem;
+  display: flex;
+  flex-direction: column;
+}
+
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.App {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .pagebox {  
   padding: 0.5rem;
   margin-top: 0.5rem;
-  background-color: var(--background-color_2);
-  height: 78vh;
+  background-color: var(--background-color-2);
+  min-height: 70vh;
+  /* height: 78vh; */
   overflow: auto;
   font-size: 1.8rem;
 }

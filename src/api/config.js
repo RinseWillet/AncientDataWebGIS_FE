@@ -6,7 +6,7 @@ if(process.env.NODE_ENV === 'development') {
     baseURL = 'http://localhost:8080/api'
 }
 
-let apiClient = axios.create({
+const apiClient = axios.create({
     baseURL: baseURL,
     headers: {
         //types of responses accepted and expected
@@ -14,5 +14,16 @@ let apiClient = axios.create({
         'Content-Type': 'application/json',
     },
 });
+
+apiClient.interceptors.request.use(
+    (config) => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser?.token) {
+            config.headers.Authorization = `Bearer ${storedUser.token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 export default apiClient;
