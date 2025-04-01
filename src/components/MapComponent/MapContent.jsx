@@ -12,6 +12,7 @@ import './MapContent.css';
 const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem }) => {
   const map = useMap();
   const [selectedRoadId, setSelectedRoadId] = useState(null);
+  const { type, id } = queryItem || {};
 
   useMapEvent('popupclose', () => {
     setShowInfoCard(false);
@@ -154,14 +155,14 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
           <GeoJSON
             data={siteData}
             pointToLayer={(feature, latlng) => {
-              const isQuery = queryItem.queryItem?.type === "site" && queryItem.queryItem?.id == feature.properties.id;
+              const isQuery = type === "site" && id == feature.properties.id;
               return isQuery
                 ? new L.Marker(latlng, { icon: queryIcon, alt: feature.properties.name })
                 : siteStyleDifferentiator(feature.properties, latlng);
             }}
             onEachFeature={(feature, layer) => {
               layer.bindPopup(createPopupTextSite(feature.properties), { className: 'popup' });
-              if (queryItem.queryItem?.type === "site" && queryItem.queryItem.id == feature.properties.id) {
+              if (type === "site" && id == feature.properties.id) {
                 map.setView(layer.getLatLng(), 14);
               }
               layer.on({ click: clickSite });
@@ -175,7 +176,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
             style={(feature) => {
               const isSelected =
                 feature.properties.id === selectedRoadId ||
-                (queryItem.queryItem?.type === "road" && queryItem.queryItem?.id == feature.properties.id);
+                (type === "road" && id == feature.properties.id);
 
               return isSelected
                 ? { weight: 3, color: "yellow", zIndex: 20 }
@@ -184,7 +185,7 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
             onEachFeature={(feature, layer) => {
               layer.bindPopup(createPopupTextSite(feature.properties), { className: 'popup' });
 
-              if (queryItem.queryItem?.type === "road" && queryItem.queryItem.id == feature.properties.id) {
+              if (type === "road" && id == feature.properties.id) {
                 map.fitBounds(layer.getBounds());
               }
 

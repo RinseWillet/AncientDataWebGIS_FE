@@ -1,170 +1,190 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import RoadService from "../services/RoadService";
 import SiteService from "../services/SiteService";
+import {
+    useReactTable,
+    getCoreRowModel,
+    getSortedRowModel,
+    getPaginationRowModel,
+    flexRender,
+    createColumnHelper
+} from '@tanstack/react-table';
 
-//style
-import './DataList.css'
 
-//datagrid
-import { AgGridReact } from 'ag-grid-react'; // React Data Grid Component
-import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the Data Grid
-import "ag-grid-community/styles/ag-theme-quartz.css"; // Optional Theme applied to the Data Grid
+import './DataList.css'; // Reuse your styles
 
 const DataList = () => {
-
-
-    //hook for navigation to Info page
     const navigate = useNavigate();
-
-    //state switch between road and site data
-    const [dataSwitch, setDataSwitch] = useState(false)
-
-    //data from API
+    const [dataSwitch, setDataSwitch] = useState(false); // false = Roads, true = Sites
     const [data, setData] = useState([]);
 
-    // Column Definitions: Defines the columns to be displayed.
-    const [colDefs, setColDefs] = useState([
-        { field: "id" },
-        { field: "name" },
-        { field: "type" },
-        { field: "date" },
-    ]);
+    const getInitialPageSize = () => {
+        const width = window.innerWidth;
+        if (width <= 400) return 10;
+        if (width <= 850) return 13;
+        return 15;
+    };
 
-    // Row Data: The data to be displayed.
-    const [rowData, setRowData] = useState([]);
+    // Redux state for user (not needed here yet but useful for future buttons)
+    const { user } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        function findAllRoads() {
-            RoadService
-                .findAllGeoJson()
-                .then((response) => {
-                    setData(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-        }
+        const fetchData = async () => {
+            try {
+                const response = !dataSwitch
+                    ? await RoadService.findAllGeoJson()
+                    : await SiteService.findAllGeoJson();
 
-        function findAllSites() {
-            SiteService
-                .findAllGeoJson()
-                .then((response) => {
-                    setData(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                })
-        }
+                setData(response.data?.features || []);
+            } catch (error) {
+                console.error(error);
+            }
+        };
 
-        //if switched to roads (boolean in dataSwitch has state false) -> findAllRoads
+        fetchData();
+    }, [dataSwitch]);
+
+    const columns = useMemo(() => {
         if (!dataSwitch) {
-            setColDefs([
-                { field: "id" },
-                { field: "name" },
-                { field: "type" },
-                { field: "date" },
-            ])
-            findAllRoads();
+            return [
+                {
+                    id: "id",
+                    header: "ID",
+                    accessorKey: "id",
+                },
+                {
+                    id: "name",
+                    header: "Name",
+                    accessorKey: "name",
+                },
+                {
+                    id: "type",
+                    header: "Type",
+                    accessorKey: "type",
+                },
+                {
+                    id: "date",
+                    header: "Date",
+                    accessorKey: "date",
+                },
+            ];
         } else {
-            setColDefs([
-                { field: "id" },
-                { field: "name" },
-                { field: "type" }
-            ])
-            findAllSites();
+            return [
+                {
+                    id: "id",
+                    header: "ID",
+                    accessorKey: "id",
+                },
+                {
+                    id: "name",
+                    header: "Name",
+                    accessorKey: "name",
+                },
+                {
+                    id: "siteType",
+                    header: "Type",
+                    accessorKey: "type",
+                },
+            ];
         }
     }, [dataSwitch]);
 
-    //as soon as the state of data is set (=loaded from API completed - see above) the data is parsed to an array for the rows
-    useEffect(() => {
-        function rowFeatureLoader() {
-            if (data.length < 1) {
-                console.log("no data");
-            } else {        
-                let rowFeatures = [];
+    const rowData = useMemo(() => {
+        if (!Array.isArray(data)) return [];
 
-                if (!dataSwitch) {
-                    for (let i = 0; i < data.features.length; i++) {
-                        try {
-                            let feature = {
-                                id: data.features[i].properties.id,
-                                name: data.features[i].properties.name,
-                                type: data.features[i].properties.type,
-                                date: data.features[i].properties.date
-                            }
-                            rowFeatures.push(feature);
-                        } catch (error) {
-                            console.error(error);
-                            continue;
-                        }
-
-                    }
-                } else {
-                    for (let i = 0; i < data.features.length; i++) {
-                        try {
-                            let feature = {
-                                id: data.features[i].properties.id,
-                                name: data.features[i].properties.name,
-                                type: data.features[i].properties.siteType,
-                            }
-                            rowFeatures.push(feature);
-                        } catch (error) {
-                            console.error(error);
-                            continue;
-                        }
-
-                    }
-                }
-                setRowData(rowFeatures);
-            }
-        }
-        rowFeatureLoader();
+        return data.map((feature) => {
+            const props = feature.properties;
+            return {
+                id: props.id,
+                name: props.name,
+                type: props.type || props.siteType || "",
+                date: props.date || "",
+            };
+        });
     }, [data]);
 
-    const autoSizeStrategy = {
-        type: 'fitGridWidth',
-        defaultMinWidth: 50,
-        columnLimits: [
-            {
-                colId: 'country',
-                minWidth: 900
-            }
-        ]
-    };
+    const table = useReactTable({
+        data: rowData,
+        columns,
+        initialState: {
+            sorting: [{ id: 'name', desc: false }],
+            pagination: {
+                pageIndex: 0,
+                pageSize: getInitialPageSize(),
+            },
+        },
+        getCoreRowModel: getCoreRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+    });
 
-    const onRowClickHandler = (selected) => {
+    const handleRowClick = (row) => {
+        const id = row.original.id;
         if (!dataSwitch) {
-            navigate("roadinfo/" + selected.data.id)
+            navigate(`roadinfo/${id}`);
         } else {
-            navigate("siteinfo/" + selected.data.id)
+            navigate(`siteinfo/${id}`);
         }
-    }
+    };    
 
     return (
         <div className="pagebox">
             <div className="typeSwitch">
                 <p className={`dataSwitch-label__roads ${dataSwitch ? "" : "switched"}`}>Roads</p>
-                <button className={`dataSwitch-btn ${dataSwitch ? "switched" : ""}`}
-                    onClick={() => setDataSwitch(!dataSwitch)}>
+                <button
+                    className={`dataSwitch-btn ${dataSwitch ? "switched" : ""}`}
+                    onClick={() => setDataSwitch(!dataSwitch)}
+                >
                     <div className="thumb" />
                 </button>
                 <p className={`dataSwitch-label__sites ${dataSwitch ? "switched" : ""}`}>Sites</p>
             </div>
-            <div
-                className="ag-theme-quartz" // applying the Data Grid theme
-                style={{ height: '91%', width: '100%'}}  // the Data Grid will fill the size of the parent container
-            >
-                <AgGridReact
-                    rowData={rowData}
-                    columnDefs={colDefs}
-                    pagination={true}
-                    autoSizeStrategy={autoSizeStrategy}
-                    onRowDoubleClicked={onRowClickHandler}
-                />
+
+            <div className="table-container">
+                <table className="react-table">
+                    <thead>
+                        {table.getHeaderGroups().map((headerGroup) => (
+                            <tr key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
+                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                        {{
+                                            asc: " 🔼",
+                                            desc: " 🔽"
+                                        }[header.column.getIsSorted()] ?? null}
+                                    </th>
+                                ))}
+                            </tr>
+                        ))}
+                    </thead>
+                    <tbody>
+                        {table.getRowModel().rows.map((row) => (
+                            <tr key={row.id} onClick={() => handleRowClick(row)}>
+                                {row.getVisibleCells().map((cell) => (
+                                    <td key={cell.id}>
+                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div className="pagination">
+                    <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+                        Prev
+                    </button>
+                    <span>
+                        Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                    </span>
+                    <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+                        Next
+                    </button>
+                </div>
             </div>
         </div>
     );
-}
+};
 
 export default DataList;

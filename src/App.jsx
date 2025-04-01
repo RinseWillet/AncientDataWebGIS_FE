@@ -36,54 +36,13 @@ const App = () => {
         <Route exact path='/news' element={<News />} />
         <Route exact path='/about' element={<About />} />
         <Route exact path='/login' element={<LoginRegister />} />
+        <Route exact path='/atlas' element={<Atlas />} />
+        <Route exact path='/atlas/:id?' element={<Atlas />} />
+        <Route exact path='/datalist' element={<DataList />} />
+        <Route exact path='/datalist/roadinfo/:id?' element={<RoadInfo />} />
+        <Route exact path='/datalist/siteinfo/:id?' element={<SiteInfo />} />
 
         {/* Protected Routes */}
-        <Route
-          exact
-          path='/atlas'
-          element={
-            <PrivateRoute>
-              <Atlas />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          exact
-          path='/atlas/:id?'
-          element={
-            <PrivateRoute>
-              <Atlas />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          exact
-          path='/datalist'
-          element={
-            <PrivateRoute>
-              <DataList />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          exact
-          path='/datalist/roadinfo/:id?'
-          element={
-            <PrivateRoute>
-              <RoadInfo />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          exact
-          path='/datalist/siteinfo/:id?'
-          element={
-            <PrivateRoute>
-              <SiteInfo />
-            </PrivateRoute>
-          }
-        />
-
         <Route
           path="/admin-panel"
           element={

@@ -3,7 +3,7 @@
   width: 100%;
   top: 0;
   left: 0;
-  background-color: var(--box-color_1);
+  background-color: var(--box-color-1);
   z-index: var(--z-fixed);
 }
 
@@ -31,7 +31,7 @@
 }
 
 .nav__cta {
-  background-color: var(--background-color_1);
+  background-color: var(--background-color-1);
   color: var(--font-color-1);
   border: none;
   border-radius: 4px;
@@ -41,7 +41,7 @@
 }
 
 .nav__cta:hover{
-  background-color: var(--background-color_2);
+  background-color: var(--background-color-2);
 }
 
 .nav__list {
