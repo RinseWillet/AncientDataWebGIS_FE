@@ -30,7 +30,7 @@ const LoginRegister = () => {
 
     useEffect(() => {
         if (user) {
-            navigate('/'); // Or to /atlas, /data-list, etc.
+            navigate('/');
         }
     }, [user, navigate]);
 

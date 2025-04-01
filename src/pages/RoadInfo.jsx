@@ -11,9 +11,19 @@ import './InfoPage.css';
 const RoadInfo = (e) => {
 
     const { user } = useSelector((state) => state.auth);
-    const role = user?.roles?.[0] || "GUEST";
-    const isUser = role === "ROLE_USER" || role === "ROLE_ADMIN";
-    const isAdmin = role === "ROLE_ADMIN";
+    const [isEditing, setIsEditing] = useState(false);
+    const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
+
+    const [editFormData, setEditFormData] = useState({
+        name: "",
+        type: "",
+        typeDescription: "",
+        location: "",
+        description: "",
+        date: "",
+        geom: "",
+        cat_nr: ""
+    });
 
     const { id } = useParams();
 
@@ -106,42 +116,123 @@ const RoadInfo = (e) => {
             }
         };
 
+        
+
+        const handleSave = async () => {
+            try {
+                const updated = await RoadService.updateRoad(id, editFormData);
+                alert("Road updated!");
+                setData(updated.data); // update local state
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Update failed:", error);
+                alert("Failed to update road.");
+            }
+        };
+
         return (
             <>
                 <div className="pagebox">
                     <div className="infopage-box">
                         <div className="infopage-card">
                             <h4>Information</h4>
-                            <h2>{name}</h2>
 
-                            {user?.role === 'ADMIN' && (
+                            {isEditing ? (
                                 <>
-                                    <button className="info-btn" onClick={() => navigate(`/edit/road/${id}`)}>
-                                        Edit
-                                    </button>
-                                    <button className="info-btn delete" onClick={() => console.log("Delete logic here")}>
-                                        Delete
-                                    </button>
+                                    <input
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.name}
+                                        onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                                        placeholder="Name"
+                                    />
+                                    <input
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.type}
+                                        onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                                        placeholder="Type"
+                                    />
+                                    <input
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.typeDescription}
+                                        onChange={(e) => setEditFormData({ ...editFormData, typeDescription: e.target.value })}
+                                        placeholder="Type Description"
+                                    />
+                                    <input
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.location}
+                                        onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                                        placeholder="Location"
+                                    />
+                                    <textarea
+                                        className="info-input"
+                                        rows={3}
+                                        value={editFormData.description}
+                                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                        placeholder="Description"
+                                    />
+                                    <input
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.date}
+                                        onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                                        placeholder="Date"
+                                    />
+
+                                    <div style={{ marginTop: "1rem" }}>
+                                        <button className="info-btn" onClick={handleSave}>Save</button>
+                                        <button className="info-btn delete" onClick={() => setIsEditing(false)}>Cancel</button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2>{name}</h2>
+
+                                    {isAdmin && (
+                                        <button className="info-btn" onClick={() => {
+                                            setEditFormData({
+                                                name, type, typeDescription, location, description, date,
+                                                geom: data.features.geometry, // required by backend DTO
+                                                cat_nr: data.features.properties.cat_nr || "" // fallback
+                                            });
+                                            setIsEditing(true);
+                                        }}>
+                                            Edit
+                                        </button>
+                                    )}
+
+                                    <h4>Identification:</h4>
+                                    <span>{type} - {typeDescription}</span>
+
+                                    {location && <>
+                                        <h4>Location:</h4>
+                                        <span>{location}</span>
+                                    </>}
+
+                                    {description && <>
+                                        <h4>Description:</h4>
+                                        <span>{description}</span>
+                                    </>}
+
+                                    {date && <>
+                                        <h4>Date:</h4>
+                                        <span>{date}</span>
+                                    </>}
+
+                                    {references && <>
+                                        <h4>References:</h4>
+                                        {modernReferenceRenderer(modRef)}
+                                    </>}
+
+                                    {historicalReferences && <>
+                                        <h4>Historical references:</h4>
+                                        <span>{historicalReferences}</span>
+                                    </>}
                                 </>
                             )}
-
-                            {user?.role === 'USER' && (
-                                <p style={{ marginTop: '1rem', fontSize: '1.4rem', color: 'gray' }}>
-                                    You can add new roads but not edit this one.
-                                </p>
-                            )}
-                            <h4>Identification : </h4>
-                            <span> {type} - {typeDescription}</span>
-                            {(location === undefined) ? null : <h4>Location : </h4>}
-                            {(location === undefined) ? null : <span>{location}</span>}
-                            {(description === undefined) ? null : <h4>Description : </h4>}
-                            {(description === undefined) ? null : <span>{description}</span>}
-                            {(date === undefined) ? null : <h4>Date : </h4>}
-                            {(date === undefined) ? null : <span>{date}</span>}
-                            {(references === undefined) ? null : <h4>References : </h4>}
-                            {(references === undefined) ? null : modernReferenceRenderer(modRef)}
-                            {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
-                            {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
                         </div>
                         <div className="infopage-illustrationbox">
                             <div className="infopage-map">

@@ -61,14 +61,23 @@
     margin-top: 1.5rem;
 }
 
-/* NOTICE FOR USER-ONLY ROLE */
+.info-input {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.8rem;
+    font-size: 1.4rem;
+    border: 1px solid var(--box-color-2);
+    border-radius: 4px;
+}
+
 .info-role-note {
     font-size: 1.4rem;
     color: gray;
     margin-top: 1.5rem;
 }
 
-/* RESPONSIVE */
+
 @media screen and (max-width: 1125px) {
     .infopage-box {
         flex-direction: column;
@@ -99,14 +108,14 @@
 
 @media screen and (max-width: 850px) {
     .infopage-card {
-      font-size: 1.4rem;
-      margin: 0.6rem;
-    } 
-  }
-  
-  @media screen and (max-width: 400px) {
+        font-size: 1.4rem;
+        margin: 0.6rem;
+    }
+}
+
+@media screen and (max-width: 400px) {
     .infopage-card {
         font-size: 1.2rem;
         margin: 0.4rem;
-      }
-  }
+    }
+}
