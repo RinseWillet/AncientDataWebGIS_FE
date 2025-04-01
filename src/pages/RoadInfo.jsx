@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import RoadService from "../services/RoadService";
 import MapComponent from "../components/MapComponent/MapComponent";
 
@@ -8,6 +9,11 @@ import './InfoPage.css';
 
 
 const RoadInfo = (e) => {
+
+    const { user } = useSelector((state) => state.auth);
+    const role = user?.roles?.[0] || "GUEST";
+    const isUser = role === "ROLE_USER" || role === "ROLE_ADMIN";
+    const isAdmin = role === "ROLE_ADMIN";
 
     const { id } = useParams();
 
@@ -42,7 +48,7 @@ const RoadInfo = (e) => {
                 });
         }
         LoadRoadInfo();
-    }, []);   
+    }, []);
 
     //query to feed to the mapcomponent
     let query = {
@@ -86,6 +92,20 @@ const RoadInfo = (e) => {
             }
         }
 
+        const handleDelete = async () => {
+            const confirm = window.confirm("Are you sure you want to delete this road?");
+            if (!confirm) return;
+
+            try {
+                await RoadService.delete(id);
+                alert("Road deleted successfully.");
+                navigate("/datalist");
+            } catch (error) {
+                console.error("Error deleting road:", error);
+                alert("Failed to delete the road.");
+            }
+        };
+
         return (
             <>
                 <div className="pagebox">
@@ -93,6 +113,23 @@ const RoadInfo = (e) => {
                         <div className="infopage-card">
                             <h4>Information</h4>
                             <h2>{name}</h2>
+
+                            {user?.role === 'ADMIN' && (
+                                <>
+                                    <button className="info-btn" onClick={() => navigate(`/edit/road/${id}`)}>
+                                        Edit
+                                    </button>
+                                    <button className="info-btn delete" onClick={() => console.log("Delete logic here")}>
+                                        Delete
+                                    </button>
+                                </>
+                            )}
+
+                            {user?.role === 'USER' && (
+                                <p style={{ marginTop: '1rem', fontSize: '1.4rem', color: 'gray' }}>
+                                    You can add new roads but not edit this one.
+                                </p>
+                            )}
                             <h4>Identification : </h4>
                             <span> {type} - {typeDescription}</span>
                             {(location === undefined) ? null : <h4>Location : </h4>}
