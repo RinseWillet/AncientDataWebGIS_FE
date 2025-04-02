@@ -3,8 +3,7 @@ import apiClient from "../api/config";
 const AuthService = {
     async login(credentials) {
         console.log("logging in");
-        const response = await apiClient.post('/auth/login', credentials);
-        console.log("login data :", response.data);
+        const response = await apiClient.post('/auth/login', credentials);        
         return response;
     },
 

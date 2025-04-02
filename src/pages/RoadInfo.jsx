@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import RoadService from "../services/RoadService";
 import MapComponent from "../components/MapComponent/MapComponent";
+import { geoJSONtoWKT } from "../utils/geometryUtils";
 
 //style
 import './InfoPage.css';
@@ -80,21 +81,25 @@ const RoadInfo = (e) => {
             </div>
         );
     } else {
-        let name = data.features.properties.name;
-        let type = data.features.properties.type;
-        let typeDescription = data.features.properties.typeDescription;
-        let location = data.features.properties.location;
-        let description = data.features.properties.description;
-        let date = data.features.properties.date;
-        let references = data.features.properties.references;
-        let historicalReferences = data.features.properties.historicalReferences;
+        const feature = data.features?.[0];
+        if (!feature) return <p>No feature found</p>;
+
+        const { properties = {}, geometry = {} } = feature;
+        let name = properties.name;
+        let type = properties.type;
+        let typeDescription = properties.typeDescription;
+        let location = properties.location;
+        let description = properties.description;
+        let date = properties.date;
+        let references = properties.references;
+        let historicalReferences = properties.historicalReferences;
 
         const modernReferenceRenderer = (modRef) => {
             if (modRef.length > 0) {
                 let modernReferences = [];
                 modRef.forEach((element) => modernReferences.push(element));
-                return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
-                    <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
+                return modernReferences.map((modernReference) => modernReference.url === null ? <li key={modernReference.id} className="reference-listitem__nolink">{modernReference.fullRef}</li> :
+                    <li key={modernReference.id}><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
             } else {
                 return (
                     <span>{references}</span>
@@ -116,13 +121,20 @@ const RoadInfo = (e) => {
             }
         };
 
-        
-
         const handleSave = async () => {
             try {
-                const updated = await RoadService.updateRoad(id, editFormData);
+                const wktGeom = geoJSONtoWKT(editFormData.geom);
+
+                const updatedRoadDTO = {
+                    ...editFormData,
+                    geom: wktGeom,
+                };
+
+                console.log("Sending RoadDTO:", updatedRoadDTO);
+
+                const updated = await RoadService.updateRoad(id, updatedRoadDTO);
                 alert("Road updated!");
-                setData(updated.data); // update local state
+                setData(updated.data);
                 setIsEditing(false);
             } catch (error) {
                 console.error("Update failed:", error);
@@ -193,10 +205,19 @@ const RoadInfo = (e) => {
 
                                     {isAdmin && (
                                         <button className="info-btn" onClick={() => {
+                                            const feature = data.features?.[0];
+                                            if (!feature) return;
+
+                                            const { properties = {}, geometry = {} } = feature;
                                             setEditFormData({
-                                                name, type, typeDescription, location, description, date,
-                                                geom: data.features.geometry, // required by backend DTO
-                                                cat_nr: data.features.properties.cat_nr || "" // fallback
+                                                name: properties.name || "",
+                                                type: properties.type || "",
+                                                typeDescription: properties.typeDescription || "",
+                                                location: properties.location || "",
+                                                description: properties.description || "",
+                                                date: properties.date || "",
+                                                geom: geoJSONtoWKT(geometry),
+                                                cat_nr: properties.cat_nr || ""
                                             });
                                             setIsEditing(true);
                                         }}>
