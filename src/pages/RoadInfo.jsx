@@ -4,12 +4,12 @@ import { useSelector } from "react-redux";
 import RoadService from "../services/RoadService";
 import MapComponent from "../components/MapComponent/MapComponent";
 import { geoJSONtoWKT } from "../utils/geometryUtils";
+import ModernReferencePicker from "../components/ModernReferencePicker/ModernReferencePicker";
 
 //style
 import './InfoPage.css';
 
-
-const RoadInfo = (e) => {
+const RoadInfo = () => {
 
     const { user } = useSelector((state) => state.auth);
     const [isEditing, setIsEditing] = useState(false);
@@ -30,6 +30,7 @@ const RoadInfo = (e) => {
 
     const [data, setData] = useState();
     const [modRef, setModRef] = useState();
+    const [selectedReferences, setSelectedReferences] = useState([]);
 
     //hook for navigation and function to go back to DataList using back button
     const navigate = useNavigate();
@@ -37,7 +38,6 @@ const RoadInfo = (e) => {
     const backButtonHandler = () => {
         navigate("/datalist/")
     }
-
 
     useEffect(() => {
         async function LoadRoadInfo() {
@@ -123,18 +123,20 @@ const RoadInfo = (e) => {
 
         const handleSave = async () => {
             try {
-                const wktGeom = geoJSONtoWKT(editFormData.geom);
-
                 const updatedRoadDTO = {
                     ...editFormData,
-                    geom: wktGeom,
+                    referenceIds: selectedReferences.map(ref => ref.id)
                 };
-
-                console.log("Sending RoadDTO:", updatedRoadDTO);
 
                 const updated = await RoadService.updateRoad(id, updatedRoadDTO);
                 alert("Road updated!");
-                setData(updated.data);
+
+                const refreshed = await RoadService.findByIdGeoJson(id);
+                setData(refreshed.data);
+
+                const updatedRefs = await RoadService.findModernReferenceByRoadId(id);
+                setModRef(updatedRefs.data);
+
                 setIsEditing(false);
             } catch (error) {
                 console.error("Update failed:", error);
@@ -151,47 +153,64 @@ const RoadInfo = (e) => {
 
                             {isEditing ? (
                                 <>
+                                    <label className="info-label" htmlFor="road-name">Name</label>
                                     <input
+                                        id="road-name"
                                         className="info-input"
                                         type="text"
                                         value={editFormData.name}
                                         onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                                         placeholder="Name"
                                     />
+                                    <label className="info-label" htmlFor="road-type">Type</label>
                                     <input
+                                        id="road-type"
                                         className="info-input"
                                         type="text"
                                         value={editFormData.type}
                                         onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
                                         placeholder="Type"
                                     />
+                                    <label className="info-label" htmlFor="road-type-description">Type Description</label>
                                     <input
+                                        id="road-type-description"
                                         className="info-input"
                                         type="text"
                                         value={editFormData.typeDescription}
                                         onChange={(e) => setEditFormData({ ...editFormData, typeDescription: e.target.value })}
                                         placeholder="Type Description"
                                     />
+                                    <label className="info-label" htmlFor="road-location">Location</label>
                                     <input
+                                        id="road-location"
                                         className="info-input"
                                         type="text"
                                         value={editFormData.location}
                                         onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
                                         placeholder="Location"
                                     />
+                                    <label className="info-label" htmlFor="road-description">Description</label>
                                     <textarea
+                                        id="road-description"
                                         className="info-input"
                                         rows={3}
                                         value={editFormData.description}
                                         onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
                                         placeholder="Description"
                                     />
+                                    <label className="info-label" htmlFor="road-date">Date</label>
                                     <input
+                                        id="road-date"
                                         className="info-input"
                                         type="text"
                                         value={editFormData.date}
                                         onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
                                         placeholder="Date"
+                                    />
+
+                                    <ModernReferencePicker
+                                        selectedReferences={selectedReferences}
+                                        onChange={setSelectedReferences}
                                     />
 
                                     <div style={{ marginTop: "1rem" }}>
@@ -219,6 +238,7 @@ const RoadInfo = (e) => {
                                                 geom: geoJSONtoWKT(geometry),
                                                 cat_nr: properties.cat_nr || ""
                                             });
+                                            setSelectedReferences(modRef || []);
                                             setIsEditing(true);
                                         }}>
                                             Edit

@@ -61,6 +61,14 @@
     margin-top: 1.5rem;
 }
 
+.info-label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
 .info-input {
     display: block;
     width: 100%;
