@@ -18,3 +18,18 @@
     margin-right: 0.5rem;
     margin-top: 0.5rem;
   }
+
+  .modref-input {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  
+  .modref-input.full {
+    height: 4rem; /* Make fullRef visibly larger */
+  }
