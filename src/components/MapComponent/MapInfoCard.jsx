@@ -54,7 +54,9 @@ const MapInfoCard = ({ searchItem }) => {
     return <div className="infoCard" ref={infoRef}><p>Error loading data</p></div>;
   }
 
-  const props = info?.features?.properties;
+  const feature = info?.features?.[0];
+  const props = feature?.properties;
+  
   if (!props) {
     return <div className="infoCard" ref={infoRef}><p>No data available</p></div>;
   }

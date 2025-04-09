@@ -1,165 +1,248 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import SiteService from "../services/SiteService";
 import MapComponent from "../components/MapComponent/MapComponent";
+import { geoJSONtoWKT } from "../utils/geometryUtils";
 
-//style
-import './InfoPage.css';
+import "./InfoPage.css";
 
-const SiteInfo = (e) => {
+const SiteInfo = () => {
+    const { user } = useSelector((state) => state.auth);
+    const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
 
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const [siteData, setSiteData] = useState();
     const [modRef, setModRef] = useState();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editFormData, setEditFormData] = useState({
+        name: "",
+        siteType: "",
+        status: "",
+        description: "",
+        references: "",
+        province: "",
+        pleiadesid: "",
+        geom: ""
+    });
 
-    //hook for navigation and function to go back to DataList using back button
-    const navigate = useNavigate();
-
-    const backButtonHandler = () => {
-        navigate("/datalist/")
-    }
+    const backButtonHandler = () => navigate("/datalist/");
 
     useEffect(() => {
-        async function LoadSiteInfo() {
-            SiteService
-                .findByIdGeoJson(id)
-                .then((response) => {
-                    setSiteData(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-            SiteService
-                .findModernReferenceBySiteId(id)
-                .then((response) => {
-                    setModRef(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
+        async function loadSiteInfo() {
+            try {
+                const response = await SiteService.findByIdGeoJson(id);
+                setSiteData(response.data);
+            } catch (error) {
+                console.error(error);
+            }
 
-        LoadSiteInfo();
-    }, []);
-
-    //query to feed to the mapcomponent
-    let query = {
-        type: "site",
-        id: id
-    }
-
-    const siteTypeConverter = (siteType) => {
-        if (siteType === 'castellum') {
-            return siteType;
-        } else if (siteType === 'pos_castellum') {
-            return "possible castellum";
-        } else if (siteType === 'legfort') {
-            return "legionary fortress / castra";
-        } else if (siteType === 'watchtower') {
-            return siteType;
-        } else if (siteType === 'city') {
-            return "autonomous city";
-        } else if (siteType === 'cem') {
-            return "(Roman) cemetery";
-        } else if (siteType === 'ptum') {
-            return "possible barrow";
-        } else if (siteType === 'tum') {
-            return "(Prehistoric?) barrow";
-        } else if (siteType === 'villa') {
-            return siteType;
-        } else if (siteType === 'pvilla') {
-            return "possible villa";
-        } else if (siteType === 'sett') {
-            return "settlement";
-        } else if (siteType === 'settS') {
-            return "settlement with stone buildings";
-        } else if (siteType === 'sanctuary') {
-            return siteType;
-        } else if (siteType === 'ship') {
-            return "shipwreck";
-        } else if (siteType === 'pship') {
-            return "possible shipwreck";
-        } else if (siteType === 'site') {
-            return "generic site";
-        } else {
-            return "unknown"
-        }
-    }
-
-    //logic to deal with loading data and ultimately loading the data and rendering the page
-    if (typeof (siteData) == 'undefined') {
-        return (
-            <div className="pagebox">
-                <div className="roadinfo-card">
-                    <p>Loading data</p>
-                </div>
-            </div>
-
-        );
-
-    } else if (typeof (modRef) === 'undefined') {
-        return (
-            <div className="roadinfo-card">
-                <p>Loading data</p>
-            </div>
-        );
-    } else {
-        let name = siteData.features.properties.name;
-        let type = siteTypeConverter(siteData.features.properties.siteType);
-        let description = siteData.features.properties.description;
-        let status = siteData.features.properties.status;
-        let references = siteData.features.properties.references;
-        let province = siteData.features.properties.province;
-        let pleiadesLink = siteData.features.properties.pleiadesid;
-
-        const modernReferenceRenderer = (modRef) => {
-
-            if (modRef.length > 0) {
-                let modernReferences = [];
-                modRef.forEach((element) => modernReferences.push(element));
-
-                return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
-                    <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>
-                )
-            } else {
-                return (
-                    <span>{references}</span>
-                )
+            try {
+                const refResponse = await SiteService.findModernReferenceBySiteId(id);
+                setModRef(refResponse.data);
+            } catch (error) {
+                console.error(error);
             }
         }
 
+        loadSiteInfo();
+    }, [id]);
+
+    const siteTypeConverter = (siteType) => {
+        const lookup = {
+            castellum: "castellum",
+            pos_castellum: "possible castellum",
+            legfort: "legionary fortress / castra",
+            watchtower: "watchtower",
+            city: "autonomous city",
+            cem: "(Roman) cemetery",
+            ptum: "possible barrow",
+            tum: "(Prehistoric?) barrow",
+            villa: "villa",
+            pvilla: "possible villa",
+            sett: "settlement",
+            settS: "settlement with stone buildings",
+            sanctuary: "sanctuary",
+            ship: "shipwreck",
+            pship: "possible shipwreck",
+            site: "generic site"
+        };
+        return lookup[siteType] || "unknown";
+    };
+
+    if (!siteData || !modRef) {
         return (
             <div className="pagebox">
-                <div className="infopage-box">
-                    <div className="infopage-card">
-                        <h4>Information</h4>
-                        <h2>{name}</h2>
-                        <h4>Identification : </h4>
-                        <span>{type}</span>
-                        <h4>Description : </h4>
-                        <span>{description}</span>
-                        {(status === undefined) ? null : <h4>Status : </h4>}
-                        {(status === undefined) ? null : <span>{status}</span>}
-                        {(references === undefined) ? null : <h4>References : </h4>}
-                        {(references === undefined) ? null : modernReferenceRenderer(modRef)}
-                        {(province === undefined) ? null : <h4>Province :</h4>}
-                        {(province === undefined) ? null : <span>{province}</span>}
-                        {(pleiadesLink === undefined) ? null : <h4>Pleiades</h4>}
-                        {(pleiadesLink === undefined) ? null : <span>{pleiadesLink}</span>}
-                    </div>
-                    <div className="infopage-illustrationbox">
-                        <div className="infopage-map">
-                            <MapComponent queryItem={query} adjustMapHeight={true} />
-                        </div>
-                        <div className="infopage-image">
-                        </div>
-                        <button className="back-btn" onClick={backButtonHandler}>BACK</button>
-                    </div>
+                <div className="roadinfo-card">
+                    <p>Loading data...</p>
                 </div>
             </div>
-        )
+        );
     }
-}
+
+    const feature = siteData.features?.[0];
+    if (!feature) return <p>No feature found</p>;
+
+    const { properties = {}, geometry = {} } = feature;
+
+    const modernReferenceRenderer = (modRef) => {
+        if (modRef.length > 0) {
+            return modRef.map((ref) =>
+                ref.url ? (
+                    <li key={ref.id}><a className="reference-listitem__link" href={ref.url}>{ref.fullRef}</a></li>
+                ) : (
+                    <li key={ref.id} className="reference-listitem__nolink">{ref.fullRef}</li>
+                )
+            );
+        }
+        return <span>{properties.references}</span>;
+    };
+
+    const handleSave = async () => {
+        try {
+            const updatedDTO = {
+                ...editFormData,
+                geom: geoJSONtoWKT(geometry)
+            };
+
+            await SiteService.updateSite(id, updatedDTO);
+            alert("Site updated!");
+
+            const refreshed = await SiteService.findByIdGeoJson(id);
+            setSiteData(refreshed.data);
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Update failed:", error);
+            alert("Failed to update site.");
+        }
+    };
+
+    return (
+        <div className="pagebox">
+            <div className="infopage-box">
+                <div className="infopage-card">
+                    <h4>Information</h4>
+
+                    {isEditing ? (
+                        <>
+                            <label className="info-label" htmlFor="site-name">Name</label>
+                            <input
+                                id="site-name"
+                                className="info-input"
+                                type="text"
+                                value={editFormData.name}
+                                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                            />
+                            <label className="info-label" htmlFor="site-type">Type</label>
+                            <input
+                                id="site-type"
+                                className="info-input"
+                                type="text"
+                                value={editFormData.siteType}
+                                onChange={(e) => setEditFormData({ ...editFormData, siteType: e.target.value })}
+                            />
+                            <label className="info-label" htmlFor="site-status">Status</label>
+                            <input
+                                id="site-status"
+                                className="info-input"
+                                type="text"
+                                value={editFormData.status}
+                                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                            />
+                            <label className="info-label" htmlFor="site-description">Description</label>
+                            <textarea
+                                id="site-description"
+                                className="info-input"
+                                rows={3}
+                                value={editFormData.description}
+                                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                            />
+                            <label className="info-label" htmlFor="site-province">Province</label>
+                            <input
+                                id="site-province"
+                                className="info-input"
+                                type="text"
+                                value={editFormData.province}
+                                onChange={(e) => setEditFormData({ ...editFormData, province: e.target.value })}
+                            />
+                            <label className="info-label" htmlFor="site-pleiadesid">Pleiades</label>
+                            <input
+                                id="site-pleiadesid"
+                                className="info-input"
+                                type="text"
+                                value={editFormData.pleiadesid}
+                                onChange={(e) => setEditFormData({ ...editFormData, pleiadesid: e.target.value })}
+                            />
+
+                            <div style={{ marginTop: "1rem" }}>
+                                <button className="info-btn" onClick={handleSave}>Save</button>
+                                <button className="info-btn delete" onClick={() => setIsEditing(false)}>Cancel</button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h2>{properties.name}</h2>
+
+                            {isAdmin && (
+                                <button className="info-btn" onClick={() => {
+                                    setEditFormData({
+                                        name: properties.name || "",
+                                        siteType: properties.siteType || "",
+                                        status: properties.status || "",
+                                        description: properties.description || "",
+                                        references: properties.references || "",
+                                        province: properties.province || "",
+                                        pleiadesid: properties.pleiadesid || "",
+                                        geom: geoJSONtoWKT(geometry)
+                                    });
+                                    setIsEditing(true);
+                                }}>
+                                    Edit
+                                </button>
+                            )}
+
+                            <h4>Identification:</h4>
+                            <span>{siteTypeConverter(properties.siteType)}</span>
+
+                            {properties.description && <>
+                                <h4>Description:</h4>
+                                <span>{properties.description}</span>
+                            </>}
+
+                            {properties.status && <>
+                                <h4>Status:</h4>
+                                <span>{properties.status}</span>
+                            </>}
+
+                            {properties.references && <>
+                                <h4>References:</h4>
+                                {modernReferenceRenderer(modRef)}
+                            </>}
+
+                            {properties.province && <>
+                                <h4>Province:</h4>
+                                <span>{properties.province}</span>
+                            </>}
+
+                            {properties.pleiadesid && <>
+                                <h4>Pleiades:</h4>
+                                <span>{properties.pleiadesid}</span>
+                            </>}
+                        </>
+                    )}
+                </div>
+                <div className="infopage-illustrationbox">
+                    <div className="infopage-map">
+                        <MapComponent queryItem={{ type: "site", id }} adjustMapHeight={true} />
+                    </div>
+                    <div className="infopage-image" />
+                    <button className="back-btn" onClick={backButtonHandler}>BACK</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export default SiteInfo;

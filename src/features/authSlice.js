@@ -1,17 +1,21 @@
+// src/features/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as authService from '../services/authService';
+import authService from '../services/authService';
 
-const user = JSON.parse(localStorage.getItem('user'));
+const storedUser = JSON.parse(localStorage.getItem('user'));
 
 export const loginUser = createAsyncThunk(
   'auth/login',
   async (userData, thunkAPI) => {
     try {
-      const data = await authService.login(userData);
-      localStorage.setItem('user', JSON.stringify(data));
-      return data;
+      const response = await authService.login(userData);
+      const user = response.data;
+      localStorage.setItem('user', JSON.stringify(user));
+      return user;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || "Login failed");
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || 'Login failed'
+      );
     }
   }
 );
@@ -20,9 +24,12 @@ export const registerUser = createAsyncThunk(
   'auth/register',
   async (userData, thunkAPI) => {
     try {
-      return await authService.register(userData);
+      const response = await authService.register(userData);
+      return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data?.message || "Registration failed");
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || 'Registration failed'
+      );
     }
   }
 );
@@ -30,7 +37,7 @@ export const registerUser = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: user || null,
+    user: storedUser || null,
     loading: false,
     error: null,
   },

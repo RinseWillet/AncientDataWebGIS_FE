@@ -9,7 +9,10 @@ const SiteService = {
     },
     async findModernReferenceBySiteId(id) {
         return await apiClient.get('sites/modref/' + id);
-    } 
+    },
+    async updateSite(id, siteDTO) {
+        return await apiClient.put(`/sites/${id}`, siteDTO);
+    }
 };
 
 export default SiteService;

@@ -3,22 +3,34 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import RoadService from "../services/RoadService";
 import MapComponent from "../components/MapComponent/MapComponent";
+import { geoJSONtoWKT } from "../utils/geometryUtils";
+import ModernReferencePicker from "../components/ModernReferencePicker/ModernReferencePicker";
 
 //style
 import './InfoPage.css';
 
-
-const RoadInfo = (e) => {
+const RoadInfo = () => {
 
     const { user } = useSelector((state) => state.auth);
-    const role = user?.roles?.[0] || "GUEST";
-    const isUser = role === "ROLE_USER" || role === "ROLE_ADMIN";
-    const isAdmin = role === "ROLE_ADMIN";
+    const [isEditing, setIsEditing] = useState(false);
+    const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
+
+    const [editFormData, setEditFormData] = useState({
+        name: "",
+        type: "",
+        typeDescription: "",
+        location: "",
+        description: "",
+        date: "",
+        geom: "",
+        cat_nr: ""
+    });
 
     const { id } = useParams();
 
     const [data, setData] = useState();
     const [modRef, setModRef] = useState();
+    const [selectedReferences, setSelectedReferences] = useState([]);
 
     //hook for navigation and function to go back to DataList using back button
     const navigate = useNavigate();
@@ -26,7 +38,6 @@ const RoadInfo = (e) => {
     const backButtonHandler = () => {
         navigate("/datalist/")
     }
-
 
     useEffect(() => {
         async function LoadRoadInfo() {
@@ -70,21 +81,25 @@ const RoadInfo = (e) => {
             </div>
         );
     } else {
-        let name = data.features.properties.name;
-        let type = data.features.properties.type;
-        let typeDescription = data.features.properties.typeDescription;
-        let location = data.features.properties.location;
-        let description = data.features.properties.description;
-        let date = data.features.properties.date;
-        let references = data.features.properties.references;
-        let historicalReferences = data.features.properties.historicalReferences;
+        const feature = data.features?.[0];
+        if (!feature) return <p>No feature found</p>;
+
+        const { properties = {}, geometry = {} } = feature;
+        let name = properties.name;
+        let type = properties.type;
+        let typeDescription = properties.typeDescription;
+        let location = properties.location;
+        let description = properties.description;
+        let date = properties.date;
+        let references = properties.references;
+        let historicalReferences = properties.historicalReferences;
 
         const modernReferenceRenderer = (modRef) => {
             if (modRef.length > 0) {
                 let modernReferences = [];
                 modRef.forEach((element) => modernReferences.push(element));
-                return modernReferences.map((modernReference) => modernReference.url === null ? <li className="reference-listitem__nolink">{modernReference.fullRef}</li> :
-                    <li><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
+                return modernReferences.map((modernReference) => modernReference.url === null ? <li key={modernReference.id} className="reference-listitem__nolink">{modernReference.fullRef}</li> :
+                    <li key={modernReference.id}><a href={modernReference.url} className="reference-listitem__link">{modernReference.fullRef}</a></li>)
             } else {
                 return (
                     <span>{references}</span>
@@ -106,42 +121,159 @@ const RoadInfo = (e) => {
             }
         };
 
+        const handleSave = async () => {
+            try {
+                const updatedRoadDTO = {
+                    ...editFormData,
+                    referenceIds: selectedReferences.map(ref => ref.id)
+                };
+
+                const updated = await RoadService.updateRoad(id, updatedRoadDTO);
+                alert("Road updated!");
+
+                const refreshed = await RoadService.findByIdGeoJson(id);
+                setData(refreshed.data);
+
+                const updatedRefs = await RoadService.findModernReferenceByRoadId(id);
+                setModRef(updatedRefs.data);
+
+                setIsEditing(false);
+            } catch (error) {
+                console.error("Update failed:", error);
+                alert("Failed to update road.");
+            }
+        };
+
         return (
             <>
                 <div className="pagebox">
                     <div className="infopage-box">
                         <div className="infopage-card">
                             <h4>Information</h4>
-                            <h2>{name}</h2>
 
-                            {user?.role === 'ADMIN' && (
+                            {isEditing ? (
                                 <>
-                                    <button className="info-btn" onClick={() => navigate(`/edit/road/${id}`)}>
-                                        Edit
-                                    </button>
-                                    <button className="info-btn delete" onClick={() => console.log("Delete logic here")}>
-                                        Delete
-                                    </button>
+                                    <label className="info-label" htmlFor="road-name">Name</label>
+                                    <input
+                                        id="road-name"
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.name}
+                                        onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                                        placeholder="Name"
+                                    />
+                                    <label className="info-label" htmlFor="road-type">Type</label>
+                                    <input
+                                        id="road-type"
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.type}
+                                        onChange={(e) => setEditFormData({ ...editFormData, type: e.target.value })}
+                                        placeholder="Type"
+                                    />
+                                    <label className="info-label" htmlFor="road-type-description">Type Description</label>
+                                    <input
+                                        id="road-type-description"
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.typeDescription}
+                                        onChange={(e) => setEditFormData({ ...editFormData, typeDescription: e.target.value })}
+                                        placeholder="Type Description"
+                                    />
+                                    <label className="info-label" htmlFor="road-location">Location</label>
+                                    <input
+                                        id="road-location"
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.location}
+                                        onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                                        placeholder="Location"
+                                    />
+                                    <label className="info-label" htmlFor="road-description">Description</label>
+                                    <textarea
+                                        id="road-description"
+                                        className="info-input"
+                                        rows={3}
+                                        value={editFormData.description}
+                                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                        placeholder="Description"
+                                    />
+                                    <label className="info-label" htmlFor="road-date">Date</label>
+                                    <input
+                                        id="road-date"
+                                        className="info-input"
+                                        type="text"
+                                        value={editFormData.date}
+                                        onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
+                                        placeholder="Date"
+                                    />
+
+                                    <ModernReferencePicker
+                                        selectedReferences={selectedReferences}
+                                        onChange={setSelectedReferences}
+                                    />
+
+                                    <div style={{ marginTop: "1rem" }}>
+                                        <button className="info-btn" onClick={handleSave}>Save</button>
+                                        <button className="info-btn delete" onClick={() => setIsEditing(false)}>Cancel</button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <h2>{name}</h2>
+
+                                    {isAdmin && (
+                                        <button className="info-btn" onClick={() => {
+                                            const feature = data.features?.[0];
+                                            if (!feature) return;
+
+                                            const { properties = {}, geometry = {} } = feature;
+                                            setEditFormData({
+                                                name: properties.name || "",
+                                                type: properties.type || "",
+                                                typeDescription: properties.typeDescription || "",
+                                                location: properties.location || "",
+                                                description: properties.description || "",
+                                                date: properties.date || "",
+                                                geom: geoJSONtoWKT(geometry),
+                                                cat_nr: properties.cat_nr || ""
+                                            });
+                                            setSelectedReferences(modRef || []);
+                                            setIsEditing(true);
+                                        }}>
+                                            Edit
+                                        </button>
+                                    )}
+
+                                    <h4>Identification:</h4>
+                                    <span>{type} - {typeDescription}</span>
+
+                                    {location && <>
+                                        <h4>Location:</h4>
+                                        <span>{location}</span>
+                                    </>}
+
+                                    {description && <>
+                                        <h4>Description:</h4>
+                                        <span>{description}</span>
+                                    </>}
+
+                                    {date && <>
+                                        <h4>Date:</h4>
+                                        <span>{date}</span>
+                                    </>}
+
+                                    {references && <>
+                                        <h4>References:</h4>
+                                        {modernReferenceRenderer(modRef)}
+                                    </>}
+
+                                    {historicalReferences && <>
+                                        <h4>Historical references:</h4>
+                                        <span>{historicalReferences}</span>
+                                    </>}
                                 </>
                             )}
-
-                            {user?.role === 'USER' && (
-                                <p style={{ marginTop: '1rem', fontSize: '1.4rem', color: 'gray' }}>
-                                    You can add new roads but not edit this one.
-                                </p>
-                            )}
-                            <h4>Identification : </h4>
-                            <span> {type} - {typeDescription}</span>
-                            {(location === undefined) ? null : <h4>Location : </h4>}
-                            {(location === undefined) ? null : <span>{location}</span>}
-                            {(description === undefined) ? null : <h4>Description : </h4>}
-                            {(description === undefined) ? null : <span>{description}</span>}
-                            {(date === undefined) ? null : <h4>Date : </h4>}
-                            {(date === undefined) ? null : <span>{date}</span>}
-                            {(references === undefined) ? null : <h4>References : </h4>}
-                            {(references === undefined) ? null : modernReferenceRenderer(modRef)}
-                            {(historicalReferences === undefined) ? null : <h4>Historical references : </h4>}
-                            {(historicalReferences === undefined) ? null : <span>{historicalReferences}</span>}
                         </div>
                         <div className="infopage-illustrationbox">
                             <div className="infopage-map">
