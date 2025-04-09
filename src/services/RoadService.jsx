@@ -10,7 +10,7 @@ const RoadService = {
     async findModernReferenceByRoadId(id) {
         return await apiClient.get('roads/modref/' + id);
     },
-    async updateRoad(id, roadDTO) {
+    async updateRoad(id, roadDTO) {    
         return await apiClient.put(`/roads/${id}`, roadDTO);
     }
 };

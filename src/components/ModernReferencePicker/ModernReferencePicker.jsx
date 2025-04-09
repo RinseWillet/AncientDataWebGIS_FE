@@ -37,6 +37,7 @@ const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
         try {
             const response = await ModernReferenceService.create(newRef);
             onChange([...selectedReferences, response.data]);
+            setAllRefs([...allRefs, response.data]);
             setNewRef({ shortRef: "", fullRef: "", url: "" });
         } catch (err) {
             console.error("Failed to create reference:", err);
@@ -66,18 +67,22 @@ const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
             <h4>Add New</h4>
             <input
                 type="text"
+                className="modref-input short"
                 placeholder="Short Ref"
                 value={newRef.shortRef}
                 onChange={(e) => setNewRef({ ...newRef, shortRef: e.target.value })}
             />
-            <input
+            <textarea
                 type="text"
+                className="modref-input full"
                 placeholder="Full Ref"
+                rows={3}
                 value={newRef.fullRef}
                 onChange={(e) => setNewRef({ ...newRef, fullRef: e.target.value })}
             />
             <input
                 type="text"
+                className="modref-input url"
                 placeholder="URL (optional)"
                 value={newRef.url}
                 onChange={(e) => setNewRef({ ...newRef, url: e.target.value })}
