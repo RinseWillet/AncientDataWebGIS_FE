@@ -103,8 +103,7 @@ const SiteInfo = () => {
     const handleSave = async () => {
         try {
             const updatedDTO = {
-                ...editFormData,
-                geom: geoJSONtoWKT(geometry)
+                ...editFormData
             };
 
             await SiteService.updateSite(id, updatedDTO);
@@ -112,6 +111,15 @@ const SiteInfo = () => {
 
             const refreshed = await SiteService.findByIdGeoJson(id);
             setSiteData(refreshed.data);
+
+            const refreshedFeature = refreshed.data.features?.[0];
+            if (refreshedFeature?.geometry) {
+                setEditFormData(prev => ({
+                    ...prev,
+                    geom: geoJSONtoWKT(refreshedFeature.geometry)
+                }));
+            }
+
             setIsEditing(false);
         } catch (error) {
             console.error("Update failed:", error);
@@ -235,7 +243,15 @@ const SiteInfo = () => {
                 </div>
                 <div className="infopage-illustrationbox">
                     <div className="infopage-map">
-                        <MapComponent queryItem={{ type: "site", id }} adjustMapHeight={true} />
+                        <MapComponent
+                            key={isEditing ? "editing" : `site-${id}-${editFormData.geom}`}
+                            queryItem={{ type: "site", id }}
+                            adjustMapHeight={true}
+                            isEditing={isEditing}
+                            geometry={editFormData.geom}
+                            onGeometryChange={(newWkt) => {
+                                setEditFormData(prev => ({ ...prev, geom: newWkt }));
+                            }} />
                     </div>
                     <div className="infopage-image" />
                     <button className="back-btn" onClick={backButtonHandler}>BACK</button>

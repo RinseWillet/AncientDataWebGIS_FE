@@ -128,16 +128,26 @@ const RoadInfo = () => {
                     referenceIds: selectedReferences.map(ref => ref.id)
                 };
 
-                const updated = await RoadService.updateRoad(id, updatedRoadDTO);
+                await RoadService.updateRoad(id, updatedRoadDTO);
                 alert("Road updated!");
 
                 const refreshed = await RoadService.findByIdGeoJson(id);
                 setData(refreshed.data);
 
+                const feature = refreshed.data.features?.[0];
+                const updatedGeom = feature?.geometry;
+
+                if (updatedGeom) {
+                    setEditFormData(prev => ({
+                        ...prev,
+                        geom: geoJSONtoWKT(updatedGeom),
+                    }));
+                }
+
                 const updatedRefs = await RoadService.findModernReferenceByRoadId(id);
                 setModRef(updatedRefs.data);
 
-                setIsEditing(false);
+                setIsEditing(false);                
             } catch (error) {
                 console.error("Update failed:", error);
                 alert("Failed to update road.");
@@ -277,7 +287,15 @@ const RoadInfo = () => {
                         </div>
                         <div className="infopage-illustrationbox">
                             <div className="infopage-map">
-                                <MapComponent queryItem={query} adjustMapHeight={true} />
+                                <MapComponent
+                                    key={isEditing ? "editing" : `road-${id}-${editFormData.geom}`}
+                                    queryItem={query}
+                                    adjustMapHeight={true}
+                                    isEditing={isEditing}
+                                    geometry={editFormData.geom}
+                                    onGeometryChange={(newWkt) => {
+                                        setEditFormData(prev => ({ ...prev, geom: newWkt }));
+                                    }} />
                             </div>
                             <div className="infopage-image">
                             </div>

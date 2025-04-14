@@ -8,8 +8,11 @@ import {
   sanctuaryIcon, mileStoneIcon
 } from './Styles/MarkerStyles';
 import './MapContent.css';
+import 'leaflet-draw';
+import 'leaflet-draw/dist/leaflet.draw.css';
+import GeometryEditor from '../GeometryEditor/GeometryEditor'
 
-const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem }) => {
+const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryItem, isEditing, geometry, onGeometryChange }) => {
   const map = useMap();
   const [selectedRoadId, setSelectedRoadId] = useState(null);
   const { type, id } = queryItem || {};
@@ -197,6 +200,13 @@ const MapContent = ({ siteData, roadData, setShowInfoCard, setSearchItem, queryI
           />
         </LayersControl.Overlay>
       </LayersControl>
+      {isEditing && (
+        <GeometryEditor
+          geometry={geometry}
+          onGeometryChange={onGeometryChange}
+          isEditing={isEditing}
+        />
+      )}
       <ScaleControl position="bottomleft" />
     </>
   );
