@@ -3,11 +3,18 @@ import MapBuilder from './MapBuilder';
 import MapInfoCard from './MapInfoCard';
 import { MapContainer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-draw/dist/leaflet.draw.css';
 import './MapComponent.css';
 
 const position = [51.8, 5.8];
 
-const MapComponent = ({ queryItem, adjustMapHeight }) => {
+const MapComponent = ({
+  queryItem,
+  adjustMapHeight,
+  isEditing = false,
+  geometry = null,
+  onGeometryChange = () => { } }) => {
+
   const [map, setMap] = useState(null);
   const [showInfoCard, setShowInfoCard] = useState(false);
   const [searchItem, setSearchItem] = useState({ type: "", id: "" });
@@ -55,6 +62,9 @@ const MapComponent = ({ queryItem, adjustMapHeight }) => {
           setShowInfoCard={setShowInfoCard}
           setSearchItem={setSearchItem}
           queryItem={queryItem}
+          isEditing={isEditing}
+          geometry={geometry}
+          onGeometryChange={onGeometryChange}
         />
       </MapContainer>
     </div>

@@ -9,7 +9,7 @@ import MapContent from "./MapContent";
 // Style
 import 'leaflet/dist/leaflet.css';
 
-const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem }) => {
+const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, isEditing, geometry, onGeometryChange }) => {
   const [siteData, setSiteData] = useState(null);
   const [roadData, setRoadData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +45,9 @@ const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem }) => {
       setShowInfoCard={setShowInfoCard}
       setSearchItem={setSearchItem}
       queryItem={queryItem}
+      isEditing={isEditing}
+      geometry={geometry}
+      onGeometryChange={onGeometryChange}
     />
   );
 };
