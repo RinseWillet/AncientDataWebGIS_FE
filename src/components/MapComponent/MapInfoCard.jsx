@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSiteById } from '../../features/site/siteThunks';
 import { fetchRoadById } from '../../features/road/roadThunks';
+import './MapInfoCard.css';
 
 const siteTypeMap = {
   castellum: 'castellum',
@@ -22,7 +23,7 @@ const siteTypeMap = {
   site: 'generic site'
 };
 
-const MapInfoCard = ({ searchItem }) => {
+const MapInfoCard = ({ searchItem, clearSelection }) => {
   const infoRef = useRef(null);
   const dispatch = useDispatch();
 
@@ -39,9 +40,16 @@ const MapInfoCard = ({ searchItem }) => {
     }
   }, [searchItem, dispatch]);
 
-  const info = searchItem.type === 'site' ? selectedSite : selectedRoad;
+  const info =
+    searchItem.type === 'site'
+      ? selectedSite
+      : selectedRoad?.features?.[0]?.properties?.id == searchItem.id
+        ? selectedRoad
+        : null;
+
   const feature = info?.features?.[0];
   const props = feature?.properties;
+
 
   if (!info || !feature || !props) {
     return <div className="infoCard" ref={infoRef}><p>Loading Data...</p></div>;
@@ -49,16 +57,14 @@ const MapInfoCard = ({ searchItem }) => {
 
   if (info.error) {
     return <div className="infoCard" ref={infoRef}><p>Error loading data</p></div>;
-  } 
-  
-  if (!props) {
-    return <div className="infoCard" ref={infoRef}><p>No data available</p></div>;
   }
 
   if (searchItem.type === 'site') {
     const siteType = siteTypeMap[props.siteType] || 'unknown';
     return (
       <div className="infoCard" ref={infoRef}>
+        <button className="closeBtn" onClick={clearSelection}>✖</button>
+        <h2>{props.name}</h2><br />
         <b>Identification:</b><br />{siteType}<br />
         <span>
           <b>Description:</b><br />{props.description}
@@ -70,6 +76,7 @@ const MapInfoCard = ({ searchItem }) => {
   if (searchItem.type === 'road') {
     return (
       <div className="infoCard" ref={infoRef}>
+        <button className="closeBtn" onClick={clearSelection}>✖</button>
         <h2>{props.name}</h2><br />
         <b>Identification:</b><br />
         {props.type} {props.typeDescription && <>– {props.typeDescription}</>}<br />

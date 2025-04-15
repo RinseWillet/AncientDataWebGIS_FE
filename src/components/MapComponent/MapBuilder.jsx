@@ -5,7 +5,7 @@ import { fetchSites } from "../../features/site/siteThunks";
 import MapContent from "./MapContent";
 import 'leaflet/dist/leaflet.css';
 
-const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, isEditing, geometry, onGeometryChange }) => {
+const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, searchItem, isEditing, geometry, onGeometryChange, siteMarkersRef }) => {
   const dispatch = useDispatch();
 
   const { roadData, loading: roadLoading, loaded: roadsLoaded } = useSelector(state => state.roads);
@@ -27,9 +27,11 @@ const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, isEditing, geom
       setShowInfoCard={setShowInfoCard}
       setSearchItem={setSearchItem}
       queryItem={queryItem}
+      searchItem={searchItem}
       isEditing={isEditing}
       geometry={geometry}
       onGeometryChange={onGeometryChange}
+      siteMarkersRef={siteMarkersRef}
     />
   );
 };

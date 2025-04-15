@@ -6,7 +6,6 @@ import 'leaflet/dist/leaflet.css';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Components
-import NavBar from './components/NavBar/NavBar';
 import NavbarHook from "./components/NavBarHook/NavbarHook";
 import Footer from './components/Footer/Footer';
 import PrivateRoute from './components/Routes/PrivateRoute';

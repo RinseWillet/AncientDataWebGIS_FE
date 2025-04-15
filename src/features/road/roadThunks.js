@@ -2,10 +2,8 @@ import {
     fetchRoadsStart,
     fetchRoadsSuccess,
     fetchRoadsFailure,
-    fetchRoadByIdStart,
-    fetchRoadByIdSuccess,
-    fetchRoadByIdFailure,
 } from './roadSlice';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 import RoadService from '../../services/RoadService';
 
 export const fetchRoads = () => async (dispatch) => {
@@ -20,14 +18,16 @@ export const fetchRoads = () => async (dispatch) => {
     }
 };
 
-export const fetchRoadById = (id) => async (dispatch) => {
-    dispatch(fetchRoadByIdStart());
-    try {
-        const response = await RoadService.findByIdGeoJson(id);
-        dispatch(fetchRoadByIdSuccess(response.data));
-    } catch (error) {
-        dispatch(fetchRoadByIdFailure(
-            error.response?.data?.message || error.message || 'Failed to load road.'
-        ));
+export const fetchRoadById = createAsyncThunk(
+    'roads/fetchById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await RoadService.findByIdGeoJson(id);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to load road.'
+            );
+        }
     }
-};
+);
