@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser, registerUser } from '../features/authSlice';
+import { loginUser, registerUser } from '../features/authentication/authSlice';
 import './LoginRegister.css';
 
 const LoginRegister = () => {

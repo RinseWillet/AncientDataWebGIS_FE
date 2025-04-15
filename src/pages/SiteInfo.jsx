@@ -1,9 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSiteById } from "../features/site/siteThunks";
+import { fetchModernReferencesBySiteId } from "../features/modref/modRefThunks";
 import SiteService from "../services/SiteService";
 import MapComponent from "../components/MapComponent/MapComponent";
 import { geoJSONtoWKT } from "../utils/geometryUtils";
+import ModernReferencePicker from "../components/ModernReferencePicker/ModernReferencePicker";
+
 
 import "./InfoPage.css";
 
@@ -14,8 +18,11 @@ const SiteInfo = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    const [siteData, setSiteData] = useState();
-    const [modRef, setModRef] = useState();
+    const dispatch = useDispatch();
+    const { selectedSite, loading, error } = useSelector((state) => state.sites);
+    const [selectedReferences, setSelectedReferences] = useState([]);
+    const { referencesBySiteId } = useSelector((state) => state.modRef);
+    const modRef = referencesBySiteId[id];
     const [isEditing, setIsEditing] = useState(false);
     const [editFormData, setEditFormData] = useState({
         name: "",
@@ -31,24 +38,9 @@ const SiteInfo = () => {
     const backButtonHandler = () => navigate("/datalist/");
 
     useEffect(() => {
-        async function loadSiteInfo() {
-            try {
-                const response = await SiteService.findByIdGeoJson(id);
-                setSiteData(response.data);
-            } catch (error) {
-                console.error(error);
-            }
-
-            try {
-                const refResponse = await SiteService.findModernReferenceBySiteId(id);
-                setModRef(refResponse.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        loadSiteInfo();
-    }, [id]);
+        dispatch(fetchSiteById(id));
+        dispatch(fetchModernReferencesBySiteId(id));
+    }, [dispatch, id]);
 
     const siteTypeConverter = (siteType) => {
         const lookup = {
@@ -72,7 +64,7 @@ const SiteInfo = () => {
         return lookup[siteType] || "unknown";
     };
 
-    if (!siteData || !modRef) {
+    if (loading || !selectedSite || !modRef) {
         return (
             <div className="pagebox">
                 <div className="roadinfo-card">
@@ -82,7 +74,7 @@ const SiteInfo = () => {
         );
     }
 
-    const feature = siteData.features?.[0];
+    const feature = selectedSite?.features?.[0];
     if (!feature) return <p>No feature found</p>;
 
     const { properties = {}, geometry = {} } = feature;
@@ -103,22 +95,25 @@ const SiteInfo = () => {
     const handleSave = async () => {
         try {
             const updatedDTO = {
-                ...editFormData
+                ...editFormData,
+                referenceIds: selectedReferences.map(ref => ref.id)
             };
-
             await SiteService.updateSite(id, updatedDTO);
             alert("Site updated!");
 
-            const refreshed = await SiteService.findByIdGeoJson(id);
-            setSiteData(refreshed.data);
+            await dispatch(fetchSiteById(id));
 
-            const refreshedFeature = refreshed.data.features?.[0];
+            const refreshed = await SiteService.findByIdGeoJson(id);
+            const refreshedFeature = refreshed.data?.features?.[0];
+
             if (refreshedFeature?.geometry) {
-                setEditFormData(prev => ({
+                setEditFormData((prev) => ({
                     ...prev,
-                    geom: geoJSONtoWKT(refreshedFeature.geometry)
+                    geom: geoJSONtoWKT(refreshedFeature.geometry),
                 }));
             }
+
+            await dispatch(fetchSiteById(id));
 
             setIsEditing(false);
         } catch (error) {
@@ -184,6 +179,11 @@ const SiteInfo = () => {
                                 onChange={(e) => setEditFormData({ ...editFormData, pleiadesid: e.target.value })}
                             />
 
+                            <ModernReferencePicker
+                                selectedReferences={selectedReferences}
+                                onChange={setSelectedReferences}
+                            />
+
                             <div style={{ marginTop: "1rem" }}>
                                 <button className="info-btn" onClick={handleSave}>Save</button>
                                 <button className="info-btn delete" onClick={() => setIsEditing(false)}>Cancel</button>
@@ -205,6 +205,7 @@ const SiteInfo = () => {
                                         pleiadesid: properties.pleiadesid || "",
                                         geom: geoJSONtoWKT(geometry)
                                     });
+                                    setSelectedReferences(modRef || []);
                                     setIsEditing(true);
                                 }}>
                                     Edit

@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRoadById } from "../features/road/roadThunks";
+import { fetchModernReferencesByRoadId } from "../features/modref/modRefThunks";
 import RoadService from "../services/RoadService";
-import MapComponent from "../components/MapComponent/MapComponent";
 import { geoJSONtoWKT } from "../utils/geometryUtils";
+import MapComponent from "../components/MapComponent/MapComponent";
 import ModernReferencePicker from "../components/ModernReferencePicker/ModernReferencePicker";
 
-//style
+
 import './InfoPage.css';
 
 const RoadInfo = () => {
@@ -14,6 +16,8 @@ const RoadInfo = () => {
     const { user } = useSelector((state) => state.auth);
     const [isEditing, setIsEditing] = useState(false);
     const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
+    const dispatch = useDispatch();
+    const { selectedRoad, loading, error } = useSelector((state) => state.roads);
 
     const [editFormData, setEditFormData] = useState({
         name: "",
@@ -28,8 +32,9 @@ const RoadInfo = () => {
 
     const { id } = useParams();
 
-    const [data, setData] = useState();
-    const [modRef, setModRef] = useState();
+    const { referencesByRoadId, loading: modRefLoading } = useSelector((state) => state.modRef);
+    const modRef = referencesByRoadId[id];
+
     const [selectedReferences, setSelectedReferences] = useState([]);
 
     //hook for navigation and function to go back to DataList using back button
@@ -40,26 +45,9 @@ const RoadInfo = () => {
     }
 
     useEffect(() => {
-        async function LoadRoadInfo() {
-            RoadService
-                .findByIdGeoJson(id)
-                .then((response) => {
-                    setData(response.data);
-                })
-                .catch((error) => {
-                    console.error(error);
-                });
-            RoadService
-                .findModernReferenceByRoadId(id)
-                .then((response) => {
-                    setModRef(response.data);
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
-        LoadRoadInfo();
-    }, []);
+        dispatch(fetchRoadById(id));
+        dispatch(fetchModernReferencesByRoadId(id));
+    }, [dispatch, id]);
 
     //query to feed to the mapcomponent
     let query = {
@@ -68,20 +56,18 @@ const RoadInfo = () => {
     }
 
     //logic to deal with loading data and ultimately loading the data and rendering the page
-    if (typeof (data) == 'undefined') {
+    if (!selectedRoad || !modRef) {
         return (
             <div className="roadinfo-card">
                 <p>Loading data</p>
             </div>
         );
-    } else if (typeof (modRef) === 'undefined') {
+    } else if (error) {
         return (
-            <div className="roadinfo-card">
-                <p>Loading data</p>
-            </div>
-        );
+            <p style={{ color: 'red' }}>{error}</p>
+        );    
     } else {
-        const feature = data.features?.[0];
+        const feature = selectedRoad.features?.[0];
         if (!feature) return <p>No feature found</p>;
 
         const { properties = {}, geometry = {} } = feature;
@@ -131,10 +117,9 @@ const RoadInfo = () => {
                 await RoadService.updateRoad(id, updatedRoadDTO);
                 alert("Road updated!");
 
-                const refreshed = await RoadService.findByIdGeoJson(id);
-                setData(refreshed.data);
+                await dispatch(fetchRoadById(id));
 
-                const feature = refreshed.data.features?.[0];
+                const feature = selectedRoad?.features?.[0];
                 const updatedGeom = feature?.geometry;
 
                 if (updatedGeom) {
@@ -144,10 +129,9 @@ const RoadInfo = () => {
                     }));
                 }
 
-                const updatedRefs = await RoadService.findModernReferenceByRoadId(id);
-                setModRef(updatedRefs.data);
+                await dispatch(fetchModernReferencesByRoadId(id));
 
-                setIsEditing(false);                
+                setIsEditing(false);
             } catch (error) {
                 console.error("Update failed:", error);
                 alert("Failed to update road.");
@@ -234,7 +218,7 @@ const RoadInfo = () => {
 
                                     {isAdmin && (
                                         <button className="info-btn" onClick={() => {
-                                            const feature = data.features?.[0];
+                                            const feature = selectedRoad.features?.[0];
                                             if (!feature) return;
 
                                             const { properties = {}, geometry = {} } = feature;

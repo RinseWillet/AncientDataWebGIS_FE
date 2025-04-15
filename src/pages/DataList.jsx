@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import RoadService from "../services/RoadService";
-import SiteService from "../services/SiteService";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRoads } from "../features/road/roadThunks";
+import { fetchSites } from "../features/site/siteThunks";
 import {
     useReactTable,
     getCoreRowModel,
@@ -12,13 +12,15 @@ import {
     createColumnHelper
 } from '@tanstack/react-table';
 
-
-import './DataList.css'; // Reuse your styles
+import './DataList.css';
 
 const DataList = () => {
     const navigate = useNavigate();
     const [dataSwitch, setDataSwitch] = useState(false); // false = Roads, true = Sites
-    const [data, setData] = useState([]);
+    const { siteData, loading: siteLoading, error: siteError } = useSelector((state) => state.sites);
+    const { roadData, loading, error } = useSelector((state) => state.roads);
+    const dispatch = useDispatch();
+
 
     const getInitialPageSize = () => {
         const width = window.innerWidth;
@@ -31,20 +33,15 @@ const DataList = () => {
     const { user } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = !dataSwitch
-                    ? await RoadService.findAllGeoJson()
-                    : await SiteService.findAllGeoJson();
 
-                setData(response.data?.features || []);
-            } catch (error) {
-                console.error(error);
-            }
+        if (!dataSwitch) {
+            dispatch(fetchRoads());
+        } else {
+            dispatch(fetchSites());
         };
 
-        fetchData();
-    }, [dataSwitch]);
+    }
+        , [dispatch, dataSwitch]);
 
     const columns = useMemo(() => {
         if (!dataSwitch) {
@@ -92,10 +89,12 @@ const DataList = () => {
     }, [dataSwitch]);
 
     const rowData = useMemo(() => {
-        if (!Array.isArray(data)) return [];
+        const source = dataSwitch ? siteData?.features : roadData?.features || [];
 
-        return data.map((feature) => {
-            const props = feature.properties;
+        if (!Array.isArray(source)) return [];
+
+        return source.map((feature) => {
+            const props = feature.properties || {};
             return {
                 id: props.id,
                 name: props.name,
@@ -103,7 +102,7 @@ const DataList = () => {
                 date: props.date || "",
             };
         });
-    }, [data]);
+    }, [siteData, roadData, dataSwitch]);
 
     const table = useReactTable({
         data: rowData,
@@ -127,7 +126,7 @@ const DataList = () => {
         } else {
             navigate(`siteinfo/${id}`);
         }
-    };    
+    };
 
     return (
         <div className="pagebox">
@@ -143,6 +142,10 @@ const DataList = () => {
             </div>
 
             <div className="table-container">
+                {!dataSwitch && loading && <p className="status-msg">Loading roads...</p>}
+                {!dataSwitch && error && <p className="status-msg error">{error}</p>}
+                {dataSwitch && siteLoading && <p className="status-msg">Loading sites...</p>}
+                {dataSwitch && siteError && <p className="status-msg error">{siteError}</p>}
                 <table className="react-table">
                     <thead>
                         {table.getHeaderGroups().map((headerGroup) => (

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import SiteService from '../../services/SiteService';
-import RoadService from '../../services/RoadService';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSiteById } from '../../features/site/siteThunks';
+import { fetchRoadById } from '../../features/road/roadThunks';
 
 const siteTypeMap = {
   castellum: 'castellum',
@@ -23,39 +24,32 @@ const siteTypeMap = {
 
 const MapInfoCard = ({ searchItem }) => {
   const infoRef = useRef(null);
-  const [info, setInfo] = useState(null);
+  const dispatch = useDispatch();
+
+  const { selectedSite } = useSelector((state) => state.sites);
+  const { selectedRoad } = useSelector((state) => state.roads);
 
   useEffect(() => {
     if (!searchItem.type || !searchItem.id) return;
 
-    const fetchData = async () => {
-      try {
-        if (searchItem.type === 'site') {
-          const response = await SiteService.findByIdGeoJson(searchItem.id);
-          setInfo(response.data);
-        } else if (searchItem.type === 'road') {
-          const response = await RoadService.findByIdGeoJson(searchItem.id);
-          setInfo(response.data);
-        }
-      } catch (error) {
-        console.error('Error loading info card data:', error);
-        setInfo({ error: true });
-      }
-    };
+    if (searchItem.type === 'site') {
+      dispatch(fetchSiteById(searchItem.id));
+    } else if (searchItem.type === 'road') {
+      dispatch(fetchRoadById(searchItem.id));
+    }
+  }, [searchItem, dispatch]);
 
-    fetchData();
-  }, [searchItem]);
+  const info = searchItem.type === 'site' ? selectedSite : selectedRoad;
+  const feature = info?.features?.[0];
+  const props = feature?.properties;
 
-  if (!info) {
-    return <div className="infoCard" ref={infoRef}><p>Loading Data</p></div>;
+  if (!info || !feature || !props) {
+    return <div className="infoCard" ref={infoRef}><p>Loading Data...</p></div>;
   }
 
   if (info.error) {
     return <div className="infoCard" ref={infoRef}><p>Error loading data</p></div>;
-  }
-
-  const feature = info?.features?.[0];
-  const props = feature?.properties;
+  } 
   
   if (!props) {
     return <div className="infoCard" ref={infoRef}><p>No data available</p></div>;
