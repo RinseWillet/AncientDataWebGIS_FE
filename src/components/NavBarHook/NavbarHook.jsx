@@ -3,7 +3,10 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { IoClose, IoMenu } from "react-icons/io5";
 import { useMediaQuery } from "react-responsive";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../../features/authSlice";
+import { logout } from "../../features/authentication/authSlice";
+import { resetSites } from "../../features/site/siteSlice";
+import { resetRoads } from "../../features/road/roadSlice";
+import { resetModRefs } from "../../features/modref/modRefSlice";
 import "./NavbarHook.css";
 
 const NavbarHook = () => {
@@ -19,6 +22,9 @@ const NavbarHook = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(resetSites());
+  dispatch(resetRoads());
+  dispatch(resetModRefs());
     navigate('/login');
   };
 

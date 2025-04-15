@@ -17,6 +17,14 @@ import pship from '../../../assets/pship.png';
 import site from '../../../assets/site.png';
 import milestone from '../../../assets/milestone.png'
 
+
+export const highlightedSiteIcon = L.divIcon({
+    className: 'highlighted-site-icon',
+    html: "<div class='marker-pin highlight'></div><div class='pulse highlight'></div>",
+    iconSize: [30, 42],
+    iconAnchor: [15, 42]
+});
+
 export const castellumIcon = new Icon({
     iconUrl: fort,
     iconSize: [30, 30]
@@ -103,17 +111,17 @@ export const mileStoneIcon = new Icon({
 });
 
 export const possibleRoad = {
-    color:  '#000000',
+    color: '#000000',
     weight: 2.5,
     opacity: 0.65,
-    dashArray: [2,3]    
+    dashArray: [2, 3]
 };
 
 export const hypotheticalRoute = {
     color: '#878787',
     weight: 2,
     opacity: 1,
-    dashArray: [2,3],
+    dashArray: [2, 3],
 };
 
 export const road = {
@@ -126,9 +134,9 @@ export const histRec = {
     color: '#006400',
     weight: 2,
     opacity: 0.65,
-    dashArray: [2,3],
+    dashArray: [2, 3],
 };
 
-export const notShowRoad = {   
+export const notShowRoad = {
     opacity: 0
 };

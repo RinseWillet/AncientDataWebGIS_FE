@@ -1,40 +1,22 @@
-// React
 import { useEffect, useState } from "react";
-
-// Services
-import SiteService from "../../services/SiteService";
-import RoadService from "../../services/RoadService";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRoads } from "../../features/road/roadThunks";
+import { fetchSites } from "../../features/site/siteThunks";
 import MapContent from "./MapContent";
-
-// Style
 import 'leaflet/dist/leaflet.css';
 
-const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, isEditing, geometry, onGeometryChange }) => {
-  const [siteData, setSiteData] = useState(null);
-  const [roadData, setRoadData] = useState(null);
-  const [loading, setLoading] = useState(true);
+const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, searchItem, isEditing, geometry, onGeometryChange, siteMarkersRef }) => {
+  const dispatch = useDispatch();
 
+  const { roadData, loading: roadLoading, loaded: roadsLoaded } = useSelector(state => state.roads);
+  const { siteData, loading: siteLoading, loaded: sitesLoaded } = useSelector(state => state.sites);
+  
   useEffect(() => {
-    async function loadAllData() {
-      try {
-        const [siteResponse, roadResponse] = await Promise.all([
-          SiteService.findAllGeoJson(),
-          RoadService.findAllGeoJson(),
-        ]);
+    if (!roadsLoaded) dispatch(fetchRoads());
+    if (!sitesLoaded) dispatch(fetchSites());
+  }, [dispatch, roadsLoaded, sitesLoaded]);
 
-        setSiteData(siteResponse.data);
-        setRoadData(roadResponse.data);
-      } catch (error) {
-        console.error("Error loading map data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadAllData();
-  }, []);
-
-  if (loading || !siteData || !roadData) {
+  if (roadLoading || siteLoading || !roadData || !siteData) {
     return <p>Loading map data...</p>;
   }
 
@@ -45,9 +27,11 @@ const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, isEditing, geom
       setShowInfoCard={setShowInfoCard}
       setSearchItem={setSearchItem}
       queryItem={queryItem}
+      searchItem={searchItem}
       isEditing={isEditing}
       geometry={geometry}
       onGeometryChange={onGeometryChange}
+      siteMarkersRef={siteMarkersRef}
     />
   );
 };

@@ -144,24 +144,35 @@
     left: calc(2.6rem);
 }
 
+.status-msg {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.status-msg.error {
+    color: red;
+    font-weight: bold;
+}
+
 @media screen and (max-width: 850px) {
     .react-table {
-      font-size: 1.2rem;
+        font-size: 1.2rem;
     }
-  
+
     .react-table th,
     .react-table td {
-      padding: 0.6rem;
+        padding: 0.6rem;
     }
-  }
-  
-  @media screen and (max-width: 400px) {
+}
+
+@media screen and (max-width: 400px) {
     .react-table {
-      font-size: 1rem;
+        font-size: 1rem;
     }
-  
+
     .react-table th,
     .react-table td {
-      padding: 0.4rem;
+        padding: 0.4rem;
     }
-  }
+}
