@@ -20,7 +20,7 @@ const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, searchItem, isE
     return <p>Loading map data...</p>;
   }
 
-  return (
+  return (    
     <MapContent
       siteData={siteData}
       roadData={roadData}

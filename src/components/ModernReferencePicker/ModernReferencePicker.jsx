@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import ModernReferenceService from "../../services/ModernReferenceService";
 import "./ModernReferencePicker.css";
 
-const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
+const ModernReferencePicker = ({ selectedReferences = [], onSelect, onRemove, isEditing }) => {
     const [allRefs, setAllRefs] = useState([]);
     const [newRef, setNewRef] = useState({ shortRef: "", fullRef: "", url: "" });
 
@@ -25,18 +25,19 @@ const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
     const handleAddExisting = (refId) => {
         const found = allRefs.find(ref => ref.id === parseInt(refId));
         if (found && !selectedReferences.some(r => r.id === found.id)) {
-            onChange([...selectedReferences, found]);
+            onSelect(found);
         }
     };
 
     const handleRemove = (refId) => {
-        onChange(selectedReferences.filter(ref => ref.id !== refId));
+        const ref = selectedReferences.find(r => r.id === refId);
+        if (ref) onRemove(ref);        
     };
 
     const handleCreateNew = async () => {
         try {
             const response = await ModernReferenceService.create(newRef);
-            onChange([...selectedReferences, response.data]);
+            onSelect(response.data);
             setAllRefs([...allRefs, response.data]);
             setNewRef({ shortRef: "", fullRef: "", url: "" });
         } catch (err) {

@@ -1,4 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
+import {
+  fetchModernReferencesBySiteId,
+  linkModernReferenceToSite,
+  unlinkModernReferenceFromSite,
+  linkModernReferenceToRoad,
+  unlinkModernReferenceFromRoad,
+} from './modRefThunks';
 
 const initialState = {
   referencesByRoadId: {}, 
@@ -34,6 +41,43 @@ const modRefSlice = createSlice({
       const { siteId, references } = action.payload;
       state.referencesBySiteId[siteId] = references;
     },
+  },
+
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchModernReferencesBySiteId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchModernReferencesBySiteId.fulfilled, (state, action) => {
+        const { siteId, data } = action.payload;
+        state.loading = false;
+        state.referencesBySiteId[siteId] = data;
+      })
+      .addCase(fetchModernReferencesBySiteId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+
+      .addCase(linkModernReferenceToSite.fulfilled, (state, action) => {
+        const { siteId, data } = action.payload;
+        state.referencesBySiteId[siteId] = data;
+      })
+
+      .addCase(unlinkModernReferenceFromSite.fulfilled, (state, action) => {
+        const { siteId, data } = action.payload;
+        state.referencesBySiteId[siteId] = data;
+      })
+
+      .addCase(linkModernReferenceToRoad.fulfilled, (state, action) => {
+        const { roadId, data } = action.payload;
+        state.referencesByRoadId[roadId] = data;
+      })
+
+      .addCase(unlinkModernReferenceFromRoad.fulfilled, (state, action) => {
+        const { roadId, data } = action.payload;
+        state.referencesByRoadId[roadId] = data;
+      })
   },
 });
 

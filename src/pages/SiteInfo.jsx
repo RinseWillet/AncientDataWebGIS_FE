@@ -2,7 +2,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSiteById } from "../features/site/siteThunks";
-import { fetchModernReferencesBySiteId } from "../features/modref/modRefThunks";
+import {
+    fetchModernReferencesBySiteId,
+    linkModernReferenceToSite,
+    unlinkModernReferenceFromSite
+} from "../features/modref/modRefThunks";
 import SiteService from "../services/SiteService";
 import MapComponent from "../components/MapComponent/MapComponent";
 import { geoJSONtoWKT } from "../utils/geometryUtils";
@@ -20,9 +24,8 @@ const SiteInfo = () => {
 
     const dispatch = useDispatch();
     const { selectedSite, loading, error } = useSelector((state) => state.sites);
-    const [selectedReferences, setSelectedReferences] = useState([]);
     const { referencesBySiteId } = useSelector((state) => state.modRef);
-    const modRef = referencesBySiteId[id];
+    const modRef = referencesBySiteId[id] || [];
     const [isEditing, setIsEditing] = useState(false);
     const [editFormData, setEditFormData] = useState({
         name: "",
@@ -34,6 +37,8 @@ const SiteInfo = () => {
         pleiadesid: "",
         geom: ""
     });
+
+    const isModRefUpdating = useSelector((state) => state.modRef.loading);
 
     const backButtonHandler = () => navigate("/datalist/");
 
@@ -95,8 +100,7 @@ const SiteInfo = () => {
     const handleSave = async () => {
         try {
             const updatedDTO = {
-                ...editFormData,
-                referenceIds: selectedReferences.map(ref => ref.id)
+                ...editFormData,                
             };
             await SiteService.updateSite(id, updatedDTO);
             alert("Site updated!");
@@ -180,12 +184,14 @@ const SiteInfo = () => {
                             />
 
                             <ModernReferencePicker
-                                selectedReferences={selectedReferences}
-                                onChange={setSelectedReferences}
+                                selectedReferences={modRef}
+                                onSelect={(ref) => dispatch(linkModernReferenceToSite({ siteId: id, refId: ref.id }))}
+                                onRemove={(ref) => dispatch(unlinkModernReferenceFromSite({ siteId: id, refId: ref.id }))}
+                                isEditing={isEditing}
                             />
 
                             <div style={{ marginTop: "1rem" }}>
-                                <button className="info-btn" onClick={handleSave}>Save</button>
+                                <button disabled={isModRefUpdating} className="info-btn" onClick={handleSave}>Save</button>
                                 <button className="info-btn delete" onClick={() => setIsEditing(false)}>Cancel</button>
                             </div>
                         </>
@@ -204,8 +210,7 @@ const SiteInfo = () => {
                                         province: properties.province || "",
                                         pleiadesid: properties.pleiadesid || "",
                                         geom: geoJSONtoWKT(geometry)
-                                    });
-                                    setSelectedReferences(modRef || []);
+                                    });                                    
                                     setIsEditing(true);
                                 }}>
                                     Edit

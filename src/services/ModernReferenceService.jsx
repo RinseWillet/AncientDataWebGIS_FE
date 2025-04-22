@@ -24,6 +24,23 @@ const ModernReferenceService = {
     async findSitesByRefId(id) {
         return await apiClient.get(`/modernreferences/site/${id}`);
     },
+
+    async linkModernReferenceToSite(siteId, refId) {
+        return await apiClient.post(`/sites/${siteId}/modern-references/${refId}`);
+    },
+
+    async unlinkModernReferenceFromSite(siteId, refId) {
+        return await apiClient.delete(`/sites/${siteId}/modern-references/${refId}`)
+    },
+
+    async linkModernReferenceToRoad(roadId, refId) {
+        return await apiClient.post(`/roads/${roadId}/modern-references/${refId}`);
+    },
+
+    async unlinkModernReferenceFromRoad(roadId, refId) {
+        return await apiClient.delete(`/roads/${roadId}/modern-references/${refId}`)
+    },
+
 };
 
 export default ModernReferenceService;
