@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
+import { useAppSelector } from '../../app/hooks';
 import { selectIsAdmin } from '../../features/authentication/authSelectors';
 
 interface AdminRouteProps {
@@ -8,7 +8,7 @@ interface AdminRouteProps {
 }
 
 const AdminRoute = ({ children }: AdminRouteProps) => {
-  const isAdmin = useSelector(selectIsAdmin);
+  const isAdmin = useAppSelector(selectIsAdmin);
 
   return isAdmin ? <>{children}</> : <Navigate to="/login" />;
 };

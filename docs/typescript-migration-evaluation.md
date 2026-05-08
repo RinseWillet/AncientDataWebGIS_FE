@@ -68,6 +68,26 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Migrate low-coupling service modules next (`RoadService`, `SiteService`, `ModernReferenceService`) before UI-heavy components.
 - Keep Leaflet/geometry-editor modules deferred to a dedicated later phase.
 
+## Phase 3 Pilot (Implemented)
+
+- Migrated store setup to TypeScript:
+  - `src/app/store.ts` (exports `store`, `RootState`, `AppDispatch`)
+- Added typed Redux hooks:
+  - `src/app/hooks.ts` (`useAppDispatch`, `useAppSelector`)
+- Updated auth selectors to consume the centralized store `RootState` type:
+  - `src/features/authentication/authSelectors.ts`
+- Adopted typed selector hooks in migrated route wrappers:
+  - `src/components/Routes/PrivateRoute.tsx`
+  - `src/components/Routes/AdminRoute.tsx`
+- Migrated one low-coupling service module to TypeScript:
+  - `src/services/RoadService.ts`
+
+## Next Recommended Slice (Phase 4)
+
+- Migrate remaining low-coupling services (`SiteService`, `ModernReferenceService`) before touching larger UI slices.
+- Introduce typed dispatch/selector hooks in additional TSX components as they are migrated.
+- Keep map/geometry editor modules deferred to an isolated phase.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
