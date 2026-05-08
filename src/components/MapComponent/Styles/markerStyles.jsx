@@ -1,4 +1,4 @@
-import { Icon } from 'leaflet';
+import L, { Icon } from 'leaflet';
 import fort from '../../../assets/fort.png';
 import pfort from '../../../assets/pfort.png';
 import watchtower from '../../../assets/watchtower.png';
@@ -15,7 +15,7 @@ import sanctuary from '../../../assets/sanctuary.png';
 import ship from '../../../assets/ship.png';
 import pship from '../../../assets/pship.png';
 import site from '../../../assets/site.png';
-import milestone from '../../../assets/milestone.png'
+import milestone from '../../../assets/milestone.png';
 
 
 export const highlightedSiteIcon = L.divIcon({

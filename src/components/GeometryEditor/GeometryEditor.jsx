@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
+import PropTypes from 'prop-types';
 import L from 'leaflet';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -14,7 +15,7 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
     let geoJsonGeometry;
     try {
       geoJsonGeometry = wktToGeoJSON(geometry);
-    } catch (err) {
+    } catch {
       console.warn("Invalid WKT geometry:", geometry);
       return;
     }
@@ -74,6 +75,12 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
   }, [map, geometry, isEditing, onGeometryChange]);
 
   return null;
+};
+
+GeometryEditor.propTypes = {
+  geometry: PropTypes.string,
+  onGeometryChange: PropTypes.func.isRequired,
+  isEditing: PropTypes.bool,
 };
 
 export default GeometryEditor;

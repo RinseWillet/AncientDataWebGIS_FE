@@ -1,4 +1,5 @@
-import React, {useEffect, useRef, useState} from 'react';
+import { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
 import PropTypes from 'prop-types';
 import MapBuilder from './MapBuilder';
 import MapInfoCard from './MapInfoCard';
@@ -11,13 +12,12 @@ import './MapComponent.css';
 const position = [51.8, 5.8];
 
 const MapComponent = ({
-	                      queryItem,
-	                      adjustMapHeight,
-	                      isEditing,
-	                      geometry,
-	                      onGeometryChange = () => {
-	                      }
-                      }) => {
+	queryItem,
+	adjustMapHeight,
+	isEditing,
+	geometry,
+	onGeometryChange = () => {}
+}) => {
 	const [map, setMap] = useState(null);
 	const [showInfoCard, setShowInfoCard] = useState(false);
 	const [searchItem, setSearchItem] = useState({type: '', id: ''});

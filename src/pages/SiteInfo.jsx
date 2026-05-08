@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { selectIsAdmin } from '../features/authentication/authSelectors';
 import { fetchSiteById } from "../features/site/siteThunks";
 import { fetchModernReferencesBySiteId } from "../features/modref/modRefThunks";
 import SiteService from "../services/SiteService";
@@ -12,14 +13,13 @@ import ModernReferencePicker from "../components/ModernReferencePicker/ModernRef
 import "./InfoPage.css";
 
 const SiteInfo = () => {
-    const { user } = useSelector((state) => state.auth);
-    const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
+    const isAdmin = useSelector(selectIsAdmin);
 
     const { id } = useParams();
     const navigate = useNavigate();
 
     const dispatch = useDispatch();
-    const { selectedSite, loading, error } = useSelector((state) => state.sites);
+    const { selectedSite, loading } = useSelector((state) => state.sites);
     const [selectedReferences, setSelectedReferences] = useState([]);
     const { referencesBySiteId } = useSelector((state) => state.modRef);
     const modRef = referencesBySiteId[id];

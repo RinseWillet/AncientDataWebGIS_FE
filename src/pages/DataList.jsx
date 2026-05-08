@@ -8,8 +8,7 @@ import {
     getCoreRowModel,
     getSortedRowModel,
     getPaginationRowModel,
-    flexRender,
-    createColumnHelper
+    flexRender
 } from '@tanstack/react-table';
 
 import './DataList.css';
@@ -29,16 +28,13 @@ const DataList = () => {
         return 15;
     };
 
-    // Redux state for user (not needed here yet but useful for future buttons)
-    const { user } = useSelector((state) => state.auth);
-
     useEffect(() => {
 
         if (!dataSwitch) {
             dispatch(fetchRoads());
         } else {
             dispatch(fetchSites());
-        };
+        }
 
     }
         , [dispatch, dataSwitch]);
@@ -94,12 +90,12 @@ const DataList = () => {
         if (!Array.isArray(source)) return [];
 
         return source.map((feature) => {
-            const props = feature.properties || {};
+            const properties = feature.properties || {};
             return {
-                id: props.id,
-                name: props.name,
-                type: props.type || props.siteType || "",
-                date: props.date || "",
+                id: properties.id,
+                name: properties.name,
+                type: properties.type || properties.siteType || "",
+                date: properties.date || "",
             };
         });
     }, [siteData, roadData, dataSwitch]);

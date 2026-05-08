@@ -1,5 +1,6 @@
 import {GeoJSON, LayersControl, ScaleControl, TileLayer, useMap, WMSTileLayer} from 'react-leaflet';
 import PropTypes from 'prop-types';
+import L from 'leaflet';
 import {
 	castellumIcon,
 	cemeteryIcon,
@@ -31,17 +32,17 @@ import GeometryEditor from '../GeometryEditor/GeometryEditor';
 import {useEffect} from 'react';
 
 const MapContent = ({
-	                    siteData,
-	                    roadData,
-	                    setShowInfoCard,
-	                    setSearchItem,
-	                    queryItem,
-	                    searchItem,
-	                    isEditing,
-	                    geometry,
-	                    onGeometryChange,
-	                    siteMarkersRef
-                    }) => {
+	siteData,
+	roadData,
+	setShowInfoCard,
+	setSearchItem,
+	queryItem,
+	searchItem,
+	isEditing,
+	geometry,
+	onGeometryChange,
+	siteMarkersRef
+}) => {
 	const map = useMap();
 
 	let selectedRoadId = null;
@@ -65,7 +66,7 @@ const MapContent = ({
 				marker.setIcon(icon);
 			}
 		});
-	}, [searchItem, map]);
+	}, [searchItem, map, siteMarkersRef]);
 
 	const getSiteIcon = (type) => {
 		const iconMap = {
@@ -91,8 +92,8 @@ const MapContent = ({
 	};
 
 	// sonarjs-issue S6774: This is not a React component, props validation is not required. NOSONAR
-	const roadStyleDifferentiator = (props) => {
-		switch (props.type) {
+	const roadStyleDifferentiator = (roadProps) => {
+		switch (roadProps.type) {
 			case 'possible road':
 				return possibleRoad;
 			case 'hypothetical route':

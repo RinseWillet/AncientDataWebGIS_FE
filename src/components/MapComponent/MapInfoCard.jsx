@@ -1,4 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchSiteById } from '../../features/site/siteThunks';
 import { fetchRoadById } from '../../features/road/roadThunks';
@@ -43,15 +44,15 @@ const MapInfoCard = ({ searchItem, clearSelection }) => {
   const info =
     searchItem.type === 'site'
       ? selectedSite
-      : selectedRoad?.features?.[0]?.properties?.id == searchItem.id
+      : String(selectedRoad?.features?.[0]?.properties?.id) === String(searchItem.id)
         ? selectedRoad
         : null;
 
   const feature = info?.features?.[0];
-  const props = feature?.properties;
+  const details = feature?.properties;
 
 
-  if (!info || !feature || !props) {
+  if (!info || !feature || !details) {
     return <div className="infoCard" ref={infoRef}><p>Loading Data...</p></div>;
   }
 
@@ -60,14 +61,14 @@ const MapInfoCard = ({ searchItem, clearSelection }) => {
   }
 
   if (searchItem.type === 'site') {
-    const siteType = siteTypeMap[props.siteType] || 'unknown';
+    const siteType = siteTypeMap[details.siteType] || 'unknown';
     return (
       <div className="infoCard" ref={infoRef}>
         <button className="closeBtn" onClick={clearSelection}>✖</button>
-        <h2>{props.name}</h2><br />
+        <h2>{details.name}</h2><br />
         <b>Identification:</b><br />{siteType}<br />
         <span>
-          <b>Description:</b><br />{props.description}
+          <b>Description:</b><br />{details.description}
         </span>
       </div>
     );
@@ -77,15 +78,15 @@ const MapInfoCard = ({ searchItem, clearSelection }) => {
     return (
       <div className="infoCard" ref={infoRef}>
         <button className="closeBtn" onClick={clearSelection}>✖</button>
-        <h2>{props.name}</h2><br />
+        <h2>{details.name}</h2><br />
         <b>Identification:</b><br />
-        {props.type} {props.typeDescription && <>– {props.typeDescription}</>}<br />
+        {details.type} {details.typeDescription && <>– {details.typeDescription}</>}<br />
         <b>Description:</b><br />
-        <span>{props.description}</span><br />
-        {props.date && (
+        <span>{details.description}</span><br />
+        {details.date && (
           <>
             <h4>Date:</h4>
-            <span>{props.date}</span>
+            <span>{details.date}</span>
           </>
         )}
       </div>
@@ -93,6 +94,14 @@ const MapInfoCard = ({ searchItem, clearSelection }) => {
   }
 
   return <div className="infoCard" ref={infoRef}><p>Unknown type</p></div>;
+};
+
+MapInfoCard.propTypes = {
+  searchItem: PropTypes.shape({
+    type: PropTypes.string,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  }).isRequired,
+  clearSelection: PropTypes.func.isRequired,
 };
 
 export default MapInfoCard;

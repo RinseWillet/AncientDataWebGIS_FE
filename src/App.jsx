@@ -3,12 +3,11 @@ import './App.css';
 import 'leaflet/dist/leaflet.css';
 
 // React
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 // Components
 import NavbarHook from "./components/NavBarHook/NavbarHook";
 import Footer from './components/Footer/Footer';
-import PrivateRoute from './components/Routes/PrivateRoute';
 import AdminRoute from './components/Routes/AdminRoute';
 
 // Pages
@@ -30,16 +29,16 @@ const App = () => {
 
       <Routes>
         {/* Public Routes */}
-        <Route exact path='/' element={<Home />} />
-        <Route exact path='/home' element={<Home />} />
-        <Route exact path='/news' element={<News />} />
-        <Route exact path='/about' element={<About />} />
-        <Route exact path='/login' element={<LoginRegister />} />
-        <Route exact path='/atlas' element={<Atlas />} />
-        <Route exact path='/atlas/:id?' element={<Atlas />} />
-        <Route exact path='/datalist' element={<DataList />} />
-        <Route exact path='/datalist/roadinfo/:id?' element={<RoadInfo />} />
-        <Route exact path='/datalist/siteinfo/:id?' element={<SiteInfo />} />
+        <Route path='/' element={<Home />} />
+        <Route path='/home' element={<Home />} />
+        <Route path='/news' element={<News />} />
+        <Route path='/about' element={<About />} />
+        <Route path='/login' element={<LoginRegister />} />
+        <Route path='/atlas' element={<Atlas />} />
+        <Route path='/atlas/:id?' element={<Atlas />} />
+        <Route path='/datalist' element={<DataList />} />
+        <Route path='/datalist/roadinfo/:id?' element={<RoadInfo />} />
+        <Route path='/datalist/siteinfo/:id?' element={<SiteInfo />} />
 
         {/* Protected Routes */}
         <Route

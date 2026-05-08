@@ -1,4 +1,3 @@
-import React from "react";
 import { Link } from 'react-router-dom';
 import './Footer.css';
 import yt from '../../assets/youtube.png';
@@ -13,54 +12,52 @@ const Footer = () => {
                 <div className="sb__footer-links">
                     <div className="sb__footer-links_div">
                         <h4>Navigation</h4>
-                        <Link to='/home' activestyle="true">
+                        <Link to='/home'>
                             <p>Home</p>
                         </Link>
-                        <Link to='/about' activestyle="true">
+                        <Link to='/about'>
                             <p>About</p>
                         </Link>
-                        <Link to='/datalist' activestyle="true">
+                        <Link to='/datalist'>
                             <p>DataList</p>
                         </Link>
-                        <Link to='/atlas' activestyle="true">
+                        <Link to='/atlas'>
                             <p>To the Map</p>
                         </Link>
                     </div>
                     <div className="sb__footer-links_div">
                         <h4>Resources</h4>
-                        <a href="https://github.com/RinseWillet">
+                        <a href="https://github.com/RinseWillet" target="_blank" rel="noreferrer">
                             <p>Github</p>
                         </a>
-                        <a href="https://archaeologydataservice.ac.uk/archives/view/icrates_lt_2018/">
+                        <a href="https://archaeologydataservice.ac.uk/archives/view/icrates_lt_2018/" target="_blank" rel="noreferrer">
                             <p>Inventory of Crafts and Trade in the Roman East (ICRATES)</p>
                         </a>
-                        <a href="https://books.ub.uni-heidelberg.de/propylaeum/catalog/book/571">
+                        <a href="https://books.ub.uni-heidelberg.de/propylaeum/catalog/book/571" target="_blank" rel="noreferrer">
                             <p>Asia Minor</p>
                         </a>
                     </div>
                     <div className="sb__footer-links_div">
                         <h4>IT Portfolio</h4>
-                        <a href="https://rinse-react-redux-myflix-app.web.app/">
+                        <a href="https://rinse-react-redux-myflix-app.web.app/" target="_blank" rel="noreferrer">
                             <p>React study (login Rinse pw cool)</p>
                         </a>
-                        <a href="https://rinse-css-art-portfolio.web.app/">
+                        <a href="https://rinse-css-art-portfolio.web.app/" target="_blank" rel="noreferrer">
                             <p>Study in CSS art</p>
                         </a>
-                        <a>
-                            <p>Games (under construction)</p>
-                        </a>
-                    </div>               
+                        <p>Games (under construction)</p>
+                    </div>
                     <div className="sb__footer-links_div">
                         <h4>Social Media</h4>
                         <div className="socialmedia">
-                            <a href="https://www.youtube.com/@rinsewillet1934">
-                                <p><img src={yt} alt="" /></p>
-                            </a>                            
-                            <a href="https://www.linkedin.com/in/rinse-willet-9b520693/">
-                                <p><img src={linkedin} alt="" /></p>
+                            <a href="https://www.youtube.com/@rinsewillet1934" target="_blank" rel="noreferrer">
+                                <p><img src={yt} alt="YouTube" /></p>
                             </a>
-                            <a href="">
-                                <p><img src={insta} alt="https://www.instagram.com/rinsedoesarchaeology/" /></p>
+                            <a href="https://www.linkedin.com/in/rinse-willet-9b520693/" target="_blank" rel="noreferrer">
+                                <p><img src={linkedin} alt="LinkedIn" /></p>
+                            </a>
+                            <a href="https://www.instagram.com/rinsedoesarchaeology/" target="_blank" rel="noreferrer">
+                                <p><img src={insta} alt="Instagram" /></p>
                             </a>
                         </div>
                     </div>
