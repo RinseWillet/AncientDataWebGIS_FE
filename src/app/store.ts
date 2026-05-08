@@ -9,6 +9,10 @@ export const store = configureStore({
     auth: authReducer,
     sites: siteReducer,
     roads: roadReducer,
-    modRef: modRefReducer
+    modRef: modRefReducer,
   },
 });
+
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
+

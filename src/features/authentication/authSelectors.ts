@@ -1,14 +1,8 @@
 import type { StoredUser } from './authStorage';
 
-interface AuthState {
-  user: StoredUser | null;
-  loading?: boolean;
-  error?: unknown;
-}
+import type { RootState } from '../../app/store';
 
-interface RootState {
-  auth: AuthState;
-}
+type AuthState = RootState['auth'];
 
 export const selectAuthState = (state: RootState): AuthState => state.auth;
 

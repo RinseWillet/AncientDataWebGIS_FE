@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
+import { useAppSelector } from '../../app/hooks';
 import { selectAuthUser } from '../../features/authentication/authSelectors';
 
 interface PrivateRouteProps {
@@ -8,7 +8,7 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const user = useSelector(selectAuthUser);
+  const user = useAppSelector(selectAuthUser);
 
   return user ? <>{children}</> : <Navigate to="/login" />;
 };
