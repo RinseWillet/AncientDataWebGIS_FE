@@ -1,6 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-const initialState = {
+interface SiteState {
+  siteData: unknown | null;
+  selectedSite: unknown | null;
+  loading: boolean;
+  error: string | null;
+  loaded?: boolean;
+}
+
+const initialState: SiteState = {
   siteData: null,
   selectedSite: null,
   loading: false,
@@ -15,12 +23,12 @@ const siteSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchSitesSuccess: (state, action) => {
+    fetchSitesSuccess: (state, action: PayloadAction<unknown>) => {
       state.loading = false;
       state.siteData = action.payload;
       state.loaded = true;
     },
-    fetchSitesFailure: (state, action) => {
+    fetchSitesFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -35,11 +43,11 @@ const siteSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchSiteByIdSuccess: (state, action) => {
+    fetchSiteByIdSuccess: (state, action: PayloadAction<unknown>) => {
       state.loading = false;
       state.selectedSite = action.payload;
     },
-    fetchSiteByIdFailure: (state, action) => {
+    fetchSiteByIdFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -53,6 +61,8 @@ export const {
   resetSites,
   fetchSiteByIdStart,
   fetchSiteByIdSuccess,
-  fetchSiteByIdFailure, 
+  fetchSiteByIdFailure,
 } = siteSlice.actions;
+
 export default siteSlice.reducer;
+

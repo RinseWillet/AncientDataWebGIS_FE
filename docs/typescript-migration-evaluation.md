@@ -105,6 +105,23 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Consider lightly typed Redux slices for consistency with Phase 2's `authSlice.ts`.
 - Still defer map/geometry editor modules to an isolated phase.
 
+## Phase 5 Pilot (Implemented)
+
+- Migrated all Redux slice + thunk pairs to TypeScript:
+  - `src/features/road/roadSlice.ts` + `src/features/road/roadThunks.ts`
+  - `src/features/site/siteSlice.ts` + `src/features/site/siteThunks.ts`
+  - `src/features/modref/modRefSlice.ts` + `src/features/modref/modRefThunks.ts`
+- Introduced typed `PayloadAction` on all slice reducers.
+- Typed thunk dispatch with `AppDispatch` from the centralized store.
+- Shared `getErrorMessage` helper pattern consistent across all thunk files.
+- Redux feature layer migration is now complete (all slices/thunks typed).
+
+## Next Recommended Slice (Phase 6)
+
+- Migrate `src/utils/geometryUtils.js` in its own isolated PR — straightforward pure functions with no map/Leaflet dependency, easy to unit-test.
+- Then tackle remaining non-map JS pages/components for cleanup.
+- Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.

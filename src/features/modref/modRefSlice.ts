@@ -1,7 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
-const initialState = {
-  referencesByRoadId: {}, 
+interface ModRefState {
+  referencesByRoadId: Record<string | number, unknown>;
+  referencesBySiteId: Record<string | number, unknown>;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: ModRefState = {
+  referencesByRoadId: {},
   referencesBySiteId: {},
   loading: false,
   error: null,
@@ -15,12 +22,15 @@ const modRefSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchModRefsSuccess: (state, action) => {
+    fetchModRefsSuccess: (
+      state,
+      action: PayloadAction<{ roadId: string | number; references: unknown }>
+    ) => {
       const { roadId, references } = action.payload;
       state.loading = false;
       state.referencesByRoadId[roadId] = references;
     },
-    fetchModRefsFailure: (state, action) => {
+    fetchModRefsFailure: (state, action: PayloadAction<string>) => {
       state.loading = false;
       state.error = action.payload;
     },
@@ -30,7 +40,10 @@ const modRefSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
-    setReferencesBySiteId: (state, action) => {
+    setReferencesBySiteId: (
+      state,
+      action: PayloadAction<{ siteId: string | number; references: unknown }>
+    ) => {
       const { siteId, references } = action.payload;
       state.referencesBySiteId[siteId] = references;
     },
@@ -46,3 +59,4 @@ export const {
 } = modRefSlice.actions;
 
 export default modRefSlice.reducer;
+
