@@ -88,6 +88,23 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Introduce typed dispatch/selector hooks in additional TSX components as they are migrated.
 - Keep map/geometry editor modules deferred to an isolated phase.
 
+## Phase 4 Pilot (Implemented)
+
+- Migrated remaining low-coupling service modules to TypeScript:
+  - `src/services/SiteService.ts`
+  - `src/services/ModernReferenceService.ts`
+- All three services (`RoadService`, `SiteService`, `ModernReferenceService`) now typed and share a common pattern.
+- Service layer TypeScript foundation is complete and ready for broader adoption.
+
+## Next Recommended Slice (Phase 5)
+
+- Migrate key thunk/Redux feature slices that depend on these services:
+  - `src/features/site/siteThunks.js` (uses `SiteService`)
+  - `src/features/road/roadThunks.js` (uses `RoadService`)
+  - `src/features/modref/modRefThunks.js` (uses `ModernReferenceService`)
+- Consider lightly typed Redux slices for consistency with Phase 2's `authSlice.ts`.
+- Still defer map/geometry editor modules to an isolated phase.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
