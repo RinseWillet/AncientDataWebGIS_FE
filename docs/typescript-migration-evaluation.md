@@ -35,6 +35,24 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Keep Vite/React setup unchanged initially.
 - Maintain existing lint/test/build gates during migration.
 
+## Phase 1 Pilot (Implemented)
+
+- Added a minimal mixed-mode `tsconfig.json` with `allowJs: true` and `noEmit: true`.
+- Added `src/vite-env.d.ts` for Vite environment typing.
+- Updated ESLint and the `lint` script to include `.ts` and `.tsx` files while leaving the existing JS workflow intact.
+- Migrated these low-risk shared modules first:
+  - `src/features/authentication/authStorage.ts`
+  - `src/features/authentication/authSelectors.ts`
+  - `src/api/config.ts`
+  - `src/components/Routes/PrivateRoute.tsx`
+  - `src/components/Routes/AdminRoute.tsx`
+
+## Next Recommended Slice
+
+- Migrate additional low-coupling auth/api helpers and tests.
+- Introduce shared app/store types only when enough TS usage exists to justify them.
+- Revisit `src/utils/geometryUtils.js` and map-related modules in a later, isolated PR.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
