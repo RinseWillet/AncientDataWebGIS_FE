@@ -1,15 +1,17 @@
+import type { ReactNode } from 'react';
 import { useSelector } from 'react-redux';
 import { Navigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 import { selectAuthUser } from '../../features/authentication/authSelectors';
 
-const PrivateRoute = ({ children }) => {
-  const user = useSelector(selectAuthUser);
-  return user ? children : <Navigate to="/login" />;
-};
+interface PrivateRouteProps {
+  children: ReactNode;
+}
 
-PrivateRoute.propTypes = {
-  children: PropTypes.node.isRequired,
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const user = useSelector(selectAuthUser);
+
+  return user ? <>{children}</> : <Navigate to="/login" />;
 };
 
 export default PrivateRoute;
+
