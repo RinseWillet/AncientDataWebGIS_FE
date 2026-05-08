@@ -53,6 +53,21 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Introduce shared app/store types only when enough TS usage exists to justify them.
 - Revisit `src/utils/geometryUtils.js` and map-related modules in a later, isolated PR.
 
+## Phase 2 Pilot (Implemented)
+
+- Migrated auth service layer to TypeScript:
+  - `src/services/authService.ts`
+- Migrated auth Redux slice to TypeScript:
+  - `src/features/authentication/authSlice.ts`
+- Kept extensionless imports intact so JS and TS modules continue to interoperate during migration.
+- Preserved existing auth runtime behavior and error fallbacks while adding lightweight types for thunks and auth state.
+
+## Next Recommended Slice (Phase 3)
+
+- Add typed Redux helpers (`RootState`, `AppDispatch`, typed hooks) with minimal app-wide churn.
+- Migrate low-coupling service modules next (`RoadService`, `SiteService`, `ModernReferenceService`) before UI-heavy components.
+- Keep Leaflet/geometry-editor modules deferred to a dedicated later phase.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
