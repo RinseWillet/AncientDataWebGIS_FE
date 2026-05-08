@@ -4,6 +4,10 @@ import { IoClose, IoMenu } from "react-icons/io5";
 import { useMediaQuery } from "react-responsive";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../features/authentication/authSlice";
+import {
+  selectAuthUser,
+  selectIsAdmin,
+} from '../../features/authentication/authSelectors';
 import { resetSites } from "../../features/site/siteSlice";
 import { resetRoads } from "../../features/road/roadSlice";
 import { resetModRefs } from "../../features/modref/modRefSlice";
@@ -15,7 +19,8 @@ const NavbarHook = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user } = useSelector((state) => state.auth);
+  const user = useSelector(selectAuthUser);
+  const isAdmin = useSelector(selectIsAdmin);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMobileMenu = () => isMobile && setIsMenuOpen(false);
@@ -69,7 +74,7 @@ const NavbarHook = () => {
               </span>
             </li>
 
-            {user.roles?.includes("ROLE_ADMIN") && (
+            {isAdmin && (
               <li>
                 <NavLink
                   to="/admin-panel"

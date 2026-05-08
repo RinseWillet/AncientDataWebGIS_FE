@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { selectIsAdmin } from '../features/authentication/authSelectors';
 import { fetchRoadById } from "../features/road/roadThunks";
 import { fetchModernReferencesByRoadId } from "../features/modref/modRefThunks";
 import RoadService from "../services/RoadService";
@@ -13,9 +14,8 @@ import './InfoPage.css';
 
 const RoadInfo = () => {
 
-    const { user } = useSelector((state) => state.auth);
     const [isEditing, setIsEditing] = useState(false);
-    const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
+    const isAdmin = useSelector(selectIsAdmin);
     const dispatch = useDispatch();
     const { selectedRoad, error } = useSelector((state) => state.roads);
 
@@ -65,7 +65,7 @@ const RoadInfo = () => {
     } else if (error) {
         return (
             <p style={{ color: 'red' }}>{error}</p>
-        );    
+        );
     } else {
         const feature = selectedRoad.features?.[0];
         if (!feature) return <p>No feature found</p>;
