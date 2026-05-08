@@ -19,7 +19,7 @@ const SiteInfo = () => {
     const navigate = useNavigate();
 
     const dispatch = useDispatch();
-    const { selectedSite, loading, error } = useSelector((state) => state.sites);
+    const { selectedSite, loading } = useSelector((state) => state.sites);
     const [selectedReferences, setSelectedReferences] = useState([]);
     const { referencesBySiteId } = useSelector((state) => state.modRef);
     const modRef = referencesBySiteId[id];

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import PropTypes from 'prop-types';
 import ModernReferenceService from "../../services/ModernReferenceService";
 import "./ModernReferencePicker.css";
 
@@ -73,7 +74,6 @@ const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
                 onChange={(e) => setNewRef({ ...newRef, shortRef: e.target.value })}
             />
             <textarea
-                type="text"
                 className="modref-input full"
                 placeholder="Full Ref"
                 rows={3}
@@ -90,6 +90,11 @@ const ModernReferencePicker = ({ selectedReferences = [], onChange }) => {
             <button onClick={handleCreateNew}>Create</button>
         </div>
     );
+};
+
+ModernReferencePicker.propTypes = {
+    selectedReferences: PropTypes.array,
+    onChange: PropTypes.func.isRequired,
 };
 
 export default ModernReferencePicker;

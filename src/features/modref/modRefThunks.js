@@ -6,8 +6,7 @@ import {
   } from './modRefSlice';
   import RoadService from '../../services/RoadService';
   import SiteService from "../../services/SiteService";
-  import ModernReferenceService from '../../services/ModernReferenceService';
-  
+
   export const fetchModernReferencesByRoadId = (roadId) => async (dispatch) => {
     dispatch(fetchModRefsStart());
     try {

@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from "react-redux";
 import { fetchRoads } from "../../features/road/roadThunks";
 import { fetchSites } from "../../features/site/siteThunks";
@@ -34,6 +35,17 @@ const MapBuilder = ({ setShowInfoCard, setSearchItem, queryItem, searchItem, isE
       siteMarkersRef={siteMarkersRef}
     />
   );
+};
+
+MapBuilder.propTypes = {
+  setShowInfoCard: PropTypes.func.isRequired,
+  setSearchItem: PropTypes.func.isRequired,
+  queryItem: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  searchItem: PropTypes.object,
+  isEditing: PropTypes.bool,
+  geometry: PropTypes.string,
+  onGeometryChange: PropTypes.func,
+  siteMarkersRef: PropTypes.object.isRequired,
 };
 
 export default MapBuilder;

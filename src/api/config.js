@@ -1,15 +1,21 @@
-//axios
 import axios from 'axios';
 
-let baseURL ='/api';
-if(process.env.NODE_ENV === 'development') {
-    baseURL = 'http://localhost:8080/api'
-}
+const defaultDevBaseUrl = 'http://localhost:8080/api';
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const baseURL = configuredBaseUrl || (import.meta.env.DEV ? defaultDevBaseUrl : '/api');
+
+const getStoredUser = () => {
+    try {
+        const rawUser = localStorage.getItem('user');
+        return rawUser ? JSON.parse(rawUser) : null;
+    } catch {
+        return null;
+    }
+};
 
 const apiClient = axios.create({
     baseURL: baseURL,
     headers: {
-        //types of responses accepted and expected
         'Accept': 'application/json',
         'Content-Type': 'application/json',
     },
@@ -17,7 +23,7 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
     (config) => {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
+        const storedUser = getStoredUser();
         if (storedUser?.token) {
             config.headers.Authorization = `Bearer ${storedUser.token}`;
         }

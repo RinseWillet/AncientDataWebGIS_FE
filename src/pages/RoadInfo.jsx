@@ -17,7 +17,7 @@ const RoadInfo = () => {
     const [isEditing, setIsEditing] = useState(false);
     const isAdmin = Array.isArray(user?.roles) && user.roles.includes("ADMIN");
     const dispatch = useDispatch();
-    const { selectedRoad, loading, error } = useSelector((state) => state.roads);
+    const { selectedRoad, error } = useSelector((state) => state.roads);
 
     const [editFormData, setEditFormData] = useState({
         name: "",
@@ -32,7 +32,7 @@ const RoadInfo = () => {
 
     const { id } = useParams();
 
-    const { referencesByRoadId, loading: modRefLoading } = useSelector((state) => state.modRef);
+    const { referencesByRoadId } = useSelector((state) => state.modRef);
     const modRef = referencesByRoadId[id];
 
     const [selectedReferences, setSelectedReferences] = useState([]);
@@ -70,7 +70,7 @@ const RoadInfo = () => {
         const feature = selectedRoad.features?.[0];
         if (!feature) return <p>No feature found</p>;
 
-        const { properties = {}, geometry = {} } = feature;
+        const { properties = {} } = feature;
         let name = properties.name;
         let type = properties.type;
         let typeDescription = properties.typeDescription;
@@ -93,19 +93,6 @@ const RoadInfo = () => {
             }
         }
 
-        const handleDelete = async () => {
-            const confirm = window.confirm("Are you sure you want to delete this road?");
-            if (!confirm) return;
-
-            try {
-                await RoadService.delete(id);
-                alert("Road deleted successfully.");
-                navigate("/datalist");
-            } catch (error) {
-                console.error("Error deleting road:", error);
-                alert("Failed to delete the road.");
-            }
-        };
 
         const handleSave = async () => {
             try {
