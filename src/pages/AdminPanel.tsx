@@ -1,8 +1,9 @@
+import { useAppSelector } from '../app/hooks';
+import type { RootState } from '../app/store';
 import './AdminPanel.css';
-import { useSelector } from 'react-redux';
 
 const AdminPanel = () => {
-  const { user } = useSelector((state) => state.auth);
+  const { user } = useAppSelector((state: RootState) => state.auth);
 
   return (
     <div className="admin-panel">
@@ -12,12 +13,10 @@ const AdminPanel = () => {
 
       <div className="admin-actions">
         <p>Coming soon: manage users, delete entries, view logs, etc.</p>
-        {/* Example buttons/components that could be implemented later */}
-        {/* <button>Review Suggested Edits</button> */}
-        {/* <button>Delete All Sites</button> */}
       </div>
     </div>
   );
 };
 
 export default AdminPanel;
+

@@ -157,6 +157,24 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Consider adding typed data interfaces for road/site/modref payloads to reduce `unknown` usage incrementally.
 - Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
 
+## Phase 10 Pilot (Implemented)
+
+- Migrated all non-map pages to TypeScript:
+  - `src/pages/Home.tsx`
+  - `src/pages/AdminPanel.tsx`
+  - `src/pages/LoginRegister.tsx`
+  - `src/pages/DataList.tsx`
+- All migrated pages now use `useAppDispatch` / `useAppSelector` typed hooks.
+- `LoginRegister.tsx` adds typed form state (`FormData`) and typed event handlers.
+- `DataList.tsx` adds typed column definitions (`ColumnDef<RowItem>`) and typed row click handler.
+- Deferred: `src/pages/RoadInfo.jsx` and `src/pages/SiteInfo.jsx` — both embed `MapComponent` and are earmarked for the dedicated map-layer phase.
+
+## Next Recommended Slice (Phase 11)
+
+- Migrate `src/pages/RoadInfo.jsx` and `src/pages/SiteInfo.jsx` together with `src/components/MapComponent/` (Leaflet/geometry-editor integration) in one dedicated map phase.
+- Consider introducing a shared DTO/types module (`src/types/`) to tighten `unknown` payload types across slices once map types are stabilised.
+- Evaluate enabling `noImplicitAny` after the map phase is landed.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
