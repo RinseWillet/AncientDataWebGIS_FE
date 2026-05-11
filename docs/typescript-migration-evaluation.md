@@ -134,10 +134,18 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Preserved existing route/layout behavior while introducing typed Redux hooks usage in `NavbarHook`.
 - Kept all map/Leaflet/geometry-editor components out of scope for this phase.
 
-## Next Recommended Slice (Phase 8)
+## Phase 8 Pilot (Implemented)
 
-- Migrate `src/App.jsx` and `src/main.jsx` to TypeScript entry modules to complete the non-map shell layer.
+- Migrated app shell entry modules to TypeScript:
+  - `src/App.tsx`
+  - `src/main.tsx`
+- Preserved route structure and provider wiring while moving the entry layer to TS.
+- Added a root-element null guard in `main.tsx` for safer startup behavior.
+
+## Next Recommended Slice (Phase 9)
+
 - Add focused tests for utility conversion behavior to lock in compatibility during later map-layer migration.
+- Migrate additional non-map page modules where low coupling still exists (`Home`, `About`-adjacent static pages are already done).
 - Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
 
 ## Decision
