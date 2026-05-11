@@ -116,10 +116,17 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Shared `getErrorMessage` helper pattern consistent across all thunk files.
 - Redux feature layer migration is now complete (all slices/thunks typed).
 
-## Next Recommended Slice (Phase 6)
+## Phase 6 Pilot (Implemented)
 
-- Migrate `src/utils/geometryUtils.js` in its own isolated PR — straightforward pure functions with no map/Leaflet dependency, easy to unit-test.
-- Then tackle remaining non-map JS pages/components for cleanup.
+- Migrated utility geometry conversion helpers to TypeScript:
+  - `src/utils/geometryUtils.ts`
+- Preserved existing conversion behavior for supported formats (`Point` and `MultiLineString` in WKT parsing, full GeoJSON -> WKT switch cases).
+- Kept this migration isolated from Leaflet and `GeometryEditor` UI logic to maintain low risk.
+
+## Next Recommended Slice (Phase 7)
+
+- Migrate remaining non-map JS pages/components with low coupling first.
+- Add focused tests for utility conversion behavior to lock in compatibility during later map-layer migration.
 - Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
 
 ## Decision
