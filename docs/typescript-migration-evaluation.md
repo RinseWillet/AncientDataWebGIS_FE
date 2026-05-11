@@ -123,9 +123,20 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Preserved existing conversion behavior for supported formats (`Point` and `MultiLineString` in WKT parsing, full GeoJSON -> WKT switch cases).
 - Kept this migration isolated from Leaflet and `GeometryEditor` UI logic to maintain low risk.
 
-## Next Recommended Slice (Phase 7)
+## Phase 7 Pilot (Implemented)
 
-- Migrate remaining non-map JS pages/components with low coupling first.
+- Migrated low-coupling non-map pages/components to TypeScript:
+  - `src/pages/About.tsx`
+  - `src/pages/News.tsx`
+  - `src/pages/NoPage.tsx`
+  - `src/components/Footer/Footer.tsx`
+  - `src/components/NavBarHook/NavbarHook.tsx`
+- Preserved existing route/layout behavior while introducing typed Redux hooks usage in `NavbarHook`.
+- Kept all map/Leaflet/geometry-editor components out of scope for this phase.
+
+## Next Recommended Slice (Phase 8)
+
+- Migrate `src/App.jsx` and `src/main.jsx` to TypeScript entry modules to complete the non-map shell layer.
 - Add focused tests for utility conversion behavior to lock in compatibility during later map-layer migration.
 - Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
 
