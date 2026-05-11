@@ -1,8 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { GeoJsonFeatureCollection } from '../../types/geoJson';
 
 interface SiteState {
-  siteData: unknown | null;
-  selectedSite: unknown | null;
+  siteData: GeoJsonFeatureCollection | null;
+  selectedSite: GeoJsonFeatureCollection | null;
   loading: boolean;
   error: string | null;
   loaded?: boolean;
@@ -23,7 +24,7 @@ const siteSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchSitesSuccess: (state, action: PayloadAction<unknown>) => {
+    fetchSitesSuccess: (state, action: PayloadAction<GeoJsonFeatureCollection>) => {
       state.loading = false;
       state.siteData = action.payload;
       state.loaded = true;
@@ -33,7 +34,7 @@ const siteSlice = createSlice({
       state.error = action.payload;
     },
     resetSites: (state) => {
-      state.siteData = [];
+      state.siteData = null;
       state.selectedSite = null;
       state.loading = false;
       state.error = null;
@@ -43,7 +44,7 @@ const siteSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchSiteByIdSuccess: (state, action: PayloadAction<unknown>) => {
+    fetchSiteByIdSuccess: (state, action: PayloadAction<GeoJsonFeatureCollection>) => {
       state.loading = false;
       state.selectedSite = action.payload;
     },

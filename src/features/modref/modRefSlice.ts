@@ -1,8 +1,9 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { ModernReference } from '../../types/geoJson';
 
 interface ModRefState {
-  referencesByRoadId: Record<string | number, unknown>;
-  referencesBySiteId: Record<string | number, unknown>;
+  referencesByRoadId: Record<string | number, ModernReference[]>;
+  referencesBySiteId: Record<string | number, ModernReference[]>;
   loading: boolean;
   error: string | null;
 }
@@ -24,7 +25,7 @@ const modRefSlice = createSlice({
     },
     fetchModRefsSuccess: (
       state,
-      action: PayloadAction<{ roadId: string | number; references: unknown }>
+      action: PayloadAction<{ roadId: string | number; references: ModernReference[] }>
     ) => {
       const { roadId, references } = action.payload;
       state.loading = false;
@@ -42,7 +43,7 @@ const modRefSlice = createSlice({
     },
     setReferencesBySiteId: (
       state,
-      action: PayloadAction<{ siteId: string | number; references: unknown }>
+      action: PayloadAction<{ siteId: string | number; references: ModernReference[] }>
     ) => {
       const { siteId, references } = action.payload;
       state.referencesBySiteId[siteId] = references;
