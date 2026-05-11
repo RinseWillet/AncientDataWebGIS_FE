@@ -1,12 +1,17 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import PropTypes from 'prop-types';
 import L from 'leaflet';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { wktToGeoJSON, geoJSONtoWKT } from '../../utils/geometryUtils';
 
-const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
+interface GeometryEditorProps {
+  geometry?: string;
+  onGeometryChange: (wkt: string) => void;
+  isEditing?: boolean;
+}
+
+const GeometryEditor = ({ geometry, onGeometryChange, isEditing }: GeometryEditorProps) => {
   const map = useMap();
 
   useEffect(() => {
@@ -16,12 +21,12 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
     try {
       geoJsonGeometry = wktToGeoJSON(geometry);
     } catch {
-      console.warn("Invalid WKT geometry:", geometry);
+      console.warn('Invalid WKT geometry:', geometry);
       return;
     }
 
     const geoJsonFeature = {
-      type: "Feature",
+      type: 'Feature' as const,
       properties: {},
       geometry: geoJsonGeometry,
     };
@@ -33,11 +38,11 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
       const layer = L.geoJSON(geoJsonFeature);
       layer.eachLayer((l) => drawnItems.addLayer(l));
     } catch (err) {
-      console.error("Could not create layers from GeoJSON:", err);
+      console.error('Could not create layers from GeoJSON:', err);
     }
 
     const drawControl = new L.Control.Draw({
-      draw: false,
+      draw: undefined,
       edit: {
         featureGroup: drawnItems,
         edit: {
@@ -52,23 +57,23 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
 
     map.addControl(drawControl);
 
-    const handleEdit = (e) => {
-      const editedLayer = e.layers.getLayers()[0];
-      if (!editedLayer) return;
+    const handleEdit = (e: L.DrawEvents.Edited) => {
+      const editedLayer = e.layers.getLayers()[0] as L.Layer & { toGeoJSON?: () => GeoJSON.Feature };
+      if (!editedLayer || typeof editedLayer.toGeoJSON !== 'function') return;
 
       const geojson = editedLayer.toGeoJSON();
       try {
-        const wkt = geoJSONtoWKT(geojson.geometry);
+        const wkt = geoJSONtoWKT(geojson.geometry as GeoJSON.Geometry);
         onGeometryChange(wkt);
       } catch (err) {
-        console.error("Failed to convert edited geometry to WKT:", err);
+        console.error('Failed to convert edited geometry to WKT:', err);
       }
     };
 
-    map.on('draw:edited', handleEdit);
+    map.on('draw:edited', handleEdit as L.LeafletEventHandlerFn);
 
     return () => {
-      map.off('draw:edited', handleEdit);
+      map.off('draw:edited', handleEdit as L.LeafletEventHandlerFn);
       map.removeControl(drawControl);
       map.removeLayer(drawnItems);
     };
@@ -77,10 +82,5 @@ const GeometryEditor = ({ geometry, onGeometryChange, isEditing }) => {
   return null;
 };
 
-GeometryEditor.propTypes = {
-  geometry: PropTypes.string,
-  onGeometryChange: PropTypes.func.isRequired,
-  isEditing: PropTypes.bool,
-};
-
 export default GeometryEditor;
+
