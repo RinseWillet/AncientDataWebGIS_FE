@@ -12,38 +12,39 @@ type Geometry =
 
 const coordsToWKT = (coords: Position): string => coords.join(' ');
 
-export function geoJSONtoWKT(geometry: Geometry): string {
-  if (!geometry || !geometry.type || !geometry.coordinates) {
+export function geoJSONtoWKT(geometry: Geometry | { type: string; coordinates?: unknown }): string {
+  if (!geometry || !geometry.type || !(geometry as Geometry).coordinates) {
     throw new Error('Invalid GeoJSON geometry.');
   }
+  const g = geometry as Geometry;
 
-  switch (geometry.type) {
+  switch (g.type) {
     case 'Point':
-      return `POINT(${coordsToWKT(geometry.coordinates)})`;
+      return `POINT(${coordsToWKT(g.coordinates)})`;
 
     case 'MultiPoint':
-      return `MULTIPOINT(${geometry.coordinates.map((c) => `(${coordsToWKT(c)})`).join(', ')})`;
+      return `MULTIPOINT(${g.coordinates.map((c) => `(${coordsToWKT(c)})`).join(', ')})`;
 
     case 'LineString':
-      return `LINESTRING(${geometry.coordinates.map(coordsToWKT).join(', ')})`;
+      return `LINESTRING(${g.coordinates.map(coordsToWKT).join(', ')})`;
 
     case 'MultiLineString':
-      return `MULTILINESTRING(${geometry.coordinates
+      return `MULTILINESTRING(${g.coordinates
         .map((line) => `(${line.map(coordsToWKT).join(', ')})`)
         .join(', ')})`;
 
     case 'Polygon':
-      return `POLYGON(${geometry.coordinates
+      return `POLYGON(${g.coordinates
         .map((ring) => `(${ring.map(coordsToWKT).join(', ')})`)
         .join(', ')})`;
 
     case 'MultiPolygon':
-      return `MULTIPOLYGON(${geometry.coordinates
+      return `MULTIPOLYGON(${g.coordinates
         .map((polygon) => `((${polygon.map((ring) => ring.map(coordsToWKT).join(', ')).join(') , (')}))`)
         .join(', ')})`;
 
     default:
-      throw new Error(`Unsupported geometry type: ${(geometry as { type: string }).type}`);
+      throw new Error(`Unsupported geometry type: ${(g as { type: string }).type}`);
   }
 }
 

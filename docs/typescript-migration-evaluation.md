@@ -175,6 +175,42 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Consider introducing a shared DTO/types module (`src/types/`) to tighten `unknown` payload types across slices once map types are stabilised.
 - Evaluate enabling `noImplicitAny` after the map phase is landed.
 
+## Phase 11 Pilot (Implemented)
+
+- Migrated entire map layer to TypeScript in one coordinated PR:
+  - `src/components/MapComponent/Styles/markerStyles.ts` — typed `PathOptions`, icon factory helper
+  - `src/components/GeometryEditor/GeometryEditor.tsx` — typed `leaflet-draw` event handlers
+  - `src/components/ModernReferencePicker/ModernReferencePicker.tsx` — typed `ModernReference` interface
+  - `src/components/MapComponent/MapInfoCard.tsx` — typed Redux selectors, GeoJSON feature shapes
+  - `src/components/MapComponent/MapContent.tsx` — typed Leaflet `PathOptions`, `LeafletMouseEvent`, site/road click handlers, marker ref
+  - `src/components/MapComponent/MapBuilder.tsx` — typed Redux hooks, typed `siteMarkersRef`
+  - `src/components/MapComponent/MapComponent.tsx` — typed `L.Map` state, typed props
+  - `src/pages/RoadInfo.tsx` — typed edit form, GeoJSON feature shapes, typed `ModernReference`
+  - `src/pages/SiteInfo.tsx` — typed edit form, GeoJSON feature shapes, typed `ModernReference`
+- Widened `geoJSONtoWKT` parameter type in `geometryUtils.ts` to accept `GeoJSON.Geometry`
+  (which includes `GeometryCollection`) safely, preserving runtime behavior.
+- `draw: undefined` instead of `draw: false` in `GeometryEditor` to satisfy `@types/leaflet-draw`.
+- All `PropTypes` removed across migrated files — replaced by TypeScript interface props.
+- All migrated map components use `useAppDispatch` / `useAppSelector` typed hooks.
+- No runtime behavior changes.
+
+## Migration Status: COMPLETE ✅
+
+All source files in `src/` have been migrated from `.js`/`.jsx` to `.ts`/`.tsx`.
+
+The only remaining `.jsx` file is the smoke test:
+- `src/App.smoke.test.jsx` — can be migrated to `.tsx` as a future minor housekeeping task.
+
+## Recommended Post-Migration Steps
+
+1. Enable `"strict": true` in `tsconfig.json` incrementally:
+   - Start with `"noImplicitAny": true` alone.
+   - Then add `"strictNullChecks": true`.
+   - Then full `"strict": true`.
+2. Replace `unknown` payload types in Redux slices with proper DTO interfaces once backend contract is stable.
+3. Add a `src/types/` shared module for GeoJSON feature/collection shapes reused across pages and components.
+4. Consider migrating `src/App.smoke.test.jsx` to `.tsx` as a minor housekeeping step.
+
 ## Decision
 
 Proceed with incremental migration, not a freeze-and-rewrite.
