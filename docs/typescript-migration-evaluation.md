@@ -142,10 +142,19 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - Preserved route structure and provider wiring while moving the entry layer to TS.
 - Added a root-element null guard in `main.tsx` for safer startup behavior.
 
-## Next Recommended Slice (Phase 9)
+## Phase 9 Pilot (Implemented)
 
-- Add focused tests for utility conversion behavior to lock in compatibility during later map-layer migration.
-- Migrate additional non-map page modules where low coupling still exists (`Home`, `About`-adjacent static pages are already done).
+- Added focused Vitest coverage for geometry utility conversion behavior:
+  - `src/utils/geometryUtils.test.ts`
+- Covered supported conversion paths and error handling for both directions:
+  - `geoJSONtoWKT` (`Point`, `MultiLineString`, invalid geometry, unsupported type)
+  - `wktToGeoJSON` (`POINT`, `MULTILINESTRING`, invalid input type, unsupported format)
+- This test layer now protects utility behavior before a later Leaflet/geometry-editor migration phase.
+
+## Next Recommended Slice (Phase 10)
+
+- Migrate additional low-coupling non-map page modules where straightforward (`Home`, `DataList`, `News`-adjacent wrappers already partially covered).
+- Consider adding typed data interfaces for road/site/modref payloads to reduce `unknown` usage incrementally.
 - Keep Leaflet / leaflet-draw / `GeometryEditor` component deferred to a final, dedicated phase.
 
 ## Decision
