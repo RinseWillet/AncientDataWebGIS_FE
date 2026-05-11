@@ -6,6 +6,7 @@ import {
   fetchRoadsFailure,
 } from './roadSlice';
 import type { AppDispatch } from '../../app/store';
+import type { GeoJsonFeatureCollection } from '../../types/geoJson';
 
 interface ApiErrorWithMessage {
   response?: { data?: { message?: string } };
@@ -27,12 +28,12 @@ export const fetchRoads = () => async (dispatch: AppDispatch) => {
   }
 };
 
-export const fetchRoadById = createAsyncThunk<unknown, string | number, { rejectValue: string }>(
+export const fetchRoadById = createAsyncThunk<GeoJsonFeatureCollection, string | number, { rejectValue: string }>(
   'roads/fetchById',
   async (id, { rejectWithValue }) => {
     try {
       const response = await RoadService.findByIdGeoJson(id);
-      return response.data;
+      return response.data as GeoJsonFeatureCollection;
     } catch (error) {
       return rejectWithValue(getErrorMessage(error, 'Failed to load road.'));
     }

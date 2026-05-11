@@ -194,22 +194,26 @@ This approach minimizes delivery risk while steadily reducing technical debt.
 - All migrated map components use `useAppDispatch` / `useAppSelector` typed hooks.
 - No runtime behavior changes.
 
-## Migration Status: COMPLETE ✅
+## Post-Migration Hardening (Implemented)
 
-All source files in `src/` have been migrated from `.js`/`.jsx` to `.ts`/`.tsx`.
+- Converted last remaining `.jsx` file to TypeScript:
+  - `src/App.smoke.test.tsx`
+- Enabled `"strict": true` in `tsconfig.json` — full strict mode including `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`, `strictBindCallApply`, etc.
+- Fixed two strict mode regressions in reset reducers (`[] → null` for typed slice state).
+- Added shared DTO types module:
+  - `src/types/geoJson.ts` — exports `GeoJsonFeatureCollection`, `GeoJsonFeature`, `GeoJsonGeometry`, `FeatureProperties`, `RoadProperties`, `SiteProperties`, `ModernReference`
+- Updated all Redux slices and thunks to use proper DTO types instead of `unknown`:
+  - `roadSlice.ts`, `roadThunks.ts` — `GeoJsonFeatureCollection`
+  - `siteSlice.ts`, `siteThunks.ts` — `GeoJsonFeatureCollection`
+  - `modRefSlice.ts`, `modRefThunks.ts` — `ModernReference[]`
 
-The only remaining `.jsx` file is the smoke test:
-- `src/App.smoke.test.jsx` — can be migrated to `.tsx` as a future minor housekeeping task.
+## Migration Status: COMPLETE ✅ (All phases done, strict mode enabled)
 
-## Recommended Post-Migration Steps
-
-1. Enable `"strict": true` in `tsconfig.json` incrementally:
-   - Start with `"noImplicitAny": true` alone.
-   - Then add `"strictNullChecks": true`.
-   - Then full `"strict": true`.
-2. Replace `unknown` payload types in Redux slices with proper DTO interfaces once backend contract is stable.
-3. Add a `src/types/` shared module for GeoJSON feature/collection shapes reused across pages and components.
-4. Consider migrating `src/App.smoke.test.jsx` to `.tsx` as a minor housekeeping step.
+The entire frontend codebase is now:
+- 100% TypeScript (`.ts` / `.tsx`)
+- Fully strict (`"strict": true`)
+- Free of `unknown` payload types in Redux slices
+- No `PropTypes` remaining (replaced by TypeScript interface props throughout)
 
 ## Decision
 

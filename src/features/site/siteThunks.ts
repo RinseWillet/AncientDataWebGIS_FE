@@ -8,6 +8,7 @@ import {
   fetchSiteByIdFailure,
 } from './siteSlice';
 import type { AppDispatch } from '../../app/store';
+import type { GeoJsonFeatureCollection } from '../../types/geoJson';
 
 interface ApiErrorWithMessage {
   response?: { data?: { message?: string } };
@@ -23,7 +24,7 @@ export const fetchSites = () => async (dispatch: AppDispatch) => {
   dispatch(fetchSitesStart());
   try {
     const response = await SiteService.findAllGeoJson();
-    dispatch(fetchSitesSuccess(response.data));
+    dispatch(fetchSitesSuccess(response.data as GeoJsonFeatureCollection));
   } catch (error) {
     dispatch(fetchSitesFailure(getErrorMessage(error, 'Failed to load sites.')));
   }
@@ -33,7 +34,7 @@ export const fetchSiteById = (id: string | number) => async (dispatch: AppDispat
   dispatch(fetchSiteByIdStart());
   try {
     const response = await SiteService.findByIdGeoJson(id);
-    dispatch(fetchSiteByIdSuccess(response.data));
+    dispatch(fetchSiteByIdSuccess(response.data as GeoJsonFeatureCollection));
   } catch (error) {
     dispatch(fetchSiteByIdFailure(getErrorMessage(error, 'Failed to load site.')));
   }

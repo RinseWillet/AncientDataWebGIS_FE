@@ -1,9 +1,10 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { fetchRoadById } from './roadThunks';
+import type { GeoJsonFeatureCollection } from '../../types/geoJson';
 
 interface RoadState {
-  roadData: unknown | null;
-  selectedRoad: unknown | null;
+  roadData: GeoJsonFeatureCollection | null;
+  selectedRoad: GeoJsonFeatureCollection | null;
   loading: boolean;
   error: string | null;
   loaded: boolean;
@@ -25,7 +26,7 @@ const roadSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    fetchRoadsSuccess: (state, action: PayloadAction<unknown>) => {
+    fetchRoadsSuccess: (state, action: PayloadAction<GeoJsonFeatureCollection>) => {
       state.loading = false;
       state.roadData = action.payload;
       state.loaded = true;
@@ -35,7 +36,7 @@ const roadSlice = createSlice({
       state.error = action.payload;
     },
     resetRoads: (state) => {
-      state.roadData = [];
+      state.roadData = null;
       state.selectedRoad = null;
       state.loading = false;
       state.error = null;
