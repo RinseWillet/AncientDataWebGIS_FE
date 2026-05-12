@@ -6,7 +6,7 @@ import App from './App';
 import { store } from './app/store';
 
 describe('App smoke test', () => {
-  it('renders the navigation shell', () => {
+  it('renders the navigation shell', async () => {
     render(
       <Provider store={store}>
         <MemoryRouter initialEntries={['/']}>
@@ -15,7 +15,7 @@ describe('App smoke test', () => {
       </Provider>
     );
 
-    expect(screen.getByText(/Navigation Bar/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Navigation Bar/i)).toBeInTheDocument();
   });
 });
 
