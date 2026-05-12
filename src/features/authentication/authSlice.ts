@@ -49,7 +49,11 @@ export const registerUser = createAsyncThunk<unknown, RegisterPayload, { rejectV
   'auth/register',
   async (userData, thunkAPI) => {
     try {
-      const response = await authService.register(userData);
+      const payload: RegisterPayload = {
+        ...userData,
+        role: userData.role ?? 'USER',
+      };
+      const response = await authService.register(payload);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(getErrorMessage(error, 'Registration failed'));
