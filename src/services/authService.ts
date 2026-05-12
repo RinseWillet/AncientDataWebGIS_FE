@@ -10,6 +10,7 @@ export interface AuthCredentials {
 export interface RegisterPayload {
   username: string;
   password: string;
+  role?: 'USER' | 'ADMIN';
 }
 
 type AuthServiceContract = {
