@@ -69,6 +69,12 @@ const NavbarHook = () => {
               <span className="nav__link welcome-message">Welcome, {user.username}</span>
             </li>
 
+            <li>
+              <NavLink to="/suggestions/new" className={linkClassName} onClick={closeMobileMenu}>
+                Suggest Change
+              </NavLink>
+            </li>
+
             {isAdmin && (
               <li>
                 <NavLink to="/admin-panel" className={linkClassName} onClick={closeMobileMenu}>

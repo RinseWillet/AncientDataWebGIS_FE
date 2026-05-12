@@ -16,6 +16,7 @@ const DataList = lazy(() => import('./pages/DataList'));
 const NoPage = lazy(() => import('./pages/NoPage'));
 const LoginRegister = lazy(() => import('./pages/LoginRegister'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const SuggestChange = lazy(() => import('./pages/SuggestChange'));
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
           <Route path="/datalist" element={<DataList />} />
           <Route path="/datalist/roadinfo/:id?" element={<RoadInfo />} />
           <Route path="/datalist/siteinfo/:id?" element={<SiteInfo />} />
+          <Route path="/suggestions/new" element={<SuggestChange />} />
 
           <Route
             path="/admin-panel"
