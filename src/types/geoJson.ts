@@ -44,7 +44,7 @@ export interface SiteProperties extends FeatureProperties {
   description?: string;
   references?: string;
   province?: string;
-  pleiadesid?: string;
+  pleiadesId?: string;
 }
 
 /** A modern bibliographic reference linked to a road or site */

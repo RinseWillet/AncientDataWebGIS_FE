@@ -25,7 +25,7 @@ interface SiteEditFormData {
   description: string;
   references: string;
   province: string;
-  pleiadesid: string;
+  pleiadesId: string;
   geom: string;
 }
 
@@ -36,7 +36,7 @@ interface FeatureProperties {
   description?: string;
   references?: string;
   province?: string;
-  pleiadesid?: string;
+  pleiadesId?: string;
 }
 
 interface GeoJsonGeometry {
@@ -94,7 +94,7 @@ const SiteInfo = () => {
     description: '',
     references: '',
     province: '',
-    pleiadesid: '',
+    pleiadesId: '',
     geom: '',
   });
 
@@ -186,8 +186,8 @@ const SiteInfo = () => {
               <input id="site-province" className="info-input" type="text" value={editFormData.province}
                 onChange={(e) => setEditFormData({ ...editFormData, province: e.target.value })} />
               <label className="info-label" htmlFor="site-pleiadesid">Pleiades</label>
-              <input id="site-pleiadesid" className="info-input" type="text" value={editFormData.pleiadesid}
-                onChange={(e) => setEditFormData({ ...editFormData, pleiadesid: e.target.value })} />
+              <input id="site-pleiadesid" className="info-input" type="text" value={editFormData.pleiadesId}
+                onChange={(e) => setEditFormData({ ...editFormData, pleiadesId: e.target.value })} />
 
               <ModernReferencePicker selectedReferences={selectedReferences} onChange={setSelectedReferences} />
 
@@ -201,16 +201,16 @@ const SiteInfo = () => {
               <h2>{properties.name}</h2>
               {isAdmin && (
                 <button className="info-btn" onClick={() => {
-                  setEditFormData({
-                    name: properties.name ?? '',
-                    siteType: properties.siteType ?? '',
-                    status: properties.status ?? '',
-                    description: properties.description ?? '',
-                    references: properties.references ?? '',
-                    province: properties.province ?? '',
-                    pleiadesid: properties.pleiadesid ?? '',
-                    geom: geoJSONtoWKT(geometry as GeoJSON.Geometry),
-                  });
+                   setEditFormData({
+                     name: properties.name ?? '',
+                     siteType: properties.siteType ?? '',
+                     status: properties.status ?? '',
+                     description: properties.description ?? '',
+                     references: properties.references ?? '',
+                     province: properties.province ?? '',
+                     pleiadesId: properties.pleiadesId ?? '',
+                     geom: geoJSONtoWKT(geometry as GeoJSON.Geometry),
+                   });
                   setSelectedReferences((modRef as ModernReference[]) ?? []);
                   setIsEditing(true);
                 }}>Edit</button>
@@ -221,7 +221,7 @@ const SiteInfo = () => {
               {properties.status && <><h4>Status:</h4><span>{properties.status}</span></>}
               {properties.references && <><h4>References:</h4>{modernReferenceRenderer(modRef as ModernReference[])}</>}
               {properties.province && <><h4>Province:</h4><span>{properties.province}</span></>}
-              {properties.pleiadesid && <><h4>Pleiades:</h4><span>{properties.pleiadesid}</span></>}
+              {properties.pleiadesId && <><h4>Pleiades:</h4><span>{properties.pleiadesId}</span></>}
             </>
           )}
         </div>
