@@ -160,33 +160,33 @@ const MapContent = ({
 
   return (
     <>
-      <LayersControl position="topleft" collapsed={true}>
-        <LayersControl.BaseLayer checked name="Positron Modern Topographical">
-          <TileLayer
-            attribution=" OpenStreetMap contributors,  CartoDB"
-            url="http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Open Street Map Topographical">
-          <TileLayer
-            attribution=" OpenStreetMap"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite">
-          <TileLayer
-            attribution="Tiles  Esri"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="1801–1828: Kartenaufnahme der Rheinlande">
-          <WMSTileLayer url="http://www.wms.nrw.de/geobasis/wms_nw_tranchot?" layers="nw_tranchot" />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="1836–1850: Preuische Kartenaufnahme">
-          <WMSTileLayer url="http://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?" layers="nw_uraufnahme_rw" />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="1891–1912: Preuische Kartenaufnahme">
-          <WMSTileLayer url="http://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?" layers="nw_neuaufnahme" />
+       <LayersControl position="topleft" collapsed={true}>
+         <LayersControl.BaseLayer checked name="Positron Modern Topographical">
+           <TileLayer
+             attribution=" OpenStreetMap contributors,  CartoDB"
+             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+           />
+         </LayersControl.BaseLayer>
+         <LayersControl.BaseLayer name="Open Street Map Topographical">
+           <TileLayer
+             attribution=" OpenStreetMap"
+             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+           />
+         </LayersControl.BaseLayer>
+         <LayersControl.BaseLayer name="Satellite">
+           <TileLayer
+             attribution="Tiles  Esri"
+             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+           />
+         </LayersControl.BaseLayer>
+         <LayersControl.BaseLayer name="1801–1828: Kartenaufnahme der Rheinlande">
+           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_tranchot?" layers="nw_tranchot" />
+         </LayersControl.BaseLayer>
+         <LayersControl.BaseLayer name="1836–1850: Preuische Kartenaufnahme">
+           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?" layers="nw_uraufnahme_rw" />
+         </LayersControl.BaseLayer>
+         <LayersControl.BaseLayer name="1891–1912: Preuische Kartenaufnahme">
+           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?" layers="nw_neuaufnahme" />
         </LayersControl.BaseLayer>
 
         <LayersControl.Overlay checked name="Archaeological Sites">
