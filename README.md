@@ -76,3 +76,57 @@ npm run build
 
 See `docs/typescript-migration-evaluation.md` for the incremental migration recommendation.
 
+## Working with Claude in this repo
+
+Use `CLAUDE.md` in this repo as the default behavior contract, then provide explicit task scope and checks in each request.
+
+### Copy/paste request template
+
+```markdown
+Goal:
+- <one concrete frontend outcome>
+
+Scope (allowed files):
+- <file path 1>
+- <file path 2>
+
+Constraints:
+- Keep changes surgical; no unrelated formatting/refactors.
+- Follow existing ESLint/Prettier rules.
+
+Success criteria:
+- <observable UI behavior or test outcome>
+
+Verify:
+- npm run test:run -- <targeted test path if applicable>
+- npm run lint
+- npm run build
+
+Non-goals:
+- <explicitly list what should not be changed>
+```
+
+### Definition of done for frontend tasks
+
+- UI/behavior change is testable and validated.
+- Diff only touches files needed for the requested outcome.
+- Lint and build pass after changes.
+- Any API contract assumptions are documented in the PR/task note.
+
+### API integration change mode
+
+Ask Claude to include all four items in its response:
+
+1. Frontend contract delta (request params, response parsing, UI state updates).
+2. Backend dependency note (which endpoint/schema expectation changed).
+3. Compatibility note (fallbacks/migration handling if needed).
+4. Verification list (tests plus one manual UI flow).
+
+### Quick verify commands
+
+```bash
+npm run test:run
+npm run lint
+npm run build
+```
+
