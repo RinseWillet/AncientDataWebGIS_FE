@@ -13,6 +13,7 @@ const News = lazy(() => import('./pages/News'));
 const RoadInfo = lazy(() => import('./pages/RoadInfo'));
 const SiteInfo = lazy(() => import('./pages/SiteInfo'));
 const DataList = lazy(() => import('./pages/DataList'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const NoPage = lazy(() => import('./pages/NoPage'));
 const LoginRegister = lazy(() => import('./pages/LoginRegister'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/news" element={<News />} />
           <Route path="/about" element={<About />} />
           <Route path="/login" element={<LoginRegister />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/atlas" element={<Atlas />} />
           <Route path="/atlas/:id?" element={<Atlas />} />
           <Route path="/datalist" element={<DataList />} />

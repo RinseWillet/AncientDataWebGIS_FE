@@ -58,6 +58,11 @@ const NavbarHook = () => {
           </NavLink>
         </li>
         <li>
+          <NavLink to="/dashboard" className={linkClassName} onClick={closeMobileMenu}>
+            Dashboard
+          </NavLink>
+        </li>
+        <li>
           <NavLink to="/atlas" className={`${linkClassName} ${buttonClassName}`} onClick={closeMobileMenu}>
             To the Map
           </NavLink>
