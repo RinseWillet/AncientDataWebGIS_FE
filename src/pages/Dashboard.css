@@ -1,30 +1,33 @@
+.dashboard-pagebox {
+  background-color: var(--background-color-2);
+}
+
 .dashboard-container {
-  max-width: 1400px;
+  max-width: 1420px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 0.9rem 1rem;
   font-family: inherit;
 }
 
 .dashboard-container h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 2rem;
-  color: #333;
+  margin-bottom: 0.9rem;
+  color: var(--box-color-1);
   text-align: center;
 }
 
-/* Intro Section */
 .dashboard-intro {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--background-color-1);
+  border: 1px solid var(--box-color-2);
   border-radius: 8px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.85rem;
 }
 
 .dashboard-intro p {
   margin: 0;
-  color: #334155;
+  color: var(--font-color-3);
   line-height: 1.5;
 }
 
@@ -33,15 +36,50 @@
 }
 
 .dashboard-intro-meta {
-  color: #475569;
+  color: var(--box-color-1);
   font-weight: 500;
 }
 
-/* Loading State */
+.dashboard-sections {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  grid-template-areas:
+    'kpi roads'
+    'sites roads';
+  align-items: start;
+  gap: 0.85rem;
+}
+
+.dashboard-section {
+  background: var(--font-color-1);
+  border: 1px solid #d8cdbf;
+  border-radius: 8px;
+  padding: 0.85rem;
+}
+
+.dashboard-section--kpi {
+  grid-area: kpi;
+}
+
+.dashboard-section--sites {
+  grid-area: sites;
+}
+
+.dashboard-section--roads {
+  grid-area: roads;
+}
+
+.dashboard-section h2 {
+  font-size: 1.45rem;
+  font-weight: 650;
+  color: var(--box-color-1);
+  margin: 0 0 0.65rem 0;
+}
+
 .dashboard-loading-text {
   margin-top: 1rem;
   text-align: center;
-  color: #64748b;
+  color: var(--box-color-2);
   font-size: 1rem;
 }
 
@@ -78,25 +116,7 @@
 }
 
 .chart-skeleton {
-  min-height: 320px;
-}
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  min-height: 260px;
 }
 
 @keyframes shimmer {
@@ -108,7 +128,6 @@
   }
 }
 
-/* Error State */
 .dashboard-error {
   background-color: #fee;
   border: 1px solid #fcc;
@@ -156,10 +175,9 @@
   outline-offset: 2px;
 }
 
-/* Empty State */
 .dashboard-empty {
-  background-color: #f9f9f9;
-  border: 2px dashed #ddd;
+  background-color: var(--font-color-1);
+  border: 2px dashed #d3c7b8;
   border-radius: 8px;
   padding: 3rem;
   text-align: center;
@@ -170,61 +188,39 @@
 }
 
 .dashboard-empty h2 {
-  color: #666;
+  color: var(--box-color-1);
   margin: 0 0 1rem 0;
 }
 
 .dashboard-empty p {
-  color: #999;
+  color: var(--font-color-3);
   margin: 0;
 }
 
-/* Domain Layout */
-.dashboard-domains {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.domain-section {
-  min-width: 0;
-}
-
-.domain-section h2 {
-  font-size: 1.6rem;
-  font-weight: 650;
-  color: #1f2937;
-  margin: 0 0 1rem 0;
-}
-
-/* KPI Summary Cards */
 .section-kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 0.85rem;
 }
 
 .kpi-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1.5rem;
+  padding: 1.1rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
 
 .kpi-card--sites {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--box-color-1);
 }
 
 .kpi-card--roads {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: var(--box-color-2);
 }
 
 .kpi-card--length {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: var(--accent-color-2);
 }
 
 .kpi-card h3 {
@@ -237,26 +233,35 @@
 }
 
 .kpi-value {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   margin: 0;
   line-height: 1;
 }
 
 .chart-card {
-  background: white;
+  background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 0.85rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
 }
 
+.chart-frame {
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+
+.dashboard-section .chart-card + .chart-card {
+  margin-top: 0.85rem;
+}
+
 .chart-card h3 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
   color: #333;
 }
 
@@ -268,13 +273,12 @@
   font-style: italic;
 }
 
-/* Dashboard Footer */
 .dashboard-footer {
   text-align: center;
-  padding: 1.5rem;
-  border-top: 1px solid #e0e0e0;
-  margin-top: 2rem;
-  color: #999;
+  padding: 0.85rem;
+  border-top: 1px solid #d4c6b5;
+  margin-top: 0.85rem;
+  color: var(--box-color-2);
   font-size: 0.9rem;
 }
 
@@ -282,28 +286,42 @@
   margin: 0;
 }
 
-/* Tablet / Medium Screens */
 @media (max-width: 1024px) {
+  .dashboard-sections {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'kpi'
+      'sites'
+      'roads';
+  }
+
   .dashboard-container h1 {
     font-size: 2rem;
+  }
+
+  .section-kpis {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
   }
 }
 
 @media (max-width: 1023px) {
-  .dashboard-domains {
+  .section-kpis {
     grid-template-columns: 1fr;
+  }
+
+  .chart-frame {
+    width: 100%;
   }
 }
 
-/* Mobile / Small Screens */
 @media (max-width: 767px) {
   .dashboard-container {
-    padding: 1rem 0.5rem;
+    padding: 0.75rem 0.5rem;
   }
 
   .dashboard-container h1 {
     font-size: 1.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.85rem;
   }
 
   .kpi-card {
@@ -315,19 +333,22 @@
   }
 
   .chart-card {
-    padding: 1rem;
+    padding: 0.8rem;
+  }
+
+  .dashboard-section .chart-card + .chart-card {
+    margin-top: 1rem;
   }
 
   .chart-card h3 {
     font-size: 1.1rem;
   }
 
-  .domain-section h2 {
+  .dashboard-section h2 {
     font-size: 1.35rem;
   }
 }
 
-/* Recharts Accessibility & Styling */
 .recharts-surface {
   border-radius: 4px;
 }
@@ -357,7 +378,6 @@
   color: #666;
 }
 
-/* Legend styling */
 .recharts-legend {
   padding-top: 1rem !important;
 }
