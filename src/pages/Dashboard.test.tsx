@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import Dashboard from '../pages/Dashboard';
 import * as dashboardService from '../services/DashboardService';
@@ -49,6 +49,15 @@ describe('Dashboard Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(URL, 'createObjectURL', {
+      writable: true,
+      value: vi.fn(() => 'blob:test-url'),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      writable: true,
+      value: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -96,6 +105,44 @@ describe('Dashboard Component', () => {
 
     expect(screen.getAllByText('Roads by Type').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Road Length by Type (km)').length).toBeGreaterThan(0);
+  });
+
+  it('renders dashboard filters and applies site type filter to KPI total', async () => {
+    vi.mocked(dashboardService.dashboardService.getSummary).mockResolvedValue(
+      mockData
+    );
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText(/site type/i)).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText(/site type/i), {
+      target: { value: 'city' },
+    });
+
+    // With city filter, total sites should reflect only city count (5)
+    const totalSitesCard = screen.getByText('Total Sites').closest('.kpi-card');
+    expect(totalSitesCard).not.toBeNull();
+    expect(totalSitesCard?.querySelector('.kpi-value')?.textContent).toBe('5');
+  });
+
+  it('exports dashboard CSV using the current filtered state', async () => {
+    vi.mocked(dashboardService.dashboardService.getSummary).mockResolvedValue(
+      mockData
+    );
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /export csv/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /export csv/i }));
+
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
   });
 
   it('renders error state on fetch failure', async () => {

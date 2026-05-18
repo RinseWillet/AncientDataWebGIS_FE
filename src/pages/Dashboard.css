@@ -13,6 +13,50 @@
   text-align: center;
 }
 
+.dashboard-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.filter-group select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 0.95rem;
+}
+
+.export-btn {
+  padding: 0.65rem 1rem;
+  background: #2f80ed;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.export-btn:hover {
+  background: #1f68c2;
+}
+
 /* Loading State */
 .dashboard-loading {
   display: flex;
@@ -247,6 +291,10 @@
 
   .charts-grid {
     gap: 1.5rem;
+  }
+
+  .dashboard-controls {
+    grid-template-columns: 1fr;
   }
 }
 
