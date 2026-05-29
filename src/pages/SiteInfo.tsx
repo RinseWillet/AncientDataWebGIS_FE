@@ -9,6 +9,7 @@ import SiteService from '../services/SiteService';
 import MapComponent from '../components/MapComponent/MapComponent';
 import { geoJSONtoWKT } from '../utils/geometryUtils';
 import ModernReferencePicker from '../components/ModernReferencePicker/ModernReferencePicker';
+import MediaGallery from '../components/MediaGallery/MediaGallery';
 import './InfoPage.css';
 
 interface ModernReference {
@@ -211,7 +212,7 @@ const SiteInfo = () => {
                      pleiadesId: properties.pleiadesId ?? '',
                      geom: geoJSONtoWKT(geometry as GeoJSON.Geometry),
                    });
-                  setSelectedReferences((modRef as ModernReference[]) ?? []);
+                  setSelectedReferences(modRef ?? []);
                   setIsEditing(true);
                 }}>Edit</button>
               )}
@@ -219,7 +220,7 @@ const SiteInfo = () => {
               <span>{siteTypeConverter(properties.siteType)}</span>
               {properties.description && <><h4>Description:</h4><span>{properties.description}</span></>}
               {properties.status && <><h4>Status:</h4><span>{properties.status}</span></>}
-              {properties.references && <><h4>References:</h4>{modernReferenceRenderer(modRef as ModernReference[])}</>}
+              {properties.references && <><h4>References:</h4>{modernReferenceRenderer(modRef)}</>}
               {properties.province && <><h4>Province:</h4><span>{properties.province}</span></>}
               {properties.pleiadesId && <><h4>Pleiades:</h4><span>{properties.pleiadesId}</span></>}
             </>
@@ -236,7 +237,9 @@ const SiteInfo = () => {
               onGeometryChange={(newWkt) => setEditFormData((prev) => ({ ...prev, geom: newWkt }))}
             />
           </div>
-          <div className="infopage-image" />
+          <div className="infopage-image">
+            <MediaGallery targetType="SITE" targetId={id ?? ''} />
+          </div>
           <button className="back-btn" onClick={backButtonHandler}>BACK</button>
         </div>
       </div>
