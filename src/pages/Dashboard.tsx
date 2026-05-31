@@ -204,14 +204,13 @@ const Dashboard = () => {
     lengthKm: item.lengthKm,
   }));
 
-  const isEmpty =
+  if (
     sites.total === 0 &&
     roads.total === 0 &&
     siteCountData.length === 0 &&
     roadCountData.length === 0 &&
-    roadLengthData.length === 0;
-
-  if (isEmpty) {
+    roadLengthData.length === 0
+  ) {
     return (
       <div className="pagebox dashboard-pagebox">
         <main className="dashboard-container">

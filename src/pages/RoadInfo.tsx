@@ -9,6 +9,7 @@ import RoadService from '../services/RoadService';
 import { geoJSONtoWKT } from '../utils/geometryUtils';
 import MapComponent from '../components/MapComponent/MapComponent';
 import ModernReferencePicker from '../components/ModernReferencePicker/ModernReferencePicker';
+import MediaGallery from '../components/MediaGallery/MediaGallery';
 import './InfoPage.css';
 
 interface ModernReference {
@@ -152,7 +153,6 @@ const RoadInfo = () => {
     };
 
     return (
-      <>
         <div className="pagebox">
           <div className="infopage-box">
             <div className="infopage-card">
@@ -203,7 +203,7 @@ const RoadInfo = () => {
                         geom: geoJSONtoWKT(g as GeoJSON.Geometry),
                         cat_nr: p.cat_nr ?? '',
                       });
-                      setSelectedReferences((modRef as ModernReference[]) ?? []);
+                      setSelectedReferences(modRef ?? []);
                       setIsEditing(true);
                     }}>Edit</button>
                   )}
@@ -212,7 +212,7 @@ const RoadInfo = () => {
                   {location && <><h4>Location:</h4><span>{location}</span></>}
                   {description && <><h4>Description:</h4><span>{description}</span></>}
                   {date && <><h4>Date:</h4><span>{date}</span></>}
-                  {references && <><h4>References:</h4>{modernReferenceRenderer(modRef as ModernReference[])}</>}
+                  {references && <><h4>References:</h4>{modernReferenceRenderer(modRef)}</>}
                   {historicalReferences && <><h4>Historical references:</h4><span>{historicalReferences}</span></>}
                 </>
               )}
@@ -228,12 +228,13 @@ const RoadInfo = () => {
                   onGeometryChange={(newWkt) => setEditFormData((prev) => ({ ...prev, geom: newWkt }))}
                 />
               </div>
-              <div className="infopage-image" />
+              <div className="infopage-image">
+                <MediaGallery targetType="ROAD" targetId={id ?? ''} />
+              </div>
               <button className="back-btn" onClick={backButtonHandler}>BACK</button>
             </div>
           </div>
         </div>
-      </>
     );
   }
 };

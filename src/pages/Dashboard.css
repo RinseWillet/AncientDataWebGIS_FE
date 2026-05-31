@@ -1,133 +1,96 @@
-.dashboard-pagebox {
-  background-color: var(--background-color-2);
-}
-
 .dashboard-container {
-  max-width: 1420px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0.9rem 1rem;
+  padding: 2rem 1rem;
   font-family: inherit;
 }
 
 .dashboard-container h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 0.9rem;
-  color: var(--box-color-1);
+  margin-bottom: 2rem;
+  color: #333;
   text-align: center;
 }
 
-.dashboard-intro {
-  background: var(--background-color-1);
-  border: 1px solid var(--box-color-2);
-  border-radius: 8px;
-  padding: 0.85rem 1rem;
-  margin-bottom: 0.85rem;
-}
-
-.dashboard-intro p {
-  margin: 0;
-  color: var(--font-color-3);
-  line-height: 1.5;
-}
-
-.dashboard-intro p + p {
-  margin-top: 0.5rem;
-}
-
-.dashboard-intro-meta {
-  color: var(--box-color-1);
-  font-weight: 500;
-}
-
-.dashboard-sections {
+.dashboard-controls {
   display: grid;
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
-  grid-template-areas:
-    'kpi roads'
-    'sites roads';
-  align-items: start;
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1.5rem;
 }
 
-.dashboard-section {
-  background: var(--font-color-1);
-  border: 1px solid #d8cdbf;
-  border-radius: 8px;
-  padding: 0.85rem;
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
-.dashboard-section--kpi {
-  grid-area: kpi;
+.filter-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
 }
 
-.dashboard-section--sites {
-  grid-area: sites;
+.filter-group select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  font-size: 0.95rem;
 }
 
-.dashboard-section--roads {
-  grid-area: roads;
-}
-
-.dashboard-section h2 {
-  font-size: 1.45rem;
-  font-weight: 650;
-  color: var(--box-color-1);
-  margin: 0 0 0.65rem 0;
-}
-
-.dashboard-loading-text {
-  margin-top: 1rem;
-  text-align: center;
-  color: var(--box-color-2);
-  font-size: 1rem;
-}
-
-.dashboard-intro-skeleton {
-  min-height: 106px;
-}
-
-.skeleton-line {
-  height: 12px;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #e5e7eb 25%, #f1f5f9 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease infinite;
-}
-
-.skeleton-line + .skeleton-line {
-  margin-top: 0.75rem;
-}
-
-.skeleton-line.title {
-  width: 50%;
-}
-
-.skeleton-line.short {
-  width: 65%;
-}
-
-.skeleton-block {
-  min-height: 120px;
+.export-btn {
+  padding: 0.65rem 1rem;
+  background: #2f80ed;
+  color: #fff;
   border: none;
-  background: linear-gradient(90deg, #e5e7eb 25%, #f1f5f9 50%, #e5e7eb 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease infinite;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 40px;
 }
 
-.chart-skeleton {
-  min-height: 260px;
+.export-btn:hover {
+  background: #1f68c2;
 }
 
-@keyframes shimmer {
+/* Loading State */
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 1rem;
+}
+
+.dashboard-loading p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
   0% {
-    background-position: 100% 0;
+    transform: rotate(0deg);
   }
   100% {
-    background-position: -100% 0;
+    transform: rotate(360deg);
   }
 }
 
+/* Error State */
 .dashboard-error {
   background-color: #fee;
   border: 1px solid #fcc;
@@ -162,22 +125,16 @@
   font-size: 1rem;
   font-weight: 600;
   transition: background-color 0.3s ease;
-  min-width: 44px;
-  min-height: 44px;
 }
 
 .dashboard-error button:hover {
   background-color: #2980b9;
 }
 
-.dashboard-error button:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
-}
-
+/* Empty State */
 .dashboard-empty {
-  background-color: var(--font-color-1);
-  border: 2px dashed #d3c7b8;
+  background-color: #f9f9f9;
+  border: 2px dashed #ddd;
   border-radius: 8px;
   padding: 3rem;
   text-align: center;
@@ -188,39 +145,30 @@
 }
 
 .dashboard-empty h2 {
-  color: var(--box-color-1);
+  color: #666;
   margin: 0 0 1rem 0;
 }
 
 .dashboard-empty p {
-  color: var(--font-color-3);
+  color: #999;
   margin: 0;
 }
 
-.section-kpis {
+/* KPI Summary Cards */
+.kpi-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(180px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .kpi-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1.1rem;
+  padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
-}
-
-.kpi-card--sites {
-  background: var(--box-color-1);
-}
-
-.kpi-card--roads {
-  background: var(--box-color-2);
-}
-
-.kpi-card--length {
-  background: var(--accent-color-2);
 }
 
 .kpi-card h3 {
@@ -233,36 +181,48 @@
 }
 
 .kpi-value {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   margin: 0;
   line-height: 1;
 }
 
+/* Consider alternate KPI card colors */
+.kpi-card:nth-child(2) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.kpi-card:nth-child(3) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
 .chart-card {
-  background: #fff;
+  background: white;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 0.85rem;
+  padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
 }
 
-.chart-frame {
-  width: min(100%, 560px);
-  margin: 0 auto;
-}
-
-.dashboard-section .chart-card + .chart-card {
-  margin-top: 0.85rem;
-}
-
-.chart-card h3 {
-  font-size: 1.2rem;
+.chart-card h2 {
+  font-size: 1.3rem;
   font-weight: 600;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 1rem 0;
   color: #333;
+}
+
+.chart-card.full-width {
+  grid-column: 1 / -1;
 }
 
 .no-data-message {
@@ -273,12 +233,13 @@
   font-style: italic;
 }
 
+/* Dashboard Footer */
 .dashboard-footer {
   text-align: center;
-  padding: 0.85rem;
-  border-top: 1px solid #d4c6b5;
-  margin-top: 0.85rem;
-  color: var(--box-color-2);
+  padding: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 2rem;
+  color: #999;
   font-size: 0.9rem;
 }
 
@@ -286,42 +247,30 @@
   margin: 0;
 }
 
+/* Tablet / Medium Screens */
 @media (max-width: 1024px) {
-  .dashboard-sections {
+  .charts-grid {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      'kpi'
-      'sites'
-      'roads';
   }
 
   .dashboard-container h1 {
     font-size: 2rem;
   }
 
-  .section-kpis {
-    grid-template-columns: repeat(2, minmax(180px, 1fr));
-  }
-}
-
-@media (max-width: 1023px) {
-  .section-kpis {
+  .kpi-grid {
     grid-template-columns: 1fr;
   }
-
-  .chart-frame {
-    width: 100%;
-  }
 }
 
-@media (max-width: 767px) {
+/* Mobile / Small Screens */
+@media (max-width: 640px) {
   .dashboard-container {
-    padding: 0.75rem 0.5rem;
+    padding: 1rem 0.5rem;
   }
 
   .dashboard-container h1 {
     font-size: 1.5rem;
-    margin-bottom: 0.85rem;
+    margin-bottom: 1.5rem;
   }
 
   .kpi-card {
@@ -333,22 +282,23 @@
   }
 
   .chart-card {
-    padding: 0.8rem;
+    padding: 1rem;
   }
 
-  .dashboard-section .chart-card + .chart-card {
-    margin-top: 1rem;
-  }
-
-  .chart-card h3 {
+  .chart-card h2 {
     font-size: 1.1rem;
   }
 
-  .dashboard-section h2 {
-    font-size: 1.35rem;
+  .charts-grid {
+    gap: 1.5rem;
+  }
+
+  .dashboard-controls {
+    grid-template-columns: 1fr;
   }
 }
 
+/* Recharts Accessibility & Styling */
 .recharts-surface {
   border-radius: 4px;
 }
@@ -378,6 +328,7 @@
   color: #666;
 }
 
+/* Legend styling */
 .recharts-legend {
   padding-top: 1rem !important;
 }
