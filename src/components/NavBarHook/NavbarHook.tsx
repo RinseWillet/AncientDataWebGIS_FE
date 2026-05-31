@@ -62,18 +62,8 @@ const NavbarHook = () => {
             Dashboard
           </NavLink>
         </li>
-        <li>
-          <NavLink to="/atlas" className={`${linkClassName} ${buttonClassName}`} onClick={closeMobileMenu}>
-            To the Map
-          </NavLink>
-        </li>
-
-        {user ? (
+        {user && (
           <>
-            <li>
-              <span className="nav__link welcome-message">Welcome, {user.username}</span>
-            </li>
-
             <li>
               <NavLink to="/suggestions/new" className={linkClassName} onClick={closeMobileMenu}>
                 Suggest Change
@@ -87,6 +77,20 @@ const NavbarHook = () => {
                 </NavLink>
               </li>
             )}
+          </>
+        )}
+
+        <li>
+          <NavLink to="/atlas" className={`${linkClassName} ${buttonClassName}`} onClick={closeMobileMenu}>
+            To the Map
+          </NavLink>
+        </li>
+
+        {user ? (
+          <>
+            <li>
+              <span className="nav__link welcome-message">Welcome, {user.username}</span>
+            </li>
 
             <li>
               <button className="nav__link logout-button" onClick={handleLogout}>
@@ -113,17 +117,17 @@ const NavbarHook = () => {
         </NavLink>
 
         {isMobile && (
-          <div className="nav__toggle" id="nav-toggle" onClick={toggleMenu}>
+          <button className="nav__toggle" id="nav-toggle" onClick={toggleMenu} aria-label="Open menu">
             <IoMenu />
-          </div>
+          </button>
         )}
 
         {isMobile ? (
           <div className={`nav__menu ${isMenuOpen ? 'show-menu' : ''}`} id="nav-menu">
             {renderNavLinks()}
-            <div className="nav__close" id="nav-close" onClick={toggleMenu}>
+            <button className="nav__close" id="nav-close" onClick={toggleMenu} aria-label="Close menu">
               <IoClose />
-            </div>
+            </button>
           </div>
         ) : (
           renderNavLinks()

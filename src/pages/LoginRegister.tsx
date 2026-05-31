@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import type { RootState } from '../app/store';
-import { loginUser, registerUser } from '../features/authentication/authSlice';
+import { loginUser } from '../features/authentication/authSlice';
 import './LoginRegister.css';
 
 interface FormData {
@@ -15,7 +15,6 @@ const LoginRegister = () => {
   const { loading, error } = useAppSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({ username: '', password: '' });
-  const [isRegister, setIsRegister] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -23,11 +22,7 @@ const LoginRegister = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isRegister) {
-      dispatch(registerUser(formData));
-    } else {
-      dispatch(loginUser(formData));
-    }
+    dispatch(loginUser(formData));
   };
 
   const navigate = useNavigate();
@@ -41,7 +36,7 @@ const LoginRegister = () => {
 
   return (
     <div className="login-container">
-      <h2>{isRegister ? 'Register' : 'Login'}</h2>
+      <h2>Login</h2>
       <form onSubmit={handleSubmit} className="login-form">
         <label htmlFor="username">Username</label>
         <input
@@ -63,15 +58,9 @@ const LoginRegister = () => {
         />
         {error && <p className="error">{error}</p>}
         <button type="submit" disabled={loading}>
-          {loading ? 'Please wait...' : isRegister ? 'Register' : 'Login'}
+          {loading ? 'Please wait...' : 'Login'}
         </button>
       </form>
-      <div className="toggle-mode">
-        {isRegister ? 'Already have an account? ' : "Don't have an account? "}
-        <span onClick={() => setIsRegister(!isRegister)}>
-          {isRegister ? 'Login' : 'Register'}
-        </span>
-      </div>
     </div>
   );
 };
