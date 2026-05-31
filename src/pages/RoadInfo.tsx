@@ -140,7 +140,7 @@ const RoadInfo = () => {
         if (updatedGeom) {
           setEditFormData((prev) => ({
             ...prev,
-            geom: geoJSONtoWKT(updatedGeom as GeoJSON.Geometry),
+            geom: geoJSONtoWKT(updatedGeom),
           }));
         }
 
@@ -200,7 +200,7 @@ const RoadInfo = () => {
                         location: p.location ?? '',
                         description: p.description ?? '',
                         date: p.date ?? '',
-                        geom: geoJSONtoWKT(g as GeoJSON.Geometry),
+                        geom: geoJSONtoWKT(g),
                         cat_nr: p.cat_nr ?? '',
                       });
                       setSelectedReferences(modRef ?? []);
@@ -229,7 +229,7 @@ const RoadInfo = () => {
                 />
               </div>
               <div className="infopage-image">
-                <MediaGallery targetType="ROAD" targetId={id ?? ''} />
+                <MediaGallery targetType="ROAD" targetId={id ?? ''} isAdmin={isAdmin} />
               </div>
               <button className="back-btn" onClick={backButtonHandler}>BACK</button>
             </div>

@@ -28,7 +28,10 @@
 }
 
 .media-gallery__button {
-  all: unset;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -66,7 +69,7 @@
   inset: 0;
   z-index: 9999;
   border: none;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.9);
   max-width: 100vw;
   max-height: 100vh;
   width: 100%;
@@ -86,19 +89,29 @@
   position: absolute;
   top: 1rem;
   right: 1.5rem;
-  background: none;
+  background: rgba(0, 0, 0, 0.5);
   border: none;
-  color: white;
+  color: #fff;
   font-size: 2rem;
   cursor: pointer;
-  line-height: 1;
+  line-height: normal;
   min-width: 44px;
   min-height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  transition: background 0.2s;
+}
+
+.media-lightbox__close:hover {
+  background: rgba(0, 0, 0, 0.7);
 }
 
 .media-lightbox__img {
   max-width: 90vw;
-  max-height: 75vh;
+  max-height: 65vh;
   object-fit: contain;
   border-radius: 4px;
 }
@@ -120,9 +133,77 @@
   color: #aaa;
 }
 
+.media-lightbox__meta {
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.25rem;
+}
+
 @media screen and (max-width: 640px) {
   .media-gallery__grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
+}
+
+/* Status badges on thumbnails */
+.media-gallery__badge {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  pointer-events: none;
+}
+
+.media-gallery__badge--pending {
+  background: #e6a817;
+}
+
+.media-gallery__badge--hidden {
+  background: #888;
+}
+
+.media-gallery__badge--cover {
+  top: auto;
+  bottom: 4px;
+  left: 4px;
+  background: #2a7ae2;
+}
+
+/* Admin controls in lightbox */
+.media-lightbox__admin {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.media-lightbox__confirm {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+/* Edit metadata dialog */
+.media-edit-dialog {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 90vw;
+}
+
+.media-edit-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.media-edit-form h4 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
 }
 

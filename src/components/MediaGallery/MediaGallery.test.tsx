@@ -6,8 +6,19 @@ import type { MediaAsset } from '../../types/media';
 vi.mock('../../services/MediaService', () => ({
   default: {
     findByTarget: vi.fn(),
+    findByTargetAdmin: vi.fn(),
+    upload: vi.fn(),
+    updateMetadata: vi.fn(),
+    deleteMedia: vi.fn(),
   },
 }));
+
+vi.mock('./MediaUploadForm', () => ({
+  default: ({ onUploadSuccess }: { onUploadSuccess: () => void }) => (
+    <button data-testid="mock-upload" onClick={onUploadSuccess}>Mock Upload</button>
+  ),
+}));
+
 const mockAssets: MediaAsset[] = [
   {
     id: 1,
@@ -73,14 +84,16 @@ describe('MediaGallery', () => {
       expect(screen.getByText('Could not load images.')).toBeInTheDocument();
     });
   });
-  it('opens lightbox when image is clicked', async () => {
+  it('opens lightbox when image button is clicked', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
     render(<MediaGallery targetType="SITE" targetId="42" />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
-    fireEvent.click(screen.getAllByRole('listitem')[0]);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const buttons = screen.getAllByRole('button');
+    const imageButton = buttons.find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    expect(screen.getByLabelText('Image viewer')).toBeInTheDocument();
     expect(screen.getByText('A Roman temple')).toBeInTheDocument();
     expect(screen.getByText('CC-BY-4.0')).toBeInTheDocument();
   });
@@ -90,10 +103,11 @@ describe('MediaGallery', () => {
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
-    fireEvent.click(screen.getAllByRole('listitem')[0]);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    expect(screen.getByLabelText('Image viewer')).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('Close image viewer'));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Image viewer')).not.toBeInTheDocument();
   });
   it('calls MediaService with correct parameters', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue([]);
@@ -101,5 +115,116 @@ describe('MediaGallery', () => {
     await waitFor(() => {
       expect(MediaService.findByTarget).toHaveBeenCalledWith('ROAD', '7');
     });
+  });
+
+  // Admin feature tests
+  it('uses admin endpoint when isAdmin is true', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(MediaService.findByTargetAdmin).toHaveBeenCalledWith('SITE', '42');
+    });
+    expect(MediaService.findByTarget).not.toHaveBeenCalled();
+  });
+  it('shows upload form when isAdmin is true', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-upload')).toBeInTheDocument();
+    });
+  });
+  it('does not show upload form when isAdmin is false', async () => {
+    vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" />);
+    await waitFor(() => {
+      expect(screen.getByText('Photos')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('mock-upload')).not.toBeInTheDocument();
+  });
+  it('shows status badges for non-APPROVED media when admin', async () => {
+    const mixedAssets: MediaAsset[] = [
+      { ...mockAssets[0], visibilityStatus: 'PENDING', isCover: false },
+      { ...mockAssets[1], visibilityStatus: 'HIDDEN' },
+    ];
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mixedAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getByText('Pending')).toBeInTheDocument();
+      expect(screen.getByText('Hidden')).toBeInTheDocument();
+    });
+  });
+  it('shows cover badge for cover images when admin', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getByText('Cover')).toBeInTheDocument();
+    });
+  });
+  it('shows admin controls in lightbox when isAdmin is true', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+    expect(screen.getByText('Delete')).toBeInTheDocument();
+  });
+  it('shows delete confirmation when delete is clicked', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    fireEvent.click(screen.getByText('Delete'));
+    expect(screen.getByText('Delete this photo?')).toBeInTheDocument();
+    expect(screen.getByText('Confirm')).toBeInTheDocument();
+  });
+  it('deletes media on confirm', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    vi.mocked(MediaService.deleteMedia).mockResolvedValue(undefined);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    fireEvent.click(screen.getByText('Delete'));
+    fireEvent.click(screen.getByText('Confirm'));
+    await waitFor(() => {
+      expect(MediaService.deleteMedia).toHaveBeenCalledWith(1);
+    });
+  });
+  it('opens edit form when edit is clicked', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    fireEvent.click(screen.getByText('Edit'));
+    expect(screen.getByLabelText('Edit media metadata')).toBeInTheDocument();
+    expect(screen.getByLabelText('Caption')).toHaveValue('A Roman temple');
+    expect(screen.getByLabelText('Author')).toHaveValue('John');
+  });
+  it('shows empty state with upload option for admin when no assets', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue([]);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getByText('No images uploaded yet.')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('mock-upload')).toBeInTheDocument();
+  });
+  it('shows upload form even when fetch fails for admin', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockRejectedValue(new Error('fail'));
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    await waitFor(() => {
+      expect(screen.getByText('Could not load images.')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('mock-upload')).toBeInTheDocument();
   });
 });

@@ -151,7 +151,7 @@ const SiteInfo = () => {
       if (refreshedFeature?.geometry) {
         setEditFormData((prev) => ({
           ...prev,
-          geom: geoJSONtoWKT(refreshedFeature.geometry as GeoJSON.Geometry),
+          geom: geoJSONtoWKT(refreshedFeature.geometry),
         }));
       }
 
@@ -210,7 +210,7 @@ const SiteInfo = () => {
                      references: properties.references ?? '',
                      province: properties.province ?? '',
                      pleiadesId: properties.pleiadesId ?? '',
-                     geom: geoJSONtoWKT(geometry as GeoJSON.Geometry),
+                     geom: geoJSONtoWKT(geometry),
                    });
                   setSelectedReferences(modRef ?? []);
                   setIsEditing(true);
@@ -238,7 +238,7 @@ const SiteInfo = () => {
             />
           </div>
           <div className="infopage-image">
-            <MediaGallery targetType="SITE" targetId={id ?? ''} />
+            <MediaGallery targetType="SITE" targetId={id ?? ''} isAdmin={isAdmin} />
           </div>
           <button className="back-btn" onClick={backButtonHandler}>BACK</button>
         </div>
