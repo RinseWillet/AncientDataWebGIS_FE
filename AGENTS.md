@@ -2,10 +2,6 @@
 
 ## Behavioral Guidelines
 
-Behavioral guidelines to reduce common LLM coding mistakes.
-
-> Tradeoff: These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
 ### 1. Think Before Coding
 
 Don't assume. Don't hide confusion. Surface tradeoffs.
@@ -31,66 +27,33 @@ Minimum code that solves the problem. Nothing speculative.
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-### 3. Surgical Changes
+> Bias toward caution over speed. For trivial tasks, use judgment.
 
-Touch only what you must. Clean up only your own mess.
-
-When editing existing code:
-
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it — don't delete it.
-
-When your changes create orphans:
-
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-### 4. Goal-Driven Execution
-
-Define success criteria. Loop until verified.
-
-Transform tasks into verifiable goals:
-
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-These guidelines are working if: fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+- **Surgical changes.** Only touch what the request requires. Match existing style. Don't improve adjacent code, comments, or formatting. Mention unrelated dead code — don't delete it.
+- **Clean up your own mess.** Remove imports/variables/functions YOUR changes made unused. Don't remove pre-existing dead code.
+- **Goal-driven.** Turn tasks into verifiable goals. For multi-step work, state a brief plan with verification steps. Keep lint/tests/build green.
 
 ## Architecture Overview
 
-React + Vite single-page app for the AncientData WebGIS project. It renders archaeological spatial data (sites, roads, modern references) on a Leaflet map and provides editing, dashboards, and a data-suggestion workflow against the Spring Boot backend.
+React + Vite SPA rendering archaeological spatial data on a Leaflet map with editing, dashboards, and a data-suggestion workflow against the Spring Boot backend.
 
-- **Stack:** React 18, Vite 6, TypeScript, Redux Toolkit + React Redux, React Router, Leaflet / React-Leaflet (+ leaflet-draw), Recharts, Axios.
-- **Entry:** `src/main.tsx` mounts `App.tsx`; routing lives in `src/components/Routes`.
-- **State:** Redux store in `src/app/store.ts`; typed hooks in `src/app/hooks.ts`. Feature state (slices + thunks) under `src/features/<domain>` (`site`, `road`, `modref`, `authentication`).
-- **API access:** Centralised Axios client in `src/api/config.ts`; per-domain wrappers in `src/services/*Service.ts`.
-- **Domain UI:** Reusable components under `src/components` (e.g. `MapComponent`, `GeometryEditor`, `ModernReferencePicker`, `NavBarHook`); page-level views under `src/pages`.
-- **Types:** Shared TypeScript types under `src/types`; geometry helpers under `src/utils`.
+- **Stack:** React 18, Vite 6, TypeScript, Redux Toolkit, React Router, Leaflet / React-Leaflet (+ leaflet-draw), Recharts, Axios.
+- **Entry:** `src/main.tsx` → `App.tsx`; routing in `src/components/Routes`.
+- **State:** Redux store `src/app/store.ts`; typed hooks `src/app/hooks.ts`. Slices + thunks under `src/features/<domain>` (`site`, `road`, `modref`, `authentication`).
+- **API:** Centralised Axios client `src/api/config.ts`; per-domain wrappers in `src/services/*Service.ts`.
+- **UI:** Reusable components under `src/components`; page-level views under `src/pages`.
+- **Types:** `src/types`; geometry helpers `src/utils`.
 
-## Hard Rules for Agents
+## Hard Rules
 
-- Never call `axios` or `fetch()` directly from components or features. Always use the shared `apiClient` from `src/api/config.ts` via a service in `src/services/`.
-- Never hard-code the API base URL. It is resolved from `VITE_API_BASE_URL` in `src/api/config.ts` (dev default `http://localhost:8080/api`, otherwise `/api`).
-- Auth tokens are read/written through `src/features/authentication/authStorage.ts` and attached automatically by the Axios request interceptor — never set the `Authorization` header manually or read the token from raw storage strings.
-- Component/feature data flow: components dispatch thunks (`src/features/<domain>/*Thunks.ts`) which call services; do not put network calls inside reducers/slices.
-- TypeScript is the standard for new code (`.ts`/`.tsx`). Do not introduce new `.js`/`.jsx` source files. Use the typed Redux hooks from `src/app/hooks.ts`, not the raw `useDispatch`/`useSelector`.
-- Lint must pass with zero warnings (`--max-warnings 0`). Do not disable rules inline to silence warnings without calling it out.
-- Match formatting enforced by Prettier (`.prettierrc.json` / `.editorconfig`); never reformat unrelated files.
-- All documentation, comments, and agent-generated text must be written in English.
-- Skill file naming: new skill files must be named `STEAM_SKILL_{topic}.md` (e.g. `STEAM_SKILL_create-pr.md`). This prefix enables quick discovery via the `#` file picker across the whole workspace.
+- Never call `axios`/`fetch()` directly. Use `apiClient` from `src/api/config.ts` via `src/services/`.
+- Never hard-code the API base URL — resolved from `VITE_API_BASE_URL` in `src/api/config.ts`.
+- Auth tokens: read/write through `src/features/authentication/authStorage.ts` only. The Axios interceptor attaches them — never set `Authorization` manually.
+- Data flow: components → thunks (`src/features/<domain>/*Thunks.ts`) → services. No network calls in reducers/slices.
+- TypeScript only (`.ts`/`.tsx`). No new `.js`/`.jsx` files. Use typed hooks from `src/app/hooks.ts`, not raw `useDispatch`/`useSelector`.
+- Lint must pass with `--max-warnings 0`. Don't disable rules inline without flagging it.
+- Match Prettier formatting (`.prettierrc.json` / `.editorconfig`); never reformat unrelated files.
+- All text (docs, comments, agent output) in English.
 
 ## Quick Commands
 
@@ -106,126 +69,49 @@ React + Vite single-page app for the AncientData WebGIS project. It renders arch
 | Format check | `npm run format:check` |
 | Full verify gate | `npm run test:run && npm run lint && npm run build` |
 
-## Standard Request Template
-
-```markdown
-Goal:
-- <one concrete frontend outcome>
-
-Scope (allowed files):
-- <file path 1>
-- <file path 2>
-
-Constraints:
-- Keep changes surgical; no unrelated formatting/refactors.
-- Follow existing ESLint/Prettier rules.
-
-Success criteria:
-- <observable UI behavior or test outcome>
-
-Verify:
-- npm run test:run -- <targeted test path if applicable>
-- npm run lint
-- npm run build
-
-Non-goals:
-- <explicitly list what should not be changed>
-```
-
 ## Definition of Done
 
 - UI/behavior change is testable and validated.
-- Diff only touches files needed for the requested outcome.
-- Lint, tests, and build pass after changes.
-- Any API contract assumptions are documented in the task/PR note.
+- Diff only touches files needed for the goal.
+- Lint, tests, and build pass.
+- API contract assumptions documented in task/PR note.
 
-## Plan-First Workflow
+## Planning & ADRs
 
-New features must be planned before implementation. This reduces rework, scope creep, and misaligned implementations.
-
-### When to plan
-
-- **Always plan:** Every new epic (E-level) must have a Copilot plan created and reviewed before any code is written.
-- **Recommended:** Individual stories (especially M/L-sized) benefit from a plan, particularly when they span both repos or introduce new API contracts.
-- **Skip for:** Trivial bug fixes, typo corrections, or single-file config changes where the change is self-evident.
-
-### How to plan
-
-1. Open Copilot chat and select **Plan** mode (or use `@workspace /plan`).
-2. Provide the story/epic context from `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md`.
-3. Review the generated plan — it should identify files to change, dependencies, and verification steps.
-4. Adjust the plan if needed, then confirm before switching to implementation.
-
-### Plan output expectations
-
-A good plan should include:
-- **Scope:** Which files/modules will be touched (backend, frontend, or both).
-- **Steps:** Ordered list of implementation steps.
-- **Dependencies:** What must exist before this work can start.
-- **Verification:** How to confirm the feature works (test commands, manual checks).
-- **ADR trigger:** Whether this change warrants a new ADR (see below).
-
-### When to create an ADR
-
-ADRs live in the backend repo at `../AncientDataWebGIS/docs/architecture/adr/`. Create a new ADR when a decision:
-- Introduces a new technology, library, or infrastructure component.
-- Changes the state management pattern or data flow.
-- Alters the CI/CD pipeline structure.
-- Modifies the auth token handling or security model.
-- Establishes a new architectural pattern that future work should follow.
-
-Use `../AncientDataWebGIS/docs/architecture/adr/ADR-TEMPLATE.md` as a starting point.
+- **Always plan** epics (E-level) before coding. **Recommended** for M/L stories spanning both repos or new API contracts. **Skip** for trivial fixes.
+- Create a new ADR (`../AncientDataWebGIS/docs/architecture/adr/`, use `ADR-TEMPLATE.md`) when introducing new tech/libraries, changing state management/CI-CD/auth patterns, or establishing new architectural conventions.
 
 ## Documentation Pointers
 
-| Document | Location | Purpose |
-|----------|----------|---------|
-| ADR index | `../AncientDataWebGIS/docs/architecture/adr/README.md` | Central record of all architectural decisions |
-| Feature backlog | `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md` | Prioritized epic/story backlog |
-| Feature specs | `../AncientDataWebGIS/docs/features/README.md` | Index of per-epic specifications |
-| TypeScript migration | `docs/typescript-migration-evaluation.md` | TS migration strategy for this repo |
-
-## Skills
-
-Reusable agent skills are stored as `STEAM_SKILL_{topic}.md` files. Skills encode step-by-step procedures for recurring tasks so agents can execute them reliably without re-deriving the process each time.
-
-- **Naming convention:** `STEAM_SKILL_{topic}.md` (e.g., `STEAM_SKILL_create-pr.md`).
-- **Discovery:** Use the `#` file picker to search for `STEAM_SKILL_` across the workspace.
-- **Status:** No skills have been created yet. Candidate topics for future skill files will be identified as recurring patterns emerge during development.
+| Document | Location |
+|----------|----------|
+| ADR index | `../AncientDataWebGIS/docs/architecture/adr/README.md` |
+| Feature backlog | `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md` |
+| Feature specs | `../AncientDataWebGIS/docs/features/README.md` |
+| TypeScript migration | `docs/typescript-migration-evaluation.md` |
 
 ## API Integration Change Mode
 
-When a change affects the backend contract, include all four items in the response:
+When a change affects the backend contract, include:
 
 1. Frontend contract delta (request params, response parsing, UI state updates).
 2. Backend dependency note (which endpoint/schema expectation changed).
 3. Compatibility note (fallbacks/migration handling if needed).
-4. Verification list (tests plus one manual UI flow).
-
-## Related Repositories
-
-This repo is part of the AncientData WebGIS project. Sibling repos are checked out next to this one as shown below.
-
-| Repo | Code | Purpose | Local path |
-|------|------|---------|------------|
-| AncientDataWebGIS | ADW | Spring Boot backend (REST API, PostGIS, JWT) | `../AncientDataWebGIS` |
-| AncientDataWebGIS_FE | ADW-FE | React + Vite frontend (this repo) | `../AncientDataWebGIS_FE` |
-| ancientdataworkspace | — | Cross-repo workspace root, shared agent rules and workflows | `../ancientdataworkspace` |
+4. Verification list (tests + one manual UI flow).
 
 ## Cross-Repo Work
 
-Some changes span both backend (ADW) and frontend (ADW-FE).
+| Repo | Code | Local path |
+|------|------|------------|
+| AncientDataWebGIS | ADW | `../AncientDataWebGIS` |
+| AncientDataWebGIS_FE | ADW-FE | `../AncientDataWebGIS_FE` (this repo) |
+| ancientdataworkspace | — | `../ancientdataworkspace` |
 
 - Be explicit when a change affects both API contracts.
-- Validate each impacted repo independently before declaring done.
-- Keep changes scoped; avoid opportunistic cross-repo refactors.
-
-Sibling verification:
-
+- Validate each repo independently before declaring done.
 - Backend: `cd ../AncientDataWebGIS && ./gradlew test`
 - Frontend: `cd ../AncientDataWebGIS_FE && npm run test:run && npm run lint && npm run build`
 
 ## Source of Truth
 
-This file is the single source of agent guidance for this repo and supersedes any earlier `CLAUDE.md` / `CODEX.md` / workspace rule files. `.github/copilot-instructions.md` simply points here. Review and adjust these rules after major model updates or at least monthly.
-
+This file is the single source of agent guidance for this repo and supersedes any earlier `CLAUDE.md` / `CODEX.md` / workspace rule files. `.github/copilot-instructions.md` simply points here.
