@@ -139,6 +139,60 @@ Non-goals:
 - Lint, tests, and build pass after changes.
 - Any API contract assumptions are documented in the task/PR note.
 
+## Plan-First Workflow
+
+New features must be planned before implementation. This reduces rework, scope creep, and misaligned implementations.
+
+### When to plan
+
+- **Always plan:** Every new epic (E-level) must have a Copilot plan created and reviewed before any code is written.
+- **Recommended:** Individual stories (especially M/L-sized) benefit from a plan, particularly when they span both repos or introduce new API contracts.
+- **Skip for:** Trivial bug fixes, typo corrections, or single-file config changes where the change is self-evident.
+
+### How to plan
+
+1. Open Copilot chat and select **Plan** mode (or use `@workspace /plan`).
+2. Provide the story/epic context from `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md`.
+3. Review the generated plan — it should identify files to change, dependencies, and verification steps.
+4. Adjust the plan if needed, then confirm before switching to implementation.
+
+### Plan output expectations
+
+A good plan should include:
+- **Scope:** Which files/modules will be touched (backend, frontend, or both).
+- **Steps:** Ordered list of implementation steps.
+- **Dependencies:** What must exist before this work can start.
+- **Verification:** How to confirm the feature works (test commands, manual checks).
+- **ADR trigger:** Whether this change warrants a new ADR (see below).
+
+### When to create an ADR
+
+ADRs live in the backend repo at `../AncientDataWebGIS/docs/architecture/adr/`. Create a new ADR when a decision:
+- Introduces a new technology, library, or infrastructure component.
+- Changes the state management pattern or data flow.
+- Alters the CI/CD pipeline structure.
+- Modifies the auth token handling or security model.
+- Establishes a new architectural pattern that future work should follow.
+
+Use `../AncientDataWebGIS/docs/architecture/adr/ADR-TEMPLATE.md` as a starting point.
+
+## Documentation Pointers
+
+| Document | Location | Purpose |
+|----------|----------|---------|
+| ADR index | `../AncientDataWebGIS/docs/architecture/adr/README.md` | Central record of all architectural decisions |
+| Feature backlog | `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md` | Prioritized epic/story backlog |
+| Feature specs | `../AncientDataWebGIS/docs/features/README.md` | Index of per-epic specifications |
+| TypeScript migration | `docs/typescript-migration-evaluation.md` | TS migration strategy for this repo |
+
+## Skills
+
+Reusable agent skills are stored as `STEAM_SKILL_{topic}.md` files. Skills encode step-by-step procedures for recurring tasks so agents can execute them reliably without re-deriving the process each time.
+
+- **Naming convention:** `STEAM_SKILL_{topic}.md` (e.g., `STEAM_SKILL_create-pr.md`).
+- **Discovery:** Use the `#` file picker to search for `STEAM_SKILL_` across the workspace.
+- **Status:** No skills have been created yet. Candidate topics for future skill files will be identified as recurring patterns emerge during development.
+
 ## API Integration Change Mode
 
 When a change affects the backend contract, include all four items in the response:
