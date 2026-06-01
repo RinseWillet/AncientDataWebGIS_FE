@@ -76,6 +76,11 @@ npm run build
 
 See `docs/typescript-migration-evaluation.md` for the incremental migration recommendation.
 
+## License
+
+Source code is licensed under the [Apache License 2.0](LICENSE).
+Documentation, data, and media are licensed under [CC-BY-4.0](LICENSE-DOCS).
+
 ## Working with AI Agents in this repo
 
 Agent guidance for this repo lives in `AGENTS.md` (the single source of truth: behavioral guidelines, hard rules, request template, definition of done, and API integration change mode). For GitHub Copilot, `.github/copilot-instructions.md` points to that file.
