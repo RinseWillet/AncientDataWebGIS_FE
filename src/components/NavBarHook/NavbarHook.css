@@ -7,13 +7,20 @@
   z-index: var(--z-fixed);
 }
 
+/* centres nav content and caps width on large screens */
+.container {
+  max-width: var(--content-max-width, 1400px);
+  margin: 0 auto;
+  width: 100%;
+}
+
 .nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
   height: var(--header-height);
-  margin: 0.5rem;
+  padding: 0 1rem;
 }
 
 .nav__logo {
@@ -23,16 +30,57 @@
   font-family: var(--project-font-family), sans-serif;
 }
 
+/* ── mobile drawer ───────────────────────────────────── */
+.nav__menu {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: min(75vw, 300px);
+  height: 100vh;
+  background-color: var(--box-color-2);
+  padding: calc(var(--header-height) + 1.5rem) 2rem 2rem;
+  transition: right 0.35s ease;
+  z-index: calc(var(--z-fixed) + 10);
+  overflow-y: auto;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.show-menu {
+  right: 0;
+}
+
+/* semi-transparent backdrop behind open drawer */
+.nav__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: calc(var(--z-fixed) + 9);
+}
+
+/* ── toggle / close icons ────────────────────────────── */
 .nav__toggle,
 .nav__close {
-  font-size: 1.5rem;
+  font-size: 2.4rem;
   color: var(--accent-color);
   cursor: pointer;
   background: none;
   border: none;
   padding: 0;
+  /* ensure tap target ≥ 44 × 44 px */
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.nav__close {
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+}
+
+/* ── CTA button (To the Map) ─────────────────────────── */
 .nav__cta {
   background-color: var(--background-color-1);
   color: var(--font-color-1);
@@ -43,43 +91,39 @@
   padding: 0.75rem 1.5rem;
 }
 
-.nav__cta:hover{
+.nav__cta:hover {
   background-color: var(--background-color-2);
 }
 
+/* ── mobile list (vertical) ──────────────────────────── */
 .nav__list {
   display: flex;
   flex-direction: column;
   row-gap: 2.5rem;
 }
 
+/* ── desktop list (horizontal) ──────────────────────── */
+.nav__list__web {
+  display: flex;
+  flex-direction: row;
+  column-gap: 2.5rem;
+  align-items: center;
+  list-style-type: none;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+/* ── link styles ─────────────────────────────────────── */
 .nav__link {
   color: var(--font-color-1);
   font-weight: var(--font-semi-bold);
   transition: color 0.4s;
+  font-size: 1.6rem;
 }
 
-.nav__link:hover {
+.nav__link:hover,
+.nav__link.active {
   color: var(--accent-color-2);
-}
-
-.nav__close {
-  position: absolute;
-  top: 1rem;
-  right: 1.5rem;
-}
-
-.show-menu {
-  right: 0;
-}
-
-.nav__list__web {
-  display: flex;
-  flex-direction: row;
-  column-gap: 3rem;
-  align-items: center;
-  list-style-type: none;
-  padding: 0;
 }
 
 .welcome-message {
@@ -95,8 +139,18 @@
   cursor: pointer;
   font-weight: var(--font-semi-bold);
   transition: color 0.3s ease;
+  font-size: 1.6rem;
+  min-height: 44px;
 }
 
 .logout-button:hover {
   color: var(--accent-color-2);
 }
+
+/* ── large-screen tweaks ─────────────────────────────── */
+@media screen and (min-width: 1440px) {
+  .nav__list__web {
+    column-gap: 3rem;
+  }
+}
+

@@ -28,7 +28,6 @@ const COLORS = [
   '#ffb347',
 ];
 
-const CHART_HEIGHT = 240;
 
 const formatNumber = (value: number): string => new Intl.NumberFormat().format(value);
 
@@ -296,7 +295,7 @@ const Dashboard = () => {
               <h3>Sites by Type</h3>
               {siteCountData.length > 0 ? (
                 <div className="chart-frame">
-                  <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={siteCountData}
@@ -341,7 +340,7 @@ const Dashboard = () => {
               <h3>Roads by Type</h3>
               {roadCountData.length > 0 ? (
                 <div className="chart-frame">
-                  <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={roadCountData}
                       layout="vertical"
@@ -370,7 +369,7 @@ const Dashboard = () => {
               <h3>Road Length by Type (km)</h3>
               {roadLengthData.length > 0 ? (
                 <div className="chart-frame">
-                  <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={roadLengthData}
                       layout="vertical"

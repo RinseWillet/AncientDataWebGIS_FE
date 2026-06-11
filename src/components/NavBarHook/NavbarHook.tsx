@@ -123,12 +123,21 @@ const NavbarHook = () => {
         )}
 
         {isMobile ? (
-          <div className={`nav__menu ${isMenuOpen ? 'show-menu' : ''}`} id="nav-menu">
-            {renderNavLinks()}
-            <button className="nav__close" id="nav-close" onClick={toggleMenu} aria-label="Close menu">
-              <IoClose />
-            </button>
-          </div>
+          <>
+            {isMenuOpen && (
+              <div
+                className="nav__backdrop"
+                onClick={() => setIsMenuOpen(false)}
+                aria-hidden="true"
+              />
+            )}
+            <div className={`nav__menu ${isMenuOpen ? 'show-menu' : ''}`} id="nav-menu">
+              {renderNavLinks()}
+              <button className="nav__close" id="nav-close" onClick={toggleMenu} aria-label="Close menu">
+                <IoClose />
+              </button>
+            </div>
+          </>
         ) : (
           renderNavLinks()
         )}

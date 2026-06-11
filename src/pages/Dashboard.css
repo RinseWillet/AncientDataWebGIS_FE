@@ -1,120 +1,167 @@
+/* ── Dashboard page ───────────────────────────────────── */
 .dashboard-container {
-  max-width: 1400px;
+  max-width: var(--content-max-width, 1400px);
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem;
   font-family: inherit;
 }
-
 .dashboard-container h1 {
-  font-size: 2.5rem;
+  font-size: 2.4rem;
   font-weight: 700;
-  margin-bottom: 2rem;
-  color: #333;
+  margin-bottom: 1rem;
+  color: var(--font-color-3, #333);
   text-align: center;
 }
-
-.dashboard-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  align-items: end;
+/* ── intro blurb ─────────────────────────────────────── */
+.dashboard-intro {
   margin-bottom: 1.5rem;
-}
-
-.filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.filter-group label {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #555;
-}
-
-.filter-group select {
-  padding: 0.5rem 0.65rem;
-  border: 1px solid #ccc;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.5);
   border-radius: 6px;
-  background-color: #fff;
-  font-size: 0.95rem;
 }
-
-.export-btn {
-  padding: 0.65rem 1rem;
-  background: #2f80ed;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  min-height: 40px;
+.dashboard-intro p {
+  font-size: 1.4rem;
+  line-height: 1.6;
+  margin: 0;
 }
-
-.export-btn:hover {
-  background: #1f68c2;
-}
-
-/* Loading State */
-.dashboard-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
-}
-
-.dashboard-loading p {
-  font-size: 1.1rem;
+.dashboard-intro-meta {
   color: #666;
+  font-size: 1.2rem !important;
+  margin-top: 0.5rem !important;
 }
-
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* ── skeleton loading ────────────────────────────────── */
+.skeleton-block {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
-
-/* Error State */
+.skeleton-line {
+  height: 1.2em;
+  border-radius: 4px;
+  background: #e0e0e0;
+  margin-bottom: 0.5em;
+  width: 80%;
+}
+.skeleton-line.title {
+  height: 2em;
+  width: 50%;
+}
+.skeleton-line.short {
+  width: 30%;
+}
+.chart-skeleton {
+  min-height: 180px;
+}
+.dashboard-loading-text {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+  font-size: 1.4rem;
+}
+/* ── sections layout (mobile-first: single column) ──── */
+.dashboard-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.dashboard-section h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--font-color-3, #333);
+  border-bottom: 2px solid var(--background-color-1, #C7B7A3);
+  padding-bottom: 0.4rem;
+}
+/* ── KPI cards ───────────────────────────────────────── */
+.section-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+.kpi-card {
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  color: white;
+  min-height: 100px;
+}
+.kpi-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  color: white;
+  line-height: 1.4;
+}
+.kpi-value {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+.kpi-card--sites  { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.kpi-card--roads  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.kpi-card--length { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+/* ── chart cards ─────────────────────────────────────── */
+.chart-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.chart-card + .chart-card {
+  margin-top: 1.5rem;
+}
+.chart-card h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: #333;
+  line-height: 1.4;
+}
+/* chart-frame carries the explicit height that ResponsiveContainer
+   uses via height="100%", so we can resize charts purely in CSS */
+.chart-frame {
+  width: 100%;
+  height: 240px;
+}
+/* ── no-data / error / empty states ─────────────────── */
+.no-data-message {
+  text-align: center;
+  color: #666; /* #666 on white = 5.74:1 contrast ratio, meets WCAG AA */
+  padding: 2rem;
+  font-style: italic;
+  margin: 0;
+}
 .dashboard-error {
   background-color: #fee;
   border: 1px solid #fcc;
   border-radius: 8px;
   padding: 2rem;
   text-align: center;
-  min-height: 300px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   gap: 1rem;
 }
-
 .dashboard-error h2 {
   color: #c33;
   margin: 0;
+  font-size: 1.8rem;
 }
-
 .dashboard-error p {
   color: #666;
-  margin: 0.5rem 0;
+  margin: 0;
 }
-
 .dashboard-error button {
   padding: 0.75rem 1.5rem;
   background-color: #3498db;
@@ -122,195 +169,128 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.4rem;
   font-weight: 600;
   transition: background-color 0.3s ease;
 }
-
 .dashboard-error button:hover {
   background-color: #2980b9;
 }
-
-/* Empty State */
 .dashboard-empty {
   background-color: #f9f9f9;
   border: 2px dashed #ddd;
   border-radius: 8px;
-  padding: 3rem;
+  padding: 2rem;
   text-align: center;
-  min-height: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
-
 .dashboard-empty h2 {
   color: #666;
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.5rem;
+  font-size: 1.8rem;
 }
-
 .dashboard-empty p {
   color: #999;
   margin: 0;
 }
-
-/* KPI Summary Cards */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.kpi-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.kpi-card h3 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0 0 0.5rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.9;
-}
-
-.kpi-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1;
-}
-
-/* Consider alternate KPI card colors */
-.kpi-card:nth-child(2) {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.kpi-card:nth-child(3) {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-/* Charts Grid */
-.charts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-  gap: 2rem;
-  margin-bottom: 2rem;
-}
-
-.chart-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-}
-
-.chart-card h2 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  color: #333;
-}
-
-.chart-card.full-width {
-  grid-column: 1 / -1;
-}
-
-.no-data-message {
-  text-align: center;
-  color: #999;
-  padding: 2rem;
-  margin: 0;
-  font-style: italic;
-}
-
-/* Dashboard Footer */
+/* ── page footer note ────────────────────────────────── */
 .dashboard-footer {
   text-align: center;
-  padding: 1.5rem;
+  padding: 1rem;
   border-top: 1px solid #e0e0e0;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   color: #999;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
 }
-
 .dashboard-footer p {
   margin: 0;
 }
-
-/* Tablet / Medium Screens */
-@media (max-width: 1024px) {
-  .charts-grid {
+/* ── tablet: road charts side-by-side ────────────────── */
+@media screen and (min-width: 1024px) {
+  .dashboard-section--roads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .dashboard-section--roads .chart-card + .chart-card {
+    margin-top: 0;
+  }
+}
+/* ── large desktop: 2-column "one-page" layout ───────── */
+/* KPI cards in a left sidebar, both chart sections on the right */
+@media screen and (min-width: 1200px) {
+  .dashboard-sections {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: auto auto;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .dashboard-section--kpi {
+    grid-column: 1;
+    grid-row: 1 / 3; /* spans both chart rows */
+  }
+  /* stack KPI cards vertically in the narrow sidebar */
+  .section-kpis {
     grid-template-columns: 1fr;
   }
-
+  .dashboard-section--sites {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .dashboard-section--roads {
+    grid-column: 2;
+    grid-row: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  /* smaller charts so both rows fit within the viewport */
+  .chart-frame {
+    height: 190px;
+  }
+}
+/* ── small screens ───────────────────────────────────── */
+@media screen and (max-width: 768px) {
   .dashboard-container h1 {
     font-size: 2rem;
   }
-
-  .kpi-grid {
+  .section-kpis {
     grid-template-columns: 1fr;
   }
-}
-
-/* Mobile / Small Screens */
-@media (max-width: 640px) {
-  .dashboard-container {
-    padding: 1rem 0.5rem;
-  }
-
-  .dashboard-container h1 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .kpi-card {
-    padding: 1rem;
-  }
-
   .kpi-value {
     font-size: 2rem;
   }
-
   .chart-card {
     padding: 1rem;
   }
-
-  .chart-card h2 {
-    font-size: 1.1rem;
-  }
-
-  .charts-grid {
-    gap: 1.5rem;
-  }
-
-  .dashboard-controls {
-    grid-template-columns: 1fr;
+  .chart-frame {
+    height: 200px;
   }
 }
-
-/* Recharts Accessibility & Styling */
+@media screen and (max-width: 480px) {
+  .dashboard-container {
+    padding: 1rem 0.5rem;
+  }
+  .dashboard-container h1 {
+    font-size: 1.8rem;
+  }
+  .dashboard-intro p {
+    font-size: 1.3rem;
+  }
+  .chart-frame {
+    height: 180px;
+  }
+}
+/* ── Recharts styling ────────────────────────────────── */
 .recharts-surface {
   border-radius: 4px;
 }
-
-.recharts-wrapper {
-  outline: none;
-}
-
+.recharts-wrapper,
 .recharts-tooltip-wrapper {
   outline: none;
 }
-
 .recharts-tooltip {
   background-color: rgba(255, 255, 255, 0.95) !important;
   border: 1px solid #ccc !important;
@@ -318,18 +298,13 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
   padding: 8px 12px !important;
 }
-
 .recharts-tooltip-label {
   font-weight: 600;
   color: #333;
 }
-
 .recharts-tooltip-item {
   color: #666;
 }
-
-/* Legend styling */
 .recharts-legend {
   padding-top: 1rem !important;
 }
-
