@@ -2,9 +2,8 @@ import { Link } from 'react-router-dom';
 
 const About = () => {
   return (
-    <>
+    <div className="pagebox">
       <main>
-        <div className="pagebox">
           <h1>A website on Roman Roads</h1>
           <blockquote>
             The areas into which Roman hegemony expanded were anything but a tabula rasa and existing settlements and infrastructure facilitated the conquests of these areas and ultimately were expanded upon with provincial organization.
@@ -33,9 +32,8 @@ const About = () => {
           <nav>
             <Link to="/">Home</Link>
           </nav>
-        </div>
-      </main>
-    </>
+        </main>
+    </div>
   );
 };
 

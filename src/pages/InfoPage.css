@@ -13,8 +13,9 @@
 }
 
 .infopage-illustrationbox {
-    flex-direction: column;
-    width: 40%;
+  display: flex;
+  flex-direction: column;
+  width: 40%;
 }
 
 .infopage-map {
@@ -50,10 +51,6 @@
     background-color: darkred;
 }
 
-
-.info-btn.delete {
-    background-color: var(--accent-color);
-}
 
 .info-btn-group {
     display: flex;

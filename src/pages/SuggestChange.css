@@ -1,0 +1,51 @@
+/* ── Suggest Change page ─────────────────────────────── */
+
+.suggest-change {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.suggest-change h2 {
+  margin-bottom: 0.5rem;
+}
+
+.suggest-change > p {
+  margin-bottom: 1.5rem;
+}
+
+/* textarea inherits login-form styles but needs explicit width */
+.suggest-change .login-form textarea {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1.6rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: var(--project-font-family), sans-serif;
+  resize: vertical;
+}
+
+.suggest-change .login-form select {
+  padding: 0.8rem;
+  font-size: 1.6rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-family: var(--project-font-family), sans-serif;
+  background-color: white;
+}
+
+.suggest-change .status-success,
+.suggest-change__status-success {
+  color: var(--accent-color-2);
+  font-size: 1.4rem;
+  text-align: center;
+}
+
+/* ── responsive ──────────────────────────────────────── */
+@media screen and (max-width: 480px) {
+  .suggest-change {
+    padding: 0.5rem;
+  }
+}
+
+

@@ -1,38 +1,42 @@
 .login-container {
-    max-width: 400px;
+    max-width: 460px;
+    width: 100%;
     margin: 3rem auto;
     padding: 2rem;
-    background-color: var(--background-color_2);
+    background-color: var(--background-color-2);
     border-radius: 8px;
     box-shadow: 0 2px 10px var(--shadow-color);
     font-family: var(--project-font-family);
     color: var(--font-color-3);
   }
-  
+
   .login-container h2 {
     margin-bottom: 1.5rem;
     text-align: center;
     font-weight: var(--font-bold);
   }
-  
+
   .login-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.2rem;
   }
-  
+
   .login-form label {
     font-weight: var(--font-semi-bold);
+    font-size: 1.4rem;
   }
-  
-  .login-form input {
+
+  .login-form input,
+  .login-form select {
     padding: 0.8rem;
     font-size: 1.6rem;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-family: var(--project-font-family);
+    min-height: 44px;
   }
-  
+
   .login-form button {
     background-color: var(--accent-color);
     color: var(--font-color-1);
@@ -41,18 +45,20 @@
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
+    font-size: 1.6rem;
+    min-height: 44px;
   }
-  
+
   .login-form button:hover {
     background-color: var(--accent-color-2);
   }
-  
+
   .toggle-mode {
     text-align: center;
     margin-top: 1rem;
     font-size: 1.4rem;
   }
-  
+
   .toggle-mode span {
     color: var(--accent-color);
     cursor: pointer;
@@ -62,7 +68,16 @@
   .error {
     color: var(--error-color, red);
     font-size: 1.4rem;
-    margin-top: -1rem;
-    margin-bottom: -1rem;
+    margin-top: -0.5rem;
+    margin-bottom: -0.5rem;
     text-align: center;
   }
+
+  /* ── mobile ──────────────────────────────────────────── */
+  @media screen and (max-width: 480px) {
+    .login-container {
+      margin: 1.5rem auto;
+      padding: 1.5rem;
+    }
+  }
+

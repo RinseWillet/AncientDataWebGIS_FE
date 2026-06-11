@@ -4,22 +4,25 @@
   position: relative;
 }
 
+/* full-screen map (Atlas page, no query) */
 .infoMap {
   height: 76vh;
   width: 100%;
   z-index: var(--z-map);
 }
 
+/* reduced map (SiteInfo / RoadInfo illustration) */
 .infoMap_adjusted {
   height: 40vh;
   width: 100%;
   z-index: var(--z-map);
 }
 
+/* floating info card on the map */
 .infoCard {
   color: black;
   font-size: 1.6rem;
-  font-family: var(--project-font-family);
+  font-family: var(--project-font-family), sans-serif;
   position: absolute;
   z-index: 999;
   border: 2px solid darkgray;
@@ -27,12 +30,21 @@
   top: 5px;
   bottom: 5px;
   right: 5px;
-  width: 40%;
+  width: 36%;
+  max-width: 340px;
   background: #fff;
   padding: 15px;
   border-radius: 5px;
   box-shadow: 0 0 10px 10px var(--shadow-color);
   overflow: auto;
+}
+
+/* ── tablet ──────────────────────────────────────────── */
+@media screen and (max-width: 1024px) {
+  .infoCard {
+    width: 42%;
+    font-size: 1.4rem;
+  }
 }
 
 @media screen and (max-width: 850px) {
@@ -44,18 +56,33 @@
     height: 35vh;
   }
 
-  .infoCard{
-    width: 45%;
-    font-size: 1.4rem;
+  .infoCard {
+    width: 48%;
+    font-size: 1.3rem;
   }
 }
 
-@media screen and (max-width: 400px) {
+/* ── mobile ──────────────────────────────────────────── */
+@media screen and (max-width: 600px) {
   .infoMap {
-    height: 64vh;
+    height: 60vh;
   }
 
   .infoMap_adjusted {
-    height: 58vh;
+    height: 40vh;
+  }
+
+  /* on small phones, card takes bottom strip instead of right panel */
+  .infoCard {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 40%;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
   }
 }
+

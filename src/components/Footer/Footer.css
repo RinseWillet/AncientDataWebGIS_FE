@@ -1,134 +1,116 @@
-.section__padding{
-    padding: 0.2rem 0.3rem;
+.footer {
+  background-color: var(--box-color-1);
+  flex-shrink: 0; /* never let the footer compress */
 }
 
-.footer{
-    bottom: #2d2d32;
+.sb__footer {
+  display: flex;
+  flex-direction: column;
+  max-width: var(--content-max-width, 1400px);
+  margin: 0 auto;
+  padding: 0.6rem 1rem;
 }
 
-.sb__footer{
-    display: flex;
-    flex-direction: column;
-}
-
-.sb__footer-links{
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 100%;
-    text-align: left;
-    margin-bottom: 0.1rem;
+.sb__footer-links {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 0.3rem;
+  gap: 0.5rem;
 }
 
 .sb__footer-links_div {
-    width: 150px;
-    margin: 0.1rem;
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    color: var(--font-color-1);    
+  min-width: 130px;
+  flex: 1 1 130px;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  color: var(--font-color-1);
 }
 
 a {
-    color: var(--font-color-2);
-    text-decoration: none;
+  color: var(--font-color-2);
+  text-decoration: none;
 }
 
 .socialmedia {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
 }
 
-.socialmedia img{
-    width: 40%;
+.socialmedia img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
-.sb__footer-links_div h4{
-    font-size: 1.4rem;
-    line-height: 2.3rem;
-    margin: 0.2rem 0;
-    cursor: pointer;
+.sb__footer-links_div h4 {
+  font-size: 1.3rem;
+  line-height: 2rem;
+  margin: 0.2rem 0;
+  color: var(--font-color-1);
 }
 
-.sb__footer-links_div p{
-    font-size: 1.4rem;
-    line-height: 1rem;
-    margin: 0.4rem 0;
-    cursor: pointer;
+.sb__footer-links_div p {
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  margin: 0.2rem 0;
+  cursor: pointer;
 }
 
-.sb__footer-below-links{
-    display: flex;
-    flex-direction: row;
+hr {
+  color: var(--font-color-2) !important;
+  width: 100%;
+  opacity: 0.4;
 }
 
-.sb__footer-below-links p{
-    font-size: 1rem;
-    line-height: 1.2rem;
-    margin-left: 2rem;
-    color: var(--font-color-2);
-    font-weight: 600;
+.sb__footer-below {
+  display: flex;
+  justify-content: center;
 }
 
-hr{
-    color: var(--font-color-1) !important;
+.sb__footer-copyright p {
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  color: var(--font-color-2);
+  font-weight: 400;
+  text-align: center;
+}
+
+/* ── tablet / small screens ──────────────────────────── */
+@media screen and (max-width: 768px) {
+  .sb__footer-links {
+    gap: 1rem;
+  }
+
+  .sb__footer-links_div {
+    min-width: 120px;
+  }
+}
+
+/* ── mobile ───────────────────────────────────────────── */
+@media screen and (max-width: 480px) {
+  .sb__footer-links {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .sb__footer-links_div {
+    flex: unset;
     width: 100%;
-}
+  }
 
-.sb__footer-copyright p{
-    font-size: 1.4rem;
-    line-height: 2.3rem;
-    color: var(--font-color-1);
-    font-weight: 400;
-}
+  .sb__footer-links_div h4 {
+    font-size: 1.2rem;
+  }
 
-@media screen and (max-width: 850px) {
-    .sb__footer-heading h1{
-        font-size: 3.4rem;
-        line-height: 4.2rem;
-    }
-
-    .sb__footer-links div{
-        margin: 1rem 0;        
-    }
-
-    .sb__footer-links div p{
-        font-size: 1.2rem;
-        line-height: 1.2rem;        
-    }    
-
-    .sb__footer-btn p{
-        font-size: 1.2rem;
-        line-height: 0.8rem;
-    }
-
-    .sb__footer-below{
-        flex-direction: column;
-        justify-content: left;
-    }
-
-    .sb__footer-below-links {
-        flex-direction: column;
-    }
-
-    .sb__footer-below-links p{
-        margin-left: 0rem;
-        margin-top: 1rem;
-    }
-
-    .sb__footer-copyright p{
-        font-size: 1rem;
-        line-height: 1.2rem;
-        color: var(--font-color-1);
-        font-weight: 500;
-    }
-}
-
-@media screen and (max-width: 400px) {
-    .sb__footer-heading h1{
-        font-size: 2.7rem;
-        line-height: 3.8rem;
-    }
+  .sb__footer-links_div p {
+    font-size: 1.1rem;
+    line-height: 1.6rem;
+  }
 }
