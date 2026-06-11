@@ -21,11 +21,6 @@
   cursor: pointer;
 }
 
-.media-upload__error {
-  color: #c33;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-}
 
 .media-upload__toggle {
   margin-top: 0.75rem;

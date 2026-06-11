@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import MediaService from '../../services/MediaService';
+import ErrorModal from '../ErrorModal/ErrorModal';
 import './MediaUploadForm.css';
 
 interface MediaUploadFormProps {
@@ -7,6 +8,37 @@ interface MediaUploadFormProps {
   targetId: string;
   onUploadSuccess: () => void;
 }
+
+const extractErrorMessage = (error: unknown): string => {
+  const defaultMessage = 'Upload failed. Please try again.';
+
+  if (!(error instanceof Error)) {
+    return defaultMessage;
+  }
+
+  if (!('response' in error)) {
+    return defaultMessage;
+  }
+
+  const axiosError = error as { response?: { data?: unknown } };
+  if (!axiosError.response?.data) {
+    return defaultMessage;
+  }
+
+  const data = axiosError.response.data;
+  if (typeof data === 'object' && data !== null && 'message' in data) {
+    const msgData = data as { message?: unknown };
+    if (typeof msgData.message === 'string') {
+      return msgData.message;
+    }
+  }
+
+  if (typeof data === 'string') {
+    return data;
+  }
+
+  return defaultMessage;
+};
 
 const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadFormProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +50,8 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
   const [dateTaken, setDateTaken] = useState('');
   const [isCover, setIsCover] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const resetForm = () => {
     setFile(null);
@@ -28,18 +61,17 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
     setLicense('');
     setDateTaken('');
     setIsCover(false);
-    setError(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!file) {
-      setError('Please select a file.');
+      setErrorMessage('Please select a file.');
+      setIsErrorModalOpen(true);
       return;
     }
 
     setUploading(true);
-    setError(null);
 
     try {
       await MediaService.upload({
@@ -56,8 +88,9 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
       resetForm();
       setIsOpen(false);
       onUploadSuccess();
-    } catch {
-      setError('Upload failed. Please try again.');
+    } catch (error) {
+      setErrorMessage(extractErrorMessage(error));
+      setIsErrorModalOpen(true);
     } finally {
       setUploading(false);
     }
@@ -143,8 +176,6 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
         <span>Set as cover image</span>
       </label>
 
-      {error && <p className="media-upload__error">{error}</p>}
-
       <div style={{ marginTop: '1rem' }}>
         <button type="submit" className="info-btn" disabled={uploading}>
           {uploading ? 'Uploading…' : 'Upload'}
@@ -158,6 +189,13 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
           Cancel
         </button>
       </div>
+
+      <ErrorModal
+        isOpen={isErrorModalOpen}
+        title="Upload Error"
+        message={errorMessage}
+        onClose={() => setIsErrorModalOpen(false)}
+      />
     </form>
   );
 };
