@@ -28,6 +28,14 @@ const COLORS = [
   '#ffb347',
 ];
 
+// Label mapping for abbreviations to full names
+const LABEL_MAPPING: Record<string, string> = {
+  pvilla: 'Possible Villa',
+  ptum: 'Possible Tumulus',
+  cem: 'Cemetery',
+  hist_rec: 'Historical Reconstruction',
+  sett: 'Settlement',
+};
 
 const formatNumber = (value: number): string => new Intl.NumberFormat().format(value);
 
@@ -46,12 +54,18 @@ const toTitleCase = (value: string): string =>
     .join(' ');
 
 const formatTypeLabel = (value: string): string => {
-  const normalized = value.trim();
+  const normalized = value.trim().toLowerCase();
 
-  if (!normalized || normalized.toLowerCase() === 'unknown') {
+  if (!normalized || normalized === 'unknown') {
     return 'Unknown Type';
   }
 
+  // Check if it matches a known abbreviation
+  if (LABEL_MAPPING[normalized]) {
+    return LABEL_MAPPING[normalized];
+  }
+
+  // Fall back to title case for unmapped labels
   return toTitleCase(normalized);
 };
 
@@ -218,7 +232,7 @@ const Dashboard = () => {
           <section className="dashboard-intro">
             <p>
               The dashboard summarizes the data in the in simple graphs in one place, so one can
-              quickly see the state of the research in this project and do basic comparison in
+              quickly see the state of the research-data in this project and do basic comparison in
               settlement and infrastructure patterns.
             </p>
             <p className="dashboard-intro-meta">Data last updated: {lastUpdated}</p>
@@ -320,7 +334,7 @@ const Dashboard = () => {
                           return [`${formatNumber(Number(value))} sites`, label];
                         }}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '1rem' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -344,18 +358,18 @@ const Dashboard = () => {
                     <BarChart
                       data={roadCountData}
                       layout="vertical"
-                      margin={{ top: 8, right: 12, bottom: 8, left: 12 }}
+                      margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" width={130} />
+                      <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
                       <Tooltip
                         formatter={(value, _name, entry) => {
                           const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
                           return [`${formatNumber(Number(value))} roads`, label];
                         }}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
                       <Bar dataKey="value" fill="#82ca9d" name="Road Count" />
                     </BarChart>
                   </ResponsiveContainer>
@@ -373,18 +387,18 @@ const Dashboard = () => {
                     <BarChart
                       data={roadLengthData}
                       layout="vertical"
-                      margin={{ top: 8, right: 12, bottom: 8, left: 12 }}
+                      margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" />
-                      <YAxis type="category" dataKey="name" width={130} />
+                      <XAxis type="number" tick={{ fontSize: 12 }} />
+                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
                       <Tooltip
                         formatter={(value, _name, entry) => {
                           const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
                           return [formatKm(Number(value)), label];
                         }}
                       />
-                      <Legend />
+                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
                       <Bar dataKey="lengthKm" fill="#ffc658" name="Length (km)" />
                     </BarChart>
                   </ResponsiveContainer>
