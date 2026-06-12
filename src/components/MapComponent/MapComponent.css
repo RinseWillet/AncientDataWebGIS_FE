@@ -87,6 +87,8 @@
     border-radius: 8px 8px 0 0;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
     overflow-y: auto;
+    pointer-events: auto;
+    touch-action: manipulation;
   }
 }
 

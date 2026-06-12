@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { fetchSiteById } from '../../features/site/siteThunks';
@@ -54,7 +54,6 @@ interface GeoJsonCollection {
 }
 
 const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
-  const infoRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
 
   const { selectedSite } = useAppSelector((state: RootState) => state.sites);
@@ -69,20 +68,26 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
     }
   }, [searchItem, dispatch]);
 
-  const info =
-    searchItem.type === 'site'
-      ? (selectedSite as GeoJsonCollection | null)
-      : String((selectedRoad as GeoJsonCollection | null)?.features?.[0]?.properties?.id) ===
-          String(searchItem.id)
-        ? (selectedRoad as GeoJsonCollection | null)
-        : null;
+  const selectedRoadId = String(
+    (selectedRoad as GeoJsonCollection | null)?.features?.[0]?.properties?.id
+  );
+  const isRoadMatch = selectedRoadId === String(searchItem.id);
+
+  let info: GeoJsonCollection | null;
+  if (searchItem.type === 'site') {
+    info = selectedSite;
+  } else if (isRoadMatch) {
+    info = selectedRoad;
+  } else {
+    info = null;
+  }
 
   const feature = info?.features?.[0];
   const details = feature?.properties;
 
   if (!info || !feature || !details) {
     return (
-      <div className="infoCard" ref={infoRef}>
+      <div className="infoCard">
         <p>Loading Data...</p>
       </div>
     );
@@ -90,7 +95,7 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
 
   if (info.error) {
     return (
-      <div className="infoCard" ref={infoRef}>
+      <div className="infoCard">
         <p>Error loading data</p>
       </div>
     );
@@ -99,12 +104,20 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   if (searchItem.type === 'site') {
     const siteType = siteTypeMap[details.siteType ?? ''] ?? 'unknown';
     return (
-      <div className="infoCard" ref={infoRef}>
-        <button className="closeBtn" onClick={clearSelection}>✖</button>
-        <h2>{details.name}</h2><br />
-        <b>Identification:</b><br />{siteType}<br />
+      <div className="infoCard">
+        <button className="closeBtn" onClick={clearSelection}>
+          ✖
+        </button>
+        <h2>{details.name}</h2>
+        <br />
+        <b>Identification:</b>
+        <br />
+        {siteType}
+        <br />
         <span>
-          <b>Description:</b><br />{details.description}
+          <b>Description:</b>
+          <br />
+          {details.description}
         </span>
       </div>
     );
@@ -112,13 +125,20 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
 
   if (searchItem.type === 'road') {
     return (
-      <div className="infoCard" ref={infoRef}>
-        <button className="closeBtn" onClick={clearSelection}>✖</button>
-        <h2>{details.name}</h2><br />
-        <b>Identification:</b><br />
-        {details.type} {details.typeDescription && <>– {details.typeDescription}</>}<br />
-        <b>Description:</b><br />
-        <span>{details.description}</span><br />
+      <div className="infoCard">
+        <button className="closeBtn" onClick={clearSelection}>
+          ✖
+        </button>
+        <h2>{details.name}</h2>
+        <br />
+        <b>Identification:</b>
+        <br />
+        {details.type} {details.typeDescription && <>– {details.typeDescription}</>}
+        <br />
+        <b>Description:</b>
+        <br />
+        <span>{details.description}</span>
+        <br />
         {details.date && (
           <>
             <h4>Date:</h4>
@@ -130,11 +150,10 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   }
 
   return (
-    <div className="infoCard" ref={infoRef}>
+    <div className="infoCard">
       <p>Unknown type</p>
     </div>
   );
 };
 
 export default MapInfoCard;
-
