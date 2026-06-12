@@ -229,15 +229,23 @@ describe('Dashboard Component', () => {
     render(<Dashboard />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('pie-data')).toBeInTheDocument();
+      expect(screen.getAllByTestId('pie-data')[0]).toBeInTheDocument();
     });
 
-    const pieData = JSON.parse(screen.getByTestId('pie-data').textContent ?? '[]') as Array<{
-      name: string;
-      value: number;
-    }>;
+    // First pie: top-5 types + "Other" bucket
+    const pieData = JSON.parse(
+      screen.getAllByTestId('pie-data')[0].textContent ?? '[]'
+    ) as Array<{ name: string; value: number }>;
 
     expect(pieData).toHaveLength(6);
     expect(pieData.some((entry) => entry.name === 'Other')).toBe(true);
+
+    // Second pie: breakdown of the "Other" items
+    const otherPieData = JSON.parse(
+      screen.getAllByTestId('pie-data')[1].textContent ?? '[]'
+    ) as Array<{ name: string; value: number }>;
+
+    expect(otherPieData).toHaveLength(2);
+    expect(otherPieData.some((entry) => entry.name === 'Watchtower')).toBe(true);
   });
 });

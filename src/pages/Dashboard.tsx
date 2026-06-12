@@ -129,13 +129,12 @@ const Dashboard = () => {
         <main className="dashboard-container" aria-busy="true">
           <h1>Research Dashboard</h1>
 
-          <section className="dashboard-intro dashboard-intro-skeleton" aria-hidden="true">
-            <div className="skeleton-line title"></div>
-            <div className="skeleton-line"></div>
-            <div className="skeleton-line short"></div>
-          </section>
+          <div className="dashboard-header-panel" aria-hidden="true">
+            <section className="dashboard-intro dashboard-intro-skeleton">
+              <div className="skeleton-line"></div>
+              <div className="skeleton-line short"></div>
+            </section>
 
-          <div className="dashboard-sections" aria-hidden="true">
             <section className="dashboard-section dashboard-section--kpi">
               <div className="section-kpis">
                 <div className="kpi-card skeleton-block"></div>
@@ -143,7 +142,9 @@ const Dashboard = () => {
                 <div className="kpi-card skeleton-block"></div>
               </div>
             </section>
+          </div>
 
+          <div className="dashboard-sections" aria-hidden="true">
             <section className="dashboard-section dashboard-section--sites">
               <div className="chart-card skeleton-block chart-skeleton"></div>
             </section>
@@ -201,7 +202,8 @@ const Dashboard = () => {
     .sort((a, b) => b.value - a.value);
 
   const topSiteTypes = sortedSiteData.slice(0, 5);
-  const otherSiteTotal = sortedSiteData.slice(5).reduce((sum, item) => sum + item.value, 0);
+  const otherSiteTypes = sortedSiteData.slice(5);
+  const otherSiteTotal = otherSiteTypes.reduce((sum, item) => sum + item.value, 0);
 
   const siteCountData = otherSiteTotal
     ? [...topSiteTypes, { name: 'Other', value: otherSiteTotal }]
@@ -259,20 +261,19 @@ const Dashboard = () => {
       <main className="dashboard-container">
         <h1>Research Dashboard</h1>
 
-        <section className="dashboard-intro">
-          <p>
-            AncientData summarizes archaeological sites and road-network coverage in one place so
-            you can quickly compare settlement and infrastructure patterns.
-          </p>
-          <p className="dashboard-intro-meta">Data last updated: {lastUpdated}</p>
-        </section>
+        <div className="dashboard-header-panel">
+          <section className="dashboard-intro">
+            <p>
+              AncientData summarizes archaeological sites and road-network coverage in one place so
+              you can quickly compare settlement and infrastructure patterns.
+            </p>
+            <p className="dashboard-intro-meta">Data last updated: {lastUpdated}</p>
+          </section>
 
-        <div className="dashboard-sections">
           <section
             className="dashboard-section dashboard-section--kpi"
-            aria-labelledby="kpi-section-heading"
+            aria-label="Key Metrics"
           >
-            <h2 id="kpi-section-heading">Key Metrics</h2>
 
             <div className="section-kpis">
               <div className="kpi-card kpi-card--sites">
@@ -298,7 +299,9 @@ const Dashboard = () => {
               </div>
             </div>
           </section>
+        </div>
 
+        <div className="dashboard-sections">
           <section
             className="dashboard-section dashboard-section--sites"
             aria-labelledby="sites-section-heading"
@@ -342,6 +345,42 @@ const Dashboard = () => {
                 <p className="no-data-message">No site data available</p>
               )}
             </div>
+
+            {otherSiteTypes.length > 0 && (
+              <div className="chart-card">
+                <h3>Sites by Type – Other</h3>
+                <div className="chart-frame">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={otherSiteTypes}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: ${formatNumber(Number(value))}`}
+                        outerRadius={84}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {otherSiteTypes.map((entry, index) => (
+                          <Cell
+                            key={`cell-other-${entry.name}-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value, _name, entry) => {
+                          const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
+                          return [`${formatNumber(Number(value))} sites`, label];
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '1rem' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
           </section>
 
           <section
@@ -350,62 +389,78 @@ const Dashboard = () => {
           >
             <h2 id="roads-section-heading">Roads</h2>
 
-            <div className="chart-card">
-              <h3>Roads by Type</h3>
-              {roadCountData.length > 0 ? (
-                <div className="chart-frame">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={roadCountData}
-                      layout="vertical"
-                      margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
-                      <Tooltip
-                        formatter={(value, _name, entry) => {
-                          const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
-                          return [`${formatNumber(Number(value))} roads`, label];
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
-                      <Bar dataKey="value" fill="#82ca9d" name="Road Count" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p className="no-data-message">No road data available</p>
-              )}
+            <div className="roads-charts">
+              <div className="chart-card">
+                <h3>Roads by Type</h3>
+                {roadCountData.length > 0 ? (
+                  <div className="chart-frame">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={roadCountData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
+                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
+                        <Tooltip
+                          formatter={(value, _name, entry) => {
+                            const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
+                            return [`${formatNumber(Number(value))} roads`, label];
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
+                        <Bar dataKey="value" fill="#82ca9d" name="Road Count" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="no-data-message">No road data available</p>
+                )}
+              </div>
+
+              <div className="chart-card">
+                <h3>Road Length by Type (km)</h3>
+                {roadLengthData.length > 0 ? (
+                  <div className="chart-frame">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={roadLengthData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" tick={{ fontSize: 12 }} />
+                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
+                        <Tooltip
+                          formatter={(value, _name, entry) => {
+                            const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
+                            return [formatKm(Number(value)), label];
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
+                        <Bar dataKey="lengthKm" fill="#ffc658" name="Length (km)" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <p className="no-data-message">No road length data available</p>
+                )}
+              </div>
             </div>
 
-            <div className="chart-card">
-              <h3>Road Length by Type (km)</h3>
-              {roadLengthData.length > 0 ? (
-                <div className="chart-frame">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={roadLengthData}
-                      layout="vertical"
-                      margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" tick={{ fontSize: 12 }} />
-                      <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
-                      <Tooltip
-                        formatter={(value, _name, entry) => {
-                          const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
-                          return [formatKm(Number(value)), label];
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
-                      <Bar dataKey="lengthKm" fill="#ffc658" name="Length (km)" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p className="no-data-message">No road length data available</p>
-              )}
+            <div className="roads-explanation">
+              <h3>About the Road Network</h3>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+              </p>
+              <p>
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+                culpa qui officia deserunt mollit anim id est laborum.
+              </p>
             </div>
           </section>
         </div>
