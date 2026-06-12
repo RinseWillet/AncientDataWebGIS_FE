@@ -9,7 +9,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts';
 import { DashboardSummary } from '../types/dashboard';
@@ -35,6 +34,10 @@ const LABEL_MAPPING: Record<string, string> = {
   cem: 'Cemetery',
   hist_rec: 'Historical Reconstruction',
   sett: 'Settlement',
+  tum: 'Tumulus',
+  pos_castellum: 'Possible Castellum',
+  setts: 'Settlement with Stone Buildings',
+  legfort: 'Legionary Fortress',
 };
 
 const formatNumber = (value: number): string => new Intl.NumberFormat().format(value);
@@ -270,11 +273,7 @@ const Dashboard = () => {
             <p className="dashboard-intro-meta">Data last updated: {lastUpdated}</p>
           </section>
 
-          <section
-            className="dashboard-section dashboard-section--kpi"
-            aria-label="Key Metrics"
-          >
-
+          <section className="dashboard-section dashboard-section--kpi" aria-label="Key Metrics">
             <div className="section-kpis">
               <div className="kpi-card kpi-card--sites">
                 <h3>Total Sites</h3>
@@ -320,7 +319,7 @@ const Dashboard = () => {
                         cy="50%"
                         labelLine={false}
                         label={({ name, value }) => `${name}: ${formatNumber(Number(value))}`}
-                        outerRadius={84}
+                        outerRadius="80%"
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -337,7 +336,6 @@ const Dashboard = () => {
                           return [`${formatNumber(Number(value))} sites`, label];
                         }}
                       />
-                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '1rem' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -358,7 +356,7 @@ const Dashboard = () => {
                         cy="50%"
                         labelLine={false}
                         label={({ name, value }) => `${name}: ${formatNumber(Number(value))}`}
-                        outerRadius={84}
+                        outerRadius="80%"
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -375,7 +373,6 @@ const Dashboard = () => {
                           return [`${formatNumber(Number(value))} sites`, label];
                         }}
                       />
-                      <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '1rem' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -398,18 +395,17 @@ const Dashboard = () => {
                       <BarChart
                         data={roadCountData}
                         layout="vertical"
-                        margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
+                        margin={{ top: 5, right: 10, bottom: 0, left: 100 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
+                        <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11 }} />
                         <Tooltip
                           formatter={(value, _name, entry) => {
                             const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
                             return [`${formatNumber(Number(value))} roads`, label];
                           }}
                         />
-                        <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
                         <Bar dataKey="value" fill="#82ca9d" name="Road Count" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -427,18 +423,17 @@ const Dashboard = () => {
                       <BarChart
                         data={roadLengthData}
                         layout="vertical"
-                        margin={{ top: 5, right: 10, bottom: 5, left: 100 }}
+                        margin={{ top: 5, right: 10, bottom: 0, left: 100 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" tick={{ fontSize: 12 }} />
-                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 12 }} />
+                        <XAxis type="number" tick={{ fontSize: 11 }} />
+                        <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11 }} />
                         <Tooltip
                           formatter={(value, _name, entry) => {
                             const label = formatTypeLabel(String(entry?.payload?.name ?? ''));
                             return [formatKm(Number(value)), label];
                           }}
                         />
-                        <Legend wrapperStyle={{ fontSize: '0.85rem', paddingTop: '0.5rem' }} />
                         <Bar dataKey="lengthKm" fill="#ffc658" name="Length (km)" />
                       </BarChart>
                     </ResponsiveContainer>
@@ -450,16 +445,21 @@ const Dashboard = () => {
             </div>
 
             <div className="roads-explanation">
-              <h3>About the Road Network</h3>
+              <h3>About the Data</h3>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-                incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                This dashboard gives a summary of the data present in the database. The summary does
+                not give diachronic detail, meaning that in the data presented here, there are sites
+                that were not in use at the same time. For example, many of the (sometimes
+                unconfirmed) possible tumuli will not have been Roman.
               </p>
               <p>
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-                fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-                culpa qui officia deserunt mollit anim id est laborum.
+                However, the reason for including such data points is their usage in reconstructing
+                ancient routes. The underlying assumption is that the routes Roman roads used were
+                not necessarily constructed &lsquo;ex novo&rsquo; but rather followed already
+                existing prehistoric routes in the area. Confirmed stretches of road, for example in
+                the Reichswald near Kleve, have been found near tumuli and even ancient field
+                systems (&lsquo;Celtic Fields&rsquo;). It is therefore prudent to take these other
+                temporal layers as well in better understanding the Roman infrastructural network.
               </p>
             </div>
           </section>
