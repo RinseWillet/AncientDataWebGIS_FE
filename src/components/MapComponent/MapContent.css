@@ -1,13 +1,14 @@
 .popup .leaflet-popup-content-wrapper {
   font-size: 1rem;
-  border-radius: 0px;
+  border-radius: 0;
   opacity: 0.9;
   text-align: center;
-  height: 75%;
+  max-height: 90vh;
   margin-top: 0.5%;
   color: var(--font-color-3);
   width: auto;
   box-shadow: 0 0 10px 10px var(--shadow-color);
+  overflow-y: auto;
 }
 
 .popup .leaflet-popup-tip-container {
@@ -64,7 +65,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  margin: 15px 0px 0px -9px;
+  margin: 15px 0 0 -9px;
   transform: rotateX(55deg);
   z-index: -2;
 }

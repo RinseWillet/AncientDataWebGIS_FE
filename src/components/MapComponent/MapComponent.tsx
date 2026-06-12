@@ -76,7 +76,7 @@ const MapComponent = ({
   }, [map]);
 
   return (
-    <div>
+    <div className="wrapper">
       <MapContainer
         id="map"
         className={adjustMapHeight ? 'infoMap_adjusted' : 'infoMap'}
