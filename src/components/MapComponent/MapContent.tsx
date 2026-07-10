@@ -1,5 +1,5 @@
 import { GeoJSON, LayersControl, ScaleControl, TileLayer, useMap, WMSTileLayer } from 'react-leaflet';
-import L, { Icon, DivIcon, PathOptions, LeafletMouseEvent, LeafletEventHandlerFn } from 'leaflet';
+import L, { Icon, DivIcon, PathOptions, LeafletMouseEvent } from 'leaflet';
 import {
   castellumIcon,
   cemeteryIcon,
@@ -28,7 +28,7 @@ import './MapContent.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import GeometryEditor from '../GeometryEditor/GeometryEditor';
-import { useEffect, MutableRefObject } from 'react';
+import { useEffect, MutableRefObject, useRef, useCallback } from 'react';
 
 interface SearchItem {
   type: string;
@@ -98,6 +98,7 @@ const MapContent = ({
   siteMarkersRef,
 }: MapContentProps) => {
   const map = useMap();
+  const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
 
   let selectedRoadId: string | number | null = null;
   if (searchItem?.type === 'road') {
@@ -109,7 +110,9 @@ const MapContent = ({
   useEffect(() => {
     if (!map) return;
     Object.entries(siteMarkersRef.current).forEach(([id, marker]) => {
-      if (searchItem?.type === 'site' && String(searchItem.id) === String(id)) {
+      const isSelectedFromSearch = searchItem?.type === 'site' && String(searchItem.id) === String(id);
+      const isSelectedFromQuery = queryItem?.type === 'site' && String(queryItem.id) === String(id);
+      if (isSelectedFromSearch || isSelectedFromQuery) {
         marker.setIcon(highlightedSiteIcon);
       } else {
         const feature = (marker as L.Marker & { feature?: { properties?: { siteType?: string } } }).feature;
@@ -119,16 +122,17 @@ const MapContent = ({
         marker.setIcon(icon);
       }
     });
-  }, [searchItem, map, siteMarkersRef]);
+  }, [searchItem, queryItem, map, siteMarkersRef]);
 
   const clickZoomSite = (e: LeafletMouseEvent) => {
-    const { lat, lng } = e.target.getLatLng();
+    const marker = e.target as L.Marker;
     const x = map.getPixelBounds().getSize().x;
-    let offset = 0;
-    if (x > 800) offset = 0.01;
-    else if (x > 600) offset = 0.005;
-    else if (x > 400) offset = 0.00025;
-    map.setView([lat, lng + offset], 14);
+    const bounds = L.latLngBounds([marker.getLatLng()]);
+    let pad: { bottomRight: [number, number]; topLeft: [number, number] };
+    if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
+    else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
+    else pad = { bottomRight: [10, 250], topLeft: [10, 10] }; // Mobile: account for 50vh infocard
+    map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft, maxZoom: 14 });
   };
 
   const clickZoomRoad = (layer: L.Path) => {
@@ -137,10 +141,30 @@ const MapContent = ({
     let pad: { bottomRight: [number, number]; topLeft: [number, number] };
     if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
     else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
-    else if (x > 400) pad = { bottomRight: [100, 3], topLeft: [0, 3] };
-    else pad = { bottomRight: [10, 20], topLeft: [10, 10] };
+    else pad = { bottomRight: [10, 250], topLeft: [10, 10] }; // Increased bottom padding for mobile infocard
     map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft });
   };
+
+  const zoomToPlace = useCallback((type: string, id: string | number) => {
+    if (!map) return;
+    const x = map.getPixelBounds().getSize().x;
+    let pad: { bottomRight: [number, number]; topLeft: [number, number] };
+    if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
+    else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
+    else pad = { bottomRight: [10, 250], topLeft: [10, 10] };
+
+    if (type === 'site') {
+      const marker = siteMarkersRef.current[id];
+      if (!marker) return;
+      const bounds = L.latLngBounds([marker.getLatLng()]);
+      map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft, maxZoom: 14 });
+    } else if (type === 'road') {
+      const roadLayer = roadLayersRef.current[id];
+      if (!roadLayer || !('getBounds' in roadLayer)) return;
+      const bounds = (roadLayer as unknown as L.Polyline).getBounds();
+      map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft });
+    }
+  }, [map, siteMarkersRef, roadLayersRef]);
 
   const clickSite = (e: LeafletMouseEvent) => {
     const id = (e.sourceTarget as L.Marker & { feature?: { properties?: { id?: string | number } } })
@@ -157,6 +181,37 @@ const MapContent = ({
     clickZoomRoad(e.target as L.Path);
     setShowInfoCard(true);
   };
+
+  // Auto-zoom when queryItem is set (from SiteInfo/RoadInfo pages)
+  useEffect(() => {
+    if (!map || !queryItem || queryItem.id === '') return;
+
+    let retryCount = 0;
+    const maxRetries = 10; // Max 1 second of retries (10 * 100ms)
+
+    const attemptZoom = () => {
+      if (queryItem.type === 'site') {
+        if (siteMarkersRef.current[queryItem.id]) {
+          zoomToPlace(queryItem.type, queryItem.id);
+        } else if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(attemptZoom, 100);
+        }
+      } else if (queryItem.type === 'road') {
+        if (roadLayersRef.current[queryItem.id]) {
+          zoomToPlace(queryItem.type, queryItem.id);
+        } else if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(attemptZoom, 100);
+        }
+      }
+    };
+
+    // Wait initial delay for GeoJSON layers to render, then attempt zoom with retry
+    const delayedZoom = setTimeout(attemptZoom, 300);
+
+    return () => clearTimeout(delayedZoom);
+  }, [queryItem, map, siteMarkersRef, roadLayersRef, zoomToPlace]);
 
   return (
     <>
@@ -200,26 +255,28 @@ const MapContent = ({
               siteMarkersRef.current[id] = marker;
               return marker;
             }}
-            onEachFeature={(_feature, layer) => {
-              layer.on({ click: clickSite as LeafletEventHandlerFn });
-            }}
+             onEachFeature={(_feature, layer) => {
+               layer.on({ click: clickSite });
+             }}
           />
         </LayersControl.Overlay>
 
-        <LayersControl.Overlay checked name="Roads and Routes">
-          <GeoJSON
-            data={roadData as GeoJSON.FeatureCollection}
-            style={(feature) => {
-              const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
-              return isSelected
-                ? { weight: 3, color: 'yellow', zIndex: 20 }
-                : roadStyleDifferentiator(feature?.properties ?? {});
-            }}
-            onEachFeature={(_feature, layer) => {
-              layer.on({ click: clickRoad as LeafletEventHandlerFn });
-            }}
-          />
-        </LayersControl.Overlay>
+         <LayersControl.Overlay checked name="Roads and Routes">
+           <GeoJSON
+             data={roadData as GeoJSON.FeatureCollection}
+             style={(feature) => {
+               const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
+               return isSelected
+                 ? { weight: 3, color: 'yellow', zIndex: 20 }
+                 : roadStyleDifferentiator(feature?.properties ?? {});
+             }}
+              onEachFeature={(_feature, layer) => {
+                const id = _feature.properties?.id;
+                roadLayersRef.current[id] = layer;
+                layer.on({ click: clickRoad });
+              }}
+           />
+         </LayersControl.Overlay>
       </LayersControl>
 
       {isEditing && (

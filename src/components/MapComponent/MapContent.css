@@ -1,13 +1,14 @@
 .popup .leaflet-popup-content-wrapper {
   font-size: 1rem;
-  border-radius: 0px;
+  border-radius: 0;
   opacity: 0.9;
   text-align: center;
-  height: 75%;
+  max-height: 90vh;
   margin-top: 0.5%;
   color: var(--font-color-3);
   width: auto;
   box-shadow: 0 0 10px 10px var(--shadow-color);
+  overflow-y: auto;
 }
 
 .popup .leaflet-popup-tip-container {
@@ -36,9 +37,9 @@
   background: var(--accent-color);
   position: absolute;
   transform: rotate(-45deg);
-  left: 2rem;
-  top: 2rem;
-  margin: -1rem 0 0 -2rem;
+  left: 50%;
+  top: 18px;
+  margin: 0 0 0 -10px;
   animation-name: bounce;
   animation-fill-mode: both;
   animation-duration: 1s
@@ -49,7 +50,9 @@
   content: '';
   width: 1.4rem;
   height: 1.4rem;
-  margin: 3px 0 0 3px;
+  left: 50%;
+  top: 50%;
+  margin: -7px 0 0 -7px;
   background: #fff;
   position: absolute;
   border-radius: 50%;
@@ -63,8 +66,8 @@
   width: 7px;
   position: absolute;
   left: 50%;
-  top: 50%;
-  margin: 15px 0px 0px -9px;
+  top: 38.5px;
+  margin: 0 0 0 -3.5px;
   transform: rotateX(55deg);
   z-index: -2;
 }
@@ -75,7 +78,9 @@
   height: 20px;
   width: 20px;
   position: absolute;
-  margin: -7px 0 0 -7px;
+  left: 50%;
+  top: 50%;
+  margin: -10px 0 0 -10px;
   animation: pulsate 1s ease-out;
   animation-iteration-count: infinite;
   opacity: 0;

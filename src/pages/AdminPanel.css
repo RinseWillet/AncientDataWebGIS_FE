@@ -2,23 +2,23 @@
     max-width: 800px;
     margin: 4rem auto;
     padding: 2rem;
-    background-color: var(--background-color_2);
+    background-color: var(--background-color-2);
     border-radius: 8px;
     box-shadow: 0 2px 10px var(--shadow-color);
     font-family: var(--project-font-family);
     color: var(--font-color-3);
   }
-  
+
   .admin-panel h1 {
     font-size: 2.4rem;
     margin-bottom: 1rem;
     color: var(--accent-color);
   }
-  
+
   .admin-actions {
     margin-top: 2rem;
   }
-  
+
   .admin-actions button {
     padding: 0.8rem 1.6rem;
     margin-right: 1rem;
@@ -28,7 +28,57 @@
     border-radius: 5px;
     cursor: pointer;
   }
-  
+
   .admin-actions button:hover {
     background-color: var(--accent-color-2);
+  }
+
+  .backup-panel {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--shadow-color);
+  }
+
+  .backup-status-list {
+    margin-bottom: 1rem;
+  }
+
+  .backup-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.8rem;
+    margin-bottom: 0.5rem;
+    border-radius: 5px;
+    border-left: 4px solid transparent;
+  }
+
+  .backup-status-row.backup-status--fresh {
+    border-left-color: #2e7d32;
+    background-color: rgba(46, 125, 50, 0.08);
+  }
+
+  .backup-status-row.backup-status--stale {
+    border-left-color: #c62828;
+    background-color: rgba(198, 40, 40, 0.08);
+  }
+
+  .backup-status-label {
+    font-weight: bold;
+    min-width: 6rem;
+  }
+
+  .backup-status-warning {
+    color: #c62828;
+    font-weight: bold;
+  }
+
+  .backup-status-error {
+    color: #c62828;
+  }
+
+  .backup-sync-message {
+    margin-top: 0.8rem;
+    font-style: italic;
   }

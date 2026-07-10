@@ -55,6 +55,16 @@ const MapComponent = ({
   useEffect(() => {
     if (!map) return;
 
+    if (showInfoCard) {
+      map.dragging.disable();
+    } else {
+      map.dragging.enable();
+    }
+  }, [map, showInfoCard]);
+
+  useEffect(() => {
+    if (!map) return;
+
     const visibleMarkers: L.Marker[] = [];
     map.eachLayer((layer) => {
       if (layer instanceof L.Marker) {
@@ -76,7 +86,7 @@ const MapComponent = ({
   }, [map]);
 
   return (
-    <div>
+    <div className="wrapper">
       <MapContainer
         id="map"
         className={adjustMapHeight ? 'infoMap_adjusted' : 'infoMap'}

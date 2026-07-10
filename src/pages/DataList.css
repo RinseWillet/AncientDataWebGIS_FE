@@ -6,13 +6,31 @@
     border: 1px solid var(--box-color-2);
     background-color: var(--font-color-1);
     box-shadow: 0 2px 10px var(--shadow-color);
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+/* DataList pagebox layout */
+.pagebox > .typeSwitch {
+    flex-shrink: 0;
     margin-bottom: 1rem;
+}
+
+.pagebox > .table-container {
+    margin-bottom: 0;
+}
+
+.table-scroll-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .react-table {
     width: 100%;
     border-collapse: collapse;
-    font-family: var(--project-font-family);
+    font-family: var(--project-font-family), sans-serif;
     font-size: 1.4rem;
     background-color: white;
     color: var(--font-color-3);
@@ -49,6 +67,7 @@
 }
 
 .pagination {
+    flex-shrink: 0;
     margin-top: 1rem;
     margin-bottom: 1rem;
     display: flex;
@@ -117,7 +136,7 @@
     height: 2.8rem;
     transition: background-color 0.1s ease, border-color 0.2s ease;
     cursor: pointer;
-    box-shadow: 1px 1px 10 px rgba(0, 0, 0, 0.748);
+    box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.748);
     position: relative;
 }
 
@@ -129,7 +148,7 @@
     border-radius: 99px;
     transition: left 0.15s ease;
     left: 3px;
-    top: 0%;
+    top: 0;
 }
 
 .dataSwitch-btn.switched {
@@ -145,6 +164,7 @@
 }
 
 .status-msg {
+    flex-shrink: 0;
     padding: 0.5rem;
     font-size: 0.95rem;
     color: #333;
@@ -175,4 +195,14 @@
     .react-table td {
         padding: 0.4rem;
     }
+}
+
+/* ── large desktop: full-height single-page layout ──────── */
+@media screen and (min-width: 1200px) {
+
+  /* Prevent pagebox outer scroll when table-container can handle internal scroll */
+  .pagebox:has(> .table-container) {
+    overflow: hidden;
+    height: 100%;
+  }
 }

@@ -5,13 +5,13 @@ import type { RootState } from '../app/store';
 import { fetchRoads } from '../features/road/roadThunks';
 import { fetchSites } from '../features/site/siteThunks';
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getPaginationRowModel,
-  flexRender,
   type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
   type Row,
+  useReactTable,
 } from '@tanstack/react-table';
 import './DataList.css';
 
@@ -46,33 +46,35 @@ const getInitialPageSize = (): number => {
 const DataList = () => {
   const navigate = useNavigate();
   const [dataSwitch, setDataSwitch] = useState(false); // false = Roads, true = Sites
-  const { siteData, loading: siteLoading, error: siteError } = useAppSelector(
-    (state: RootState) => state.sites,
-  );
+  const {
+    siteData,
+    loading: siteLoading,
+    error: siteError,
+  } = useAppSelector((state: RootState) => state.sites);
   const { roadData, loading, error } = useAppSelector((state: RootState) => state.roads);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!dataSwitch) {
-      dispatch(fetchRoads());
-    } else {
+    if (dataSwitch) {
       dispatch(fetchSites());
+    } else {
+      dispatch(fetchRoads());
     }
   }, [dispatch, dataSwitch]);
 
   const columns = useMemo<ColumnDef<RowItem>[]>(() => {
-    if (!dataSwitch) {
+    if (dataSwitch) {
       return [
         { id: 'id', header: 'ID', accessorKey: 'id' },
         { id: 'name', header: 'Name', accessorKey: 'name' },
-        { id: 'type', header: 'Type', accessorKey: 'type' },
-        { id: 'date', header: 'Date', accessorKey: 'date' },
+        { id: 'siteType', header: 'Type', accessorKey: 'type' },
       ];
     } else {
       return [
         { id: 'id', header: 'ID', accessorKey: 'id' },
         { id: 'name', header: 'Name', accessorKey: 'name' },
-        { id: 'siteType', header: 'Type', accessorKey: 'type' },
+        { id: 'type', header: 'Type', accessorKey: 'type' },
+        { id: 'date', header: 'Date', accessorKey: 'date' },
       ];
     }
   }, [dataSwitch]);
@@ -80,7 +82,7 @@ const DataList = () => {
   const rowData = useMemo<RowItem[]>(() => {
     const source = dataSwitch
       ? (siteData as GeoJsonCollection | null)?.features
-      : (roadData as GeoJsonCollection | null)?.features ?? [];
+      : ((roadData as GeoJsonCollection | null)?.features ?? []);
 
     if (!Array.isArray(source)) return [];
 
@@ -109,10 +111,10 @@ const DataList = () => {
 
   const handleRowClick = (row: Row<RowItem>) => {
     const id = row.original.id;
-    if (!dataSwitch) {
-      navigate(`roadinfo/${id}`);
-    } else {
+    if (dataSwitch) {
       navigate(`siteinfo/${id}`);
+    } else {
+      navigate(`roadinfo/${id}`);
     }
   };
 
@@ -134,33 +136,35 @@ const DataList = () => {
         {!dataSwitch && error && <p className="status-msg error">{error}</p>}
         {dataSwitch && siteLoading && <p className="status-msg">Loading sites...</p>}
         {dataSwitch && siteError && <p className="status-msg error">{siteError}</p>}
-        <table className="react-table">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                    {({ asc: ' 🔼', desc: ' 🔽' } as Record<string, string>)[
-                      header.column.getIsSorted() as string
-                    ] ?? null}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} onClick={() => handleRowClick(row)}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-scroll-wrapper">
+          <table className="react-table">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id} onClick={header.column.getToggleSortingHandler()}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      {({ asc: ' 🔼', desc: ' 🔽' } as Record<string, string>)[
+                        header.column.getIsSorted() as string
+                      ] ?? null}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} onClick={() => handleRowClick(row)}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="pagination">
           <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             Prev
@@ -178,4 +182,3 @@ const DataList = () => {
 };
 
 export default DataList;
-
