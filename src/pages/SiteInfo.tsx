@@ -10,6 +10,7 @@ import MapComponent from '../components/MapComponent/MapComponent';
 import { geoJSONtoWKT } from '../utils/geometryUtils';
 import ModernReferencePicker from '../components/ModernReferencePicker/ModernReferencePicker';
 import MediaGallery from '../components/MediaGallery/MediaGallery';
+import type { MediaAsset } from '../types/media';
 import './InfoPage.css';
 
 interface ModernReference {
@@ -84,6 +85,7 @@ const SiteInfo = () => {
 
   const { selectedSite, loading } = useAppSelector((state: RootState) => state.sites);
   const [selectedReferences, setSelectedReferences] = useState<ModernReference[]>([]);
+  const [galleryAssets, setGalleryAssets] = useState<MediaAsset[]>([]);
   const { referencesBySiteId } = useAppSelector((state: RootState) => state.modRef);
   const modRef = referencesBySiteId[id ?? ''] as ModernReference[] | undefined;
 
@@ -134,6 +136,22 @@ const SiteInfo = () => {
   if (!feature) return <p>No feature found</p>;
 
   const { properties = {}, geometry = {} as GeoJsonGeometry } = feature;
+
+  // Point coordinates are [lng, lat]; fall back to app default center
+  const pointCoord = geometry.coordinates as number[] | undefined;
+  const initialMapCenter = pointCoord
+    ? { lat: pointCoord[1], lng: pointCoord[0] }
+    : { lat: 51.8, lng: 5.8 };
+
+  const photoMarkers = galleryAssets
+    .filter((asset) => asset.latitude != null && asset.longitude != null)
+    .map((asset) => ({
+      id: asset.id,
+      latitude: asset.latitude as number,
+      longitude: asset.longitude as number,
+      fullUrl: asset.fullUrl,
+      caption: asset.caption,
+    }));
 
   const handleSave = async () => {
     try {
@@ -235,10 +253,17 @@ const SiteInfo = () => {
               isEditing={isEditing}
               geometry={editFormData.geom}
               onGeometryChange={(newWkt) => setEditFormData((prev) => ({ ...prev, geom: newWkt }))}
+              photoMarkers={photoMarkers}
             />
           </div>
           <div className="infopage-image">
-            <MediaGallery targetType="SITE" targetId={id ?? ''} isAdmin={isAdmin} />
+            <MediaGallery
+              targetType="SITE"
+              targetId={id ?? ''}
+              isAdmin={isAdmin}
+              initialMapCenter={initialMapCenter}
+              onAssetsChange={setGalleryAssets}
+            />
           </div>
           <button className="back-btn" onClick={backButtonHandler}>BACK</button>
         </div>

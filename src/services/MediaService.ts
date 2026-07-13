@@ -10,6 +10,8 @@ export interface MediaUploadParams {
   source?: string;
   license?: string;
   dateTaken?: string;
+  latitude?: number;
+  longitude?: number;
   isCover?: boolean;
 }
 
@@ -19,6 +21,8 @@ export interface MediaUpdateParams {
   source?: string;
   license?: string;
   dateTaken?: string;
+  latitude?: number;
+  longitude?: number;
   isCover?: boolean;
   visibilityStatus?: string;
 }
@@ -54,6 +58,8 @@ const MediaService = {
     if (params.source) formData.append('source', params.source);
     if (params.license) formData.append('license', params.license);
     if (params.dateTaken) formData.append('dateTaken', params.dateTaken);
+    if (params.latitude !== undefined) formData.append('latitude', String(params.latitude));
+    if (params.longitude !== undefined) formData.append('longitude', String(params.longitude));
     if (params.isCover) formData.append('isCover', 'true');
 
     const response = await apiClient.post<MediaAsset>('/media', formData, {
@@ -72,6 +78,8 @@ const MediaService = {
     if (params.source !== undefined) searchParams.append('source', params.source);
     if (params.license !== undefined) searchParams.append('license', params.license);
     if (params.dateTaken !== undefined) searchParams.append('dateTaken', params.dateTaken);
+    if (params.latitude !== undefined) searchParams.append('latitude', String(params.latitude));
+    if (params.longitude !== undefined) searchParams.append('longitude', String(params.longitude));
     if (params.isCover !== undefined) searchParams.append('isCover', String(params.isCover));
     if (params.visibilityStatus !== undefined)
       searchParams.append('visibilityStatus', params.visibilityStatus);

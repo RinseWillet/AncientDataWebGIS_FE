@@ -26,6 +26,7 @@ interface MapBuilderProps {
   geometry?: string;
   onGeometryChange?: (wkt: string) => void;
   siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>>;
+  photoMarkers?: PhotoMarker[];
 }
 
 const MapBuilder = ({
@@ -37,6 +38,7 @@ const MapBuilder = ({
   geometry,
   onGeometryChange,
   siteMarkersRef,
+  photoMarkers,
 }: MapBuilderProps) => {
   const dispatch = useAppDispatch();
 
@@ -68,6 +70,7 @@ const MapBuilder = ({
       geometry={geometry}
       onGeometryChange={onGeometryChange}
       siteMarkersRef={siteMarkersRef}
+      photoMarkers={photoMarkers}
     />
   );
 };

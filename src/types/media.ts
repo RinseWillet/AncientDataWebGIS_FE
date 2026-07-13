@@ -8,6 +8,8 @@ export interface MediaAsset {
   source: string | null;
   license: string | null;
   dateTaken: string | null;
+  latitude: number | null;
+  longitude: number | null;
   isCover: boolean;
   visibilityStatus: string;
   createdAt: string;

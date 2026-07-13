@@ -1,4 +1,4 @@
-import { GeoJSON, LayersControl, ScaleControl, TileLayer, useMap, WMSTileLayer } from 'react-leaflet';
+import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, TileLayer, useMap, WMSTileLayer } from 'react-leaflet';
 import L, { Icon, DivIcon, PathOptions, LeafletMouseEvent } from 'leaflet';
 import {
   castellumIcon,
@@ -10,6 +10,7 @@ import {
   legionaryFortIcon,
   mileStoneIcon,
   notShowRoad,
+  photoPinIcon,
   possibleCastellumIcon,
   possibleRoad,
   possibleShipIcon,
@@ -40,6 +41,14 @@ interface QueryItem {
   id: string | number;
 }
 
+export interface PhotoMarker {
+  id: number;
+  latitude: number;
+  longitude: number;
+  fullUrl: string;
+  caption?: string | null;
+}
+
 interface MapContentProps {
   siteData: object;
   roadData: object;
@@ -51,6 +60,7 @@ interface MapContentProps {
   geometry?: string;
   onGeometryChange?: (wkt: string) => void;
   siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>>;
+  photoMarkers?: PhotoMarker[];
 }
 
 const siteIconMap: Record<string, Icon | DivIcon> = {
@@ -96,6 +106,7 @@ const MapContent = ({
   geometry,
   onGeometryChange = () => {},
   siteMarkersRef,
+  photoMarkers = [],
 }: MapContentProps) => {
   const map = useMap();
   const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
@@ -277,6 +288,21 @@ const MapContent = ({
               }}
            />
          </LayersControl.Overlay>
+
+        {photoMarkers.length > 0 && (
+          <LayersControl.Overlay checked name="Photos">
+            <>
+              {photoMarkers.map((photo) => (
+                <Marker key={photo.id} position={[photo.latitude, photo.longitude]} icon={photoPinIcon}>
+                  <Popup>
+                    <img src={photo.fullUrl} alt={photo.caption ?? ''} style={{ maxWidth: '180px', display: 'block' }} />
+                    {photo.caption && <span>{photo.caption}</span>}
+                  </Popup>
+                </Marker>
+              ))}
+            </>
+          </LayersControl.Overlay>
+        )}
       </LayersControl>
 
       {isEditing && (

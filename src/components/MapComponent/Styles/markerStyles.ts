@@ -24,6 +24,13 @@ export const highlightedSiteIcon = L.divIcon({
   iconAnchor: [15, 42],
 });
 
+export const photoPinIcon = L.divIcon({
+  className: 'photo-pin-icon',
+  html: "<div class='photo-pin'>📷</div>",
+  iconSize: [28, 28],
+  iconAnchor: [14, 28],
+});
+
 const makeIcon = (iconUrl: string): Icon =>
   new Icon({ iconUrl, iconSize: [30, 30] });
 

@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import MediaService from '../../services/MediaService';
 import ErrorModal from '../ErrorModal/ErrorModal';
+import PhotoLocationPicker from './PhotoLocationPicker';
 import './MediaUploadForm.css';
 
 interface MediaUploadFormProps {
   targetType: 'ROAD' | 'SITE';
   targetId: string;
   onUploadSuccess: () => void;
+  initialMapCenter: { lat: number; lng: number };
 }
 
 const extractErrorMessage = (error: unknown): string => {
@@ -40,7 +42,7 @@ const extractErrorMessage = (error: unknown): string => {
   return defaultMessage;
 };
 
-const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadFormProps) => {
+const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCenter }: MediaUploadFormProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState('');
@@ -49,6 +51,8 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
   const [license, setLicense] = useState('');
   const [dateTaken, setDateTaken] = useState('');
   const [isCover, setIsCover] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [uploading, setUploading] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -61,6 +65,8 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
     setLicense('');
     setDateTaken('');
     setIsCover(false);
+    setShowLocationPicker(false);
+    setLocation(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -83,6 +89,8 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
         source: source || undefined,
         license: license || undefined,
         dateTaken: dateTaken || undefined,
+        latitude: location?.lat,
+        longitude: location?.lng,
         isCover,
       });
       resetForm();
@@ -175,6 +183,26 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess }: MediaUploadF
         />
         <span>Set as cover image</span>
       </label>
+
+      <label className="media-upload__checkbox-label">
+        <input
+          type="checkbox"
+          checked={showLocationPicker}
+          onChange={(e) => {
+            setShowLocationPicker(e.target.checked);
+            if (!e.target.checked) setLocation(null);
+          }}
+        />
+        <span>Pin location on map (overrides photo EXIF GPS, if any)</span>
+      </label>
+
+      {showLocationPicker && (
+        <PhotoLocationPicker
+          value={location}
+          onChange={setLocation}
+          initialCenter={initialMapCenter}
+        />
+      )}
 
       <div style={{ marginTop: '1rem' }}>
         <button type="submit" className="info-btn" disabled={uploading}>

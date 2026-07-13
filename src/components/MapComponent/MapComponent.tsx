@@ -26,6 +26,7 @@ interface MapComponentProps {
   isEditing?: boolean;
   geometry?: string;
   onGeometryChange?: (wkt: string) => void;
+  photoMarkers?: PhotoMarker[];
 }
 
 const MapComponent = ({
@@ -34,6 +35,7 @@ const MapComponent = ({
   isEditing,
   geometry,
   onGeometryChange = () => {},
+  photoMarkers,
 }: MapComponentProps) => {
   const [map, setMap] = useState<L.Map | null>(null);
   const [showInfoCard, setShowInfoCard] = useState(false);
@@ -109,6 +111,7 @@ const MapComponent = ({
           geometry={geometry}
           onGeometryChange={onGeometryChange}
           siteMarkersRef={siteMarkersRef}
+          photoMarkers={photoMarkers}
         />
       </MapContainer>
     </div>

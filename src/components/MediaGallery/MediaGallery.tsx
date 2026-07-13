@@ -2,12 +2,15 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import type { MediaAsset } from '../../types/media';
 import MediaService, { type MediaUpdateParams } from '../../services/MediaService';
 import MediaUploadForm from './MediaUploadForm';
+import PhotoLocationPicker from './PhotoLocationPicker';
 import './MediaGallery.css';
 
 interface MediaGalleryProps {
   targetType: 'ROAD' | 'SITE';
   targetId: string;
   isAdmin?: boolean;
+  initialMapCenter: { lat: number; lng: number };
+  onAssetsChange?: (assets: MediaAsset[]) => void;
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -16,12 +19,13 @@ const STATUS_LABELS: Record<string, string> = {
   HIDDEN: 'Hidden',
 };
 
-const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryProps) => {
+const MediaGallery = ({ targetType, targetId, isAdmin = false, initialMapCenter, onAssetsChange }: MediaGalleryProps) => {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<MediaAsset | null>(null);
   const [editing, setEditing] = useState<MediaAsset | null>(null);
   const [editForm, setEditForm] = useState<MediaUpdateParams>({});
+  const [editShowLocationPicker, setEditShowLocationPicker] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -32,10 +36,11 @@ const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryPro
         ? await MediaService.findByTargetAdmin(targetType, targetId)
         : await MediaService.findByTarget(targetType, targetId);
       setAssets(data);
+      onAssetsChange?.(data);
     } catch {
       setError('Could not load images.');
     }
-  }, [targetType, targetId, isAdmin]);
+  }, [targetType, targetId, isAdmin, onAssetsChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,14 +50,17 @@ const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryPro
         const data = isAdmin
           ? await MediaService.findByTargetAdmin(targetType, targetId)
           : await MediaService.findByTarget(targetType, targetId);
-        if (!cancelled) setAssets(data);
+        if (!cancelled) {
+          setAssets(data);
+          onAssetsChange?.(data);
+        }
       } catch {
         if (!cancelled) setError('Could not load images.');
       }
     };
     load();
     return () => { cancelled = true; };
-  }, [targetType, targetId, isAdmin]);
+  }, [targetType, targetId, isAdmin, onAssetsChange]);
 
   const openLightbox = useCallback((asset: MediaAsset) => {
     setSelected(asset);
@@ -86,9 +94,12 @@ const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryPro
       source: asset.source ?? '',
       license: asset.license ?? '',
       dateTaken: asset.dateTaken ?? '',
+      latitude: asset.latitude ?? undefined,
+      longitude: asset.longitude ?? undefined,
       isCover: asset.isCover,
       visibilityStatus: asset.visibilityStatus,
     });
+    setEditShowLocationPicker(asset.latitude != null && asset.longitude != null);
   };
 
   const handleEditSubmit = async (e: FormEvent) => {
@@ -131,6 +142,7 @@ const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryPro
           targetType={targetType}
           targetId={targetId}
           onUploadSuccess={fetchAssets}
+          initialMapCenter={initialMapCenter}
         />
       )}
 
@@ -252,6 +264,32 @@ const MediaGallery = ({ targetType, targetId, isAdmin = false }: MediaGalleryPro
             <label className="info-label" htmlFor="edit-date">Date Taken</label>
             <input id="edit-date" className="info-input" type="date" value={editForm.dateTaken ?? ''}
               onChange={(e) => setEditForm({ ...editForm, dateTaken: e.target.value })} />
+
+            <label className="media-upload__checkbox-label">
+              <input
+                type="checkbox"
+                checked={editShowLocationPicker}
+                onChange={(e) => {
+                  setEditShowLocationPicker(e.target.checked);
+                  if (!e.target.checked) {
+                    setEditForm({ ...editForm, latitude: undefined, longitude: undefined });
+                  }
+                }}
+              />
+              <span>Pin location on map</span>
+            </label>
+
+            {editShowLocationPicker && (
+              <PhotoLocationPicker
+                value={
+                  editForm.latitude != null && editForm.longitude != null
+                    ? { lat: editForm.latitude, lng: editForm.longitude }
+                    : null
+                }
+                onChange={(loc) => setEditForm({ ...editForm, latitude: loc.lat, longitude: loc.lng })}
+                initialCenter={initialMapCenter}
+              />
+            )}
 
             <label className="info-label" htmlFor="edit-visibility">Visibility</label>
             <select id="edit-visibility" className="info-input" value={editForm.visibilityStatus ?? 'APPROVED'}

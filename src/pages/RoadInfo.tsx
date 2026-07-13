@@ -79,6 +79,7 @@ const RoadInfo = () => {
   const modRef = referencesByRoadId[id ?? ''] as ModernReference[] | undefined;
 
   const [selectedReferences, setSelectedReferences] = useState<ModernReference[]>([]);
+  const [galleryAssets, setGalleryAssets] = useState<MediaAsset[]>([]);
 
   const navigate = useNavigate();
   const backButtonHandler = () => navigate('/datalist/');
@@ -110,6 +111,22 @@ const RoadInfo = () => {
       name, type, typeDescription, location,
       description, date, references, historicalReferences,
     } = properties;
+
+    // MultiLineString coordinates are [lng, lat]; fall back to app default center
+    const firstCoord = (feature.geometry?.coordinates as number[][][] | undefined)?.[0]?.[0];
+    const initialMapCenter = firstCoord
+      ? { lat: firstCoord[1], lng: firstCoord[0] }
+      : { lat: 51.8, lng: 5.8 };
+
+    const photoMarkers = galleryAssets
+      .filter((asset) => asset.latitude != null && asset.longitude != null)
+      .map((asset) => ({
+        id: asset.id,
+        latitude: asset.latitude as number,
+        longitude: asset.longitude as number,
+        fullUrl: asset.fullUrl,
+        caption: asset.caption,
+      }));
 
     const modernReferenceRenderer = (refs: ModernReference[]) => {
       if (refs.length > 0) {
@@ -226,10 +243,17 @@ const RoadInfo = () => {
                   isEditing={isEditing}
                   geometry={editFormData.geom}
                   onGeometryChange={(newWkt) => setEditFormData((prev) => ({ ...prev, geom: newWkt }))}
+                  photoMarkers={photoMarkers}
                 />
               </div>
               <div className="infopage-image">
-                <MediaGallery targetType="ROAD" targetId={id ?? ''} isAdmin={isAdmin} />
+                <MediaGallery
+                  targetType="ROAD"
+                  targetId={id ?? ''}
+                  isAdmin={isAdmin}
+                  initialMapCenter={initialMapCenter}
+                  onAssetsChange={setGalleryAssets}
+                />
               </div>
               <button className="back-btn" onClick={backButtonHandler}>BACK</button>
             </div>

@@ -19,6 +19,16 @@ vi.mock('./MediaUploadForm', () => ({
   ),
 }));
 
+vi.mock('./PhotoLocationPicker', () => ({
+  default: ({ onChange }: { onChange: (v: { lat: number; lng: number }) => void }) => (
+    <button type="button" data-testid="mock-edit-location-picker" onClick={() => onChange({ lat: 1, lng: 2 })}>
+      Mock Location Picker
+    </button>
+  ),
+}));
+
+const CENTER = { lat: 51.8, lng: 5.8 };
+
 const mockAssets: MediaAsset[] = [
   {
     id: 1,
@@ -30,6 +40,8 @@ const mockAssets: MediaAsset[] = [
     source: 'fieldwork',
     license: 'CC-BY-4.0',
     dateTaken: '2025-06-15',
+    latitude: 52.09,
+    longitude: 5.12,
     isCover: true,
     visibilityStatus: 'APPROVED',
     createdAt: '2026-01-01T00:00:00Z',
@@ -45,6 +57,8 @@ const mockAssets: MediaAsset[] = [
     source: null,
     license: null,
     dateTaken: null,
+    latitude: null,
+    longitude: null,
     isCover: false,
     visibilityStatus: 'APPROVED',
     createdAt: '2026-01-02T00:00:00Z',
@@ -61,7 +75,7 @@ describe('MediaGallery', () => {
   });
   it('renders images when assets are available', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" />);
+    render(<MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Photos')).toBeInTheDocument();
     });
@@ -72,21 +86,21 @@ describe('MediaGallery', () => {
   });
   it('shows empty message when no assets', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue([]);
-    render(<MediaGallery targetType="SITE" targetId="42" />);
+    render(<MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('No images available.')).toBeInTheDocument();
     });
   });
   it('shows error message on fetch failure', async () => {
     vi.mocked(MediaService.findByTarget).mockRejectedValue(new Error('fail'));
-    render(<MediaGallery targetType="ROAD" targetId="10" />);
+    render(<MediaGallery targetType="ROAD" targetId="10" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Could not load images.')).toBeInTheDocument();
     });
   });
   it('opens lightbox when image button is clicked', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" />);
+    render(<MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -99,7 +113,7 @@ describe('MediaGallery', () => {
   });
   it('closes lightbox on close button click', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" />);
+    render(<MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -111,7 +125,7 @@ describe('MediaGallery', () => {
   });
   it('calls MediaService with correct parameters', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue([]);
-    render(<MediaGallery targetType="ROAD" targetId="7" />);
+    render(<MediaGallery targetType="ROAD" targetId="7" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(MediaService.findByTarget).toHaveBeenCalledWith('ROAD', '7');
     });
@@ -120,7 +134,7 @@ describe('MediaGallery', () => {
   // Admin feature tests
   it('uses admin endpoint when isAdmin is true', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(MediaService.findByTargetAdmin).toHaveBeenCalledWith('SITE', '42');
     });
@@ -128,14 +142,14 @@ describe('MediaGallery', () => {
   });
   it('shows upload form when isAdmin is true', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByTestId('mock-upload')).toBeInTheDocument();
     });
   });
   it('does not show upload form when isAdmin is false', async () => {
     vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" />);
+    render(<MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Photos')).toBeInTheDocument();
     });
@@ -147,7 +161,7 @@ describe('MediaGallery', () => {
       { ...mockAssets[1], visibilityStatus: 'HIDDEN' },
     ];
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mixedAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Pending')).toBeInTheDocument();
       expect(screen.getByText('Hidden')).toBeInTheDocument();
@@ -155,14 +169,14 @@ describe('MediaGallery', () => {
   });
   it('shows cover badge for cover images when admin', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Cover')).toBeInTheDocument();
     });
   });
   it('shows admin controls in lightbox when isAdmin is true', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -173,7 +187,7 @@ describe('MediaGallery', () => {
   });
   it('shows delete confirmation when delete is clicked', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -186,7 +200,7 @@ describe('MediaGallery', () => {
   it('deletes media on confirm', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
     vi.mocked(MediaService.deleteMedia).mockResolvedValue(undefined);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -200,7 +214,7 @@ describe('MediaGallery', () => {
   });
   it('opens edit form when edit is clicked', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getAllByRole('listitem')).toHaveLength(2);
     });
@@ -213,7 +227,7 @@ describe('MediaGallery', () => {
   });
   it('shows empty state with upload option for admin when no assets', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue([]);
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('No images uploaded yet.')).toBeInTheDocument();
     });
@@ -221,10 +235,56 @@ describe('MediaGallery', () => {
   });
   it('shows upload form even when fetch fails for admin', async () => {
     vi.mocked(MediaService.findByTargetAdmin).mockRejectedValue(new Error('fail'));
-    render(<MediaGallery targetType="SITE" targetId="42" isAdmin />);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
     await waitFor(() => {
       expect(screen.getByText('Could not load images.')).toBeInTheDocument();
     });
     expect(screen.getByTestId('mock-upload')).toBeInTheDocument();
+  });
+
+  // Geotagging tests (E2-GEO-1)
+  it('reports fetched assets via onAssetsChange', async () => {
+    vi.mocked(MediaService.findByTarget).mockResolvedValue(mockAssets);
+    const onAssetsChange = vi.fn();
+    render(
+      <MediaGallery targetType="SITE" targetId="42" initialMapCenter={CENTER} onAssetsChange={onAssetsChange} />,
+    );
+    await waitFor(() => {
+      expect(onAssetsChange).toHaveBeenCalledWith(mockAssets);
+    });
+  });
+
+  it('pre-checks the location picker toggle when editing a geotagged photo', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    fireEvent.click(screen.getByText('Edit'));
+    // mockAssets[0] (shown first, the cover image) has a latitude/longitude set
+    expect(screen.getByTestId('mock-edit-location-picker')).toBeInTheDocument();
+  });
+
+  it('updates latitude/longitude when the edit location picker changes', async () => {
+    vi.mocked(MediaService.findByTargetAdmin).mockResolvedValue(mockAssets);
+    vi.mocked(MediaService.updateMetadata).mockResolvedValue(mockAssets[0]);
+    render(<MediaGallery targetType="SITE" targetId="42" isAdmin initialMapCenter={CENTER} />);
+    await waitFor(() => {
+      expect(screen.getAllByRole('listitem')).toHaveLength(2);
+    });
+    const imageButton = screen.getAllByRole('button').find(b => b.classList.contains('media-gallery__button'));
+    fireEvent.click(imageButton!);
+    fireEvent.click(screen.getByText('Edit'));
+    fireEvent.click(screen.getByTestId('mock-edit-location-picker'));
+    fireEvent.click(screen.getByText('Save'));
+
+    await waitFor(() => {
+      expect(MediaService.updateMetadata).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({ latitude: 1, longitude: 2 }),
+      );
+    });
   });
 });
