@@ -21,6 +21,7 @@ interface MapBuilderProps {
   setShowInfoCard: (show: boolean) => void;
   setSearchItem: (item: SearchItem) => void;
   queryItem?: QueryItem;
+  focusItem?: QueryItem;
   searchItem?: SearchItem;
   isEditing?: boolean;
   geometry?: string;
@@ -33,6 +34,7 @@ const MapBuilder = ({
   setShowInfoCard,
   setSearchItem,
   queryItem,
+  focusItem,
   searchItem,
   isEditing,
   geometry,
@@ -65,6 +67,7 @@ const MapBuilder = ({
       setShowInfoCard={setShowInfoCard}
       setSearchItem={setSearchItem}
       queryItem={queryItem}
+      focusItem={focusItem}
       searchItem={searchItem}
       isEditing={isEditing}
       geometry={geometry}

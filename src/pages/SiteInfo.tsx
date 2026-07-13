@@ -102,6 +102,7 @@ const SiteInfo = () => {
   });
 
   const backButtonHandler = () => navigate('/datalist/');
+  const viewOnMapHandler = () => navigate('/atlas/site_' + id);
 
   useEffect(() => {
     if (id) {
@@ -265,7 +266,10 @@ const SiteInfo = () => {
               onAssetsChange={setGalleryAssets}
             />
           </div>
-          <button className="back-btn" onClick={backButtonHandler}>BACK</button>
+          <div className="infopage-actions">
+            <button className="back-btn" onClick={backButtonHandler}>BACK</button>
+            <button className="map-btn" onClick={viewOnMapHandler}>View on Map</button>
+          </div>
         </div>
       </div>
     </div>

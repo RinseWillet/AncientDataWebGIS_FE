@@ -1,0 +1,10 @@
+.atlas-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atlas-close-btn {
+  margin-top: 1rem;
+}
+

@@ -22,6 +22,7 @@ interface QueryItem {
 
 interface MapComponentProps {
   queryItem?: QueryItem;
+  focusItem?: QueryItem;
   adjustMapHeight?: boolean;
   isEditing?: boolean;
   geometry?: string;
@@ -31,6 +32,7 @@ interface MapComponentProps {
 
 const MapComponent = ({
   queryItem,
+  focusItem,
   adjustMapHeight,
   isEditing,
   geometry,
@@ -106,6 +108,7 @@ const MapComponent = ({
           setShowInfoCard={setShowInfoCard}
           setSearchItem={setSearchItem}
           queryItem={queryItem}
+          focusItem={focusItem}
           searchItem={searchItem}
           isEditing={isEditing}
           geometry={geometry}

@@ -29,7 +29,7 @@ import './MapContent.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import GeometryEditor from '../GeometryEditor/GeometryEditor';
-import { useEffect, MutableRefObject, useRef, useCallback } from 'react';
+import { useEffect, useState, MutableRefObject, useRef, useCallback } from 'react';
 
 interface SearchItem {
   type: string;
@@ -55,6 +55,7 @@ interface MapContentProps {
   setShowInfoCard: (show: boolean) => void;
   setSearchItem: (item: SearchItem) => void;
   queryItem?: QueryItem;
+  focusItem?: QueryItem;
   searchItem?: SearchItem;
   isEditing?: boolean;
   geometry?: string;
@@ -101,6 +102,7 @@ const MapContent = ({
   setShowInfoCard,
   setSearchItem,
   queryItem,
+  focusItem,
   searchItem,
   isEditing,
   geometry,
@@ -111,18 +113,35 @@ const MapContent = ({
   const map = useMap();
   const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
 
+  // queryItem drives the "arrived via SiteInfo/RoadInfo" highlight + zoom.
+  // focusItem is zoom-only (e.g. after closing back to the plain atlas):
+  // the view stays on the last selected item, but it is never highlighted,
+  // and the user is free to pan/zoom away from it immediately.
+  // Once the user makes a fresh selection by clicking any marker/road, a
+  // carried-over queryItem highlight should be dropped for good. Compared
+  // by value (not object identity) since a new queryItem object is created
+  // on every parent render even when it still refers to the same site/road.
+  const queryKey = queryItem ? `${queryItem.type}:${queryItem.id}` : '';
+  const [prevQueryKey, setPrevQueryKey] = useState(queryKey);
+  const [queryDismissed, setQueryDismissed] = useState(false);
+  if (queryKey !== prevQueryKey) {
+    setPrevQueryKey(queryKey);
+    setQueryDismissed(false);
+  }
+  const effectiveQueryItem = queryDismissed ? undefined : queryItem;
+
   let selectedRoadId: string | number | null = null;
   if (searchItem?.type === 'road') {
     selectedRoadId = searchItem.id;
-  } else if (queryItem?.type === 'road') {
-    selectedRoadId = queryItem.id;
+  } else if (effectiveQueryItem?.type === 'road') {
+    selectedRoadId = effectiveQueryItem.id;
   }
 
   useEffect(() => {
     if (!map) return;
     Object.entries(siteMarkersRef.current).forEach(([id, marker]) => {
       const isSelectedFromSearch = searchItem?.type === 'site' && String(searchItem.id) === String(id);
-      const isSelectedFromQuery = queryItem?.type === 'site' && String(queryItem.id) === String(id);
+      const isSelectedFromQuery = effectiveQueryItem?.type === 'site' && String(effectiveQueryItem.id) === String(id);
       if (isSelectedFromSearch || isSelectedFromQuery) {
         marker.setIcon(highlightedSiteIcon);
       } else {
@@ -133,7 +152,7 @@ const MapContent = ({
         marker.setIcon(icon);
       }
     });
-  }, [searchItem, queryItem, map, siteMarkersRef]);
+  }, [searchItem, effectiveQueryItem, map, siteMarkersRef]);
 
   const clickZoomSite = (e: LeafletMouseEvent) => {
     const marker = e.target as L.Marker;
@@ -180,6 +199,7 @@ const MapContent = ({
   const clickSite = (e: LeafletMouseEvent) => {
     const id = (e.sourceTarget as L.Marker & { feature?: { properties?: { id?: string | number } } })
       .feature?.properties?.id;
+    setQueryDismissed(true);
     setSearchItem({ type: 'site', id: id ?? '' });
     clickZoomSite(e);
     setTimeout(() => setShowInfoCard(true), 100);
@@ -188,29 +208,33 @@ const MapContent = ({
   const clickRoad = (e: LeafletMouseEvent) => {
     const id = (e.target as L.Path & { feature?: { properties?: { id?: string | number } } })
       .feature?.properties?.id;
+    setQueryDismissed(true);
     setSearchItem({ type: 'road', id: id ?? '' });
     clickZoomRoad(e.target as L.Path);
     setShowInfoCard(true);
   };
 
-  // Auto-zoom when queryItem is set (from SiteInfo/RoadInfo pages)
+  // Auto-zoom when queryItem or focusItem is set (from SiteInfo/RoadInfo
+  // pages, or when returning to the plain atlas focused on the last
+  // selected item after closing).
   useEffect(() => {
-    if (!map || !queryItem || queryItem.id === '') return;
+    const zoomTarget = queryItem?.id !== '' && queryItem?.id != null ? queryItem : focusItem;
+    if (!map || !zoomTarget || zoomTarget.id === '') return;
 
     let retryCount = 0;
     const maxRetries = 10; // Max 1 second of retries (10 * 100ms)
 
     const attemptZoom = () => {
-      if (queryItem.type === 'site') {
-        if (siteMarkersRef.current[queryItem.id]) {
-          zoomToPlace(queryItem.type, queryItem.id);
+      if (zoomTarget.type === 'site') {
+        if (siteMarkersRef.current[zoomTarget.id]) {
+          zoomToPlace(zoomTarget.type, zoomTarget.id);
         } else if (retryCount < maxRetries) {
           retryCount++;
           setTimeout(attemptZoom, 100);
         }
-      } else if (queryItem.type === 'road') {
-        if (roadLayersRef.current[queryItem.id]) {
-          zoomToPlace(queryItem.type, queryItem.id);
+      } else if (zoomTarget.type === 'road') {
+        if (roadLayersRef.current[zoomTarget.id]) {
+          zoomToPlace(zoomTarget.type, zoomTarget.id);
         } else if (retryCount < maxRetries) {
           retryCount++;
           setTimeout(attemptZoom, 100);
@@ -222,7 +246,7 @@ const MapContent = ({
     const delayedZoom = setTimeout(attemptZoom, 300);
 
     return () => clearTimeout(delayedZoom);
-  }, [queryItem, map, siteMarkersRef, roadLayersRef, zoomToPlace]);
+  }, [queryItem, focusItem, map, siteMarkersRef, roadLayersRef, zoomToPlace]);
 
   return (
     <>
