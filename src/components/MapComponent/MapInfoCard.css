@@ -7,3 +7,20 @@
     font-size: 18px;
     cursor: pointer;
   }
+
+.infoCard-detailsBtn {
+    display: block;
+    margin: 0.6rem 0;
+    padding: 0.4rem 0.9rem;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--accent-color-2);
+    color: white;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+.infoCard-detailsBtn:hover {
+    background-color: var(--accent-color);
+  }

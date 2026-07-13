@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { fetchSiteById } from '../../features/site/siteThunks';
@@ -55,6 +56,7 @@ interface GeoJsonCollection {
 
 const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const { selectedSite } = useAppSelector((state: RootState) => state.sites);
   const { selectedRoad } = useAppSelector((state: RootState) => state.roads);
@@ -101,6 +103,16 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
     );
   }
 
+  const detailsId = details.id ?? searchItem.id;
+
+  const viewDetails = () => {
+    if (searchItem.type === 'site') {
+      navigate(`/datalist/siteinfo/${detailsId}`);
+    } else if (searchItem.type === 'road') {
+      navigate(`/datalist/roadinfo/${detailsId}`);
+    }
+  };
+
   if (searchItem.type === 'site') {
     const siteType = siteTypeMap[details.siteType ?? ''] ?? 'unknown';
     return (
@@ -113,7 +125,9 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
         <b>Identification:</b>
         <br />
         {siteType}
-        <br />
+        <button className="infoCard-detailsBtn" onClick={viewDetails}>
+          View full details
+        </button>
         <span>
           <b>Description:</b>
           <br />
@@ -134,7 +148,9 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
         <b>Identification:</b>
         <br />
         {details.type} {details.typeDescription && <>– {details.typeDescription}</>}
-        <br />
+        <button className="infoCard-detailsBtn" onClick={viewDetails}>
+          View full details
+        </button>
         <b>Description:</b>
         <br />
         <span>{details.description}</span>
