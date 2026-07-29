@@ -3,7 +3,22 @@ import { getAuthToken } from '../features/authentication/authStorage';
 
 const defaultDevBaseUrl = 'http://localhost:8080/api';
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-const baseURL = configuredBaseUrl || (import.meta.env.DEV ? defaultDevBaseUrl : '/api');
+
+const normalizeBasePath = (basePath: string | undefined): string => {
+  if (!basePath || basePath.trim() === '') {
+    return '/';
+  }
+
+  const withLeadingSlash = basePath.startsWith('/') ? basePath : `/${basePath}`;
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`;
+};
+
+const getDefaultProdApiBaseUrl = (): string => {
+  const normalizedBasePath = normalizeBasePath(import.meta.env.VITE_BASE_PATH);
+  return normalizedBasePath === '/' ? '/api' : `${normalizedBasePath}api`;
+};
+
+const baseURL = configuredBaseUrl || (import.meta.env.DEV ? defaultDevBaseUrl : getDefaultProdApiBaseUrl());
 
 const apiClient = axios.create({
   baseURL,
@@ -32,5 +47,4 @@ apiClient.interceptors.request.use(
 );
 
 export default apiClient;
-
 
