@@ -9,7 +9,9 @@ import siteReducer from '../../features/site/siteSlice';
 import roadReducer from '../../features/road/roadSlice';
 import SiteService from '../../services/SiteService';
 import RoadService from '../../services/RoadService';
+import MediaService from '../../services/MediaService';
 import type { GeoJsonFeatureCollection } from '../../types/geoJson';
+import type { MediaAsset } from '../../types/media';
 
 vi.mock('../../services/SiteService', () => ({
   default: {
@@ -20,6 +22,12 @@ vi.mock('../../services/SiteService', () => ({
 vi.mock('../../services/RoadService', () => ({
   default: {
     findByIdGeoJson: vi.fn(),
+  },
+}));
+
+vi.mock('../../services/MediaService', () => ({
+  default: {
+    findByTarget: vi.fn(),
   },
 }));
 
@@ -82,6 +90,7 @@ describe('MapInfoCard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useNavigate).mockReturnValue(mockNavigate);
+    vi.mocked(MediaService.findByTarget).mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -127,6 +136,99 @@ describe('MapInfoCard', () => {
 
     expect(screen.getByText('Loading Data...')).toBeInTheDocument();
     expect(screen.queryByText('View full details')).not.toBeInTheDocument();
+  });
+
+  it('shows the cover image for a site when one is marked isCover', async () => {
+    vi.mocked(SiteService.findByIdGeoJson).mockResolvedValue({ data: siteFeatureCollection } as never);
+    const assets: MediaAsset[] = [
+      {
+        id: 1,
+        targetType: 'SITE',
+        targetId: 42,
+        fullUrl: '/media/not-cover.jpg',
+        caption: 'Not cover',
+        author: null,
+        source: null,
+        license: null,
+        dateTaken: null,
+        latitude: null,
+        longitude: null,
+        isCover: false,
+        visibilityStatus: 'APPROVED',
+        createdAt: '',
+        updatedAt: '',
+      },
+      {
+        id: 2,
+        targetType: 'SITE',
+        targetId: 42,
+        fullUrl: '/media/cover.jpg',
+        caption: 'Cover photo',
+        author: null,
+        source: null,
+        license: null,
+        dateTaken: null,
+        latitude: null,
+        longitude: null,
+        isCover: true,
+        visibilityStatus: 'APPROVED',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    vi.mocked(MediaService.findByTarget).mockResolvedValue(assets);
+
+    renderWithProviders({ type: 'site', id: 42 });
+
+    await waitFor(() => {
+      const img = screen.getByAltText('Cover photo') as HTMLImageElement;
+      expect(img).toBeInTheDocument();
+      expect(img.src).toContain('/media/cover.jpg');
+    });
+    expect(MediaService.findByTarget).toHaveBeenCalledWith('SITE', 42);
+  });
+
+  it('falls back to the first photo when no media asset is marked isCover', async () => {
+    vi.mocked(RoadService.findByIdGeoJson).mockResolvedValue({ data: roadFeatureCollection } as never);
+    const assets: MediaAsset[] = [
+      {
+        id: 3,
+        targetType: 'ROAD',
+        targetId: 7,
+        fullUrl: '/media/first.jpg',
+        caption: 'First photo',
+        author: null,
+        source: null,
+        license: null,
+        dateTaken: null,
+        latitude: null,
+        longitude: null,
+        isCover: false,
+        visibilityStatus: 'APPROVED',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    vi.mocked(MediaService.findByTarget).mockResolvedValue(assets);
+
+    renderWithProviders({ type: 'road', id: 7 });
+
+    await waitFor(() => {
+      expect(screen.getByAltText('First photo')).toBeInTheDocument();
+    });
+    expect(MediaService.findByTarget).toHaveBeenCalledWith('ROAD', 7);
+  });
+
+  it('does not render a cover image when no media assets exist', async () => {
+    vi.mocked(SiteService.findByIdGeoJson).mockResolvedValue({ data: siteFeatureCollection } as never);
+    vi.mocked(MediaService.findByTarget).mockResolvedValue([]);
+
+    renderWithProviders({ type: 'site', id: 42 });
+
+    await waitFor(() => {
+      expect(screen.getByText('Test Fort')).toBeInTheDocument();
+    });
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 });
 

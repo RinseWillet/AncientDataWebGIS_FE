@@ -1,0 +1,47 @@
+/* Drag handle: hidden on desktop/tablet, shown as a bottom-sheet grip on mobile. */
+.infoCard-dragHandle {
+  display: none;
+}
+
+.infoCard-dragHandle-bar {
+  display: block;
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background-color: #ccc;
+}
+
+@media screen and (max-width: 600px) {
+  .infoCard {
+    transition: height 0.25s ease;
+  }
+
+  .infoCard-dragHandle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: calc(100% + 30px);
+    /* ensure the draggable/tappable handle area is ≥ 44px tall */
+    min-height: 44px;
+    padding: 6px 0 10px;
+    margin: -15px -15px 4px;
+    cursor: grab;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .infoCard-dragHandle:active {
+    cursor: grabbing;
+  }
+
+  /* two mobile snap states, toggled by tapping/dragging the handle */
+  .infoCard.sheet-half {
+    height: 45%;
+  }
+
+  .infoCard.sheet-full {
+    height: 88%;
+  }
+}
+
+

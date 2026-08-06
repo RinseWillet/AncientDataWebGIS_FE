@@ -86,6 +86,9 @@
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
+    /* ensure tap target ≥ 44px tall on touch devices */
+    min-height: 44px;
+    min-width: 44px;
 }
 
 .pagination button:hover:enabled {

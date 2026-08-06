@@ -1,9 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import type { RootState } from '../../app/store';
 import { fetchSiteById } from '../../features/site/siteThunks';
 import { fetchRoadById } from '../../features/road/roadThunks';
+import MediaService from '../../services/MediaService';
+import type { MediaAsset } from '../../types/media';
+import BottomSheetCard from './BottomSheetCard';
 import './MapInfoCard.css';
 
 const siteTypeMap: Record<string, string> = {
@@ -60,6 +63,7 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
 
   const { selectedSite } = useAppSelector((state: RootState) => state.sites);
   const { selectedRoad } = useAppSelector((state: RootState) => state.roads);
+  const [coverImage, setCoverImage] = useState<MediaAsset | null>(null);
 
   useEffect(() => {
     if (!searchItem.type || !searchItem.id) return;
@@ -69,6 +73,26 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
       dispatch(fetchRoadById(searchItem.id as string));
     }
   }, [searchItem, dispatch]);
+
+  useEffect(() => {
+    if (searchItem.type !== 'site' && searchItem.type !== 'road') {
+      return;
+    }
+    let cancelled = false;
+    const targetType = searchItem.type === 'site' ? 'SITE' : 'ROAD';
+    MediaService.findByTarget(targetType, searchItem.id)
+      .then((assets) => {
+        if (cancelled) return;
+        const cover = assets.find((asset) => asset.isCover) ?? assets[0] ?? null;
+        setCoverImage(cover);
+      })
+      .catch(() => {
+        if (!cancelled) setCoverImage(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [searchItem]);
 
   const selectedRoadId = String(
     (selectedRoad as GeoJsonCollection | null)?.features?.[0]?.properties?.id
@@ -116,10 +140,17 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   if (searchItem.type === 'site') {
     const siteType = siteTypeMap[details.siteType ?? ''] ?? 'unknown';
     return (
-      <div className="infoCard">
+      <BottomSheetCard onDismiss={clearSelection}>
         <button className="closeBtn" onClick={clearSelection}>
           ✖
         </button>
+        {coverImage && (
+          <img
+            className="infoCard-coverImage"
+            src={coverImage.fullUrl}
+            alt={coverImage.caption ?? details.name ?? 'Site photo'}
+          />
+        )}
         <h2>{details.name}</h2>
         <br />
         <b>Identification:</b>
@@ -133,16 +164,23 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
           <br />
           {details.description}
         </span>
-      </div>
+      </BottomSheetCard>
     );
   }
 
   if (searchItem.type === 'road') {
     return (
-      <div className="infoCard">
+      <BottomSheetCard onDismiss={clearSelection}>
         <button className="closeBtn" onClick={clearSelection}>
           ✖
         </button>
+        {coverImage && (
+          <img
+            className="infoCard-coverImage"
+            src={coverImage.fullUrl}
+            alt={coverImage.caption ?? details.name ?? 'Road photo'}
+          />
+        )}
         <h2>{details.name}</h2>
         <br />
         <b>Identification:</b>
@@ -161,7 +199,7 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
             <span>{details.date}</span>
           </>
         )}
-      </div>
+      </BottomSheetCard>
     );
   }
 
