@@ -5,6 +5,7 @@ import type { GeoJsonFeatureCollection } from '../../types/geoJson';
 interface RoadState {
   roadData: GeoJsonFeatureCollection | null;
   selectedRoad: GeoJsonFeatureCollection | null;
+  selectedLoading: boolean;
   loading: boolean;
   error: string | null;
   loaded: boolean;
@@ -13,6 +14,7 @@ interface RoadState {
 const initialState: RoadState = {
   roadData: null,
   selectedRoad: null,
+  selectedLoading: false,
   loading: false,
   error: null,
   loaded: false,
@@ -39,6 +41,7 @@ const roadSlice = createSlice({
       state.roadData = null;
       state.selectedRoad = null;
       state.loading = false;
+      state.selectedLoading = false;
       state.error = null;
       state.loaded = false;
     },
@@ -46,26 +49,21 @@ const roadSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchRoadById.pending, (state) => {
-        state.loading = true;
+        state.selectedLoading = true;
         state.error = null;
       })
       .addCase(fetchRoadById.fulfilled, (state, action) => {
-        state.loading = false;
+        state.selectedLoading = false;
         state.selectedRoad = action.payload;
       })
       .addCase(fetchRoadById.rejected, (state, action) => {
-        state.loading = false;
+        state.selectedLoading = false;
         state.error = typeof action.payload === 'string' ? action.payload : null;
       });
   },
 });
 
-export const {
-  fetchRoadsStart,
-  fetchRoadsSuccess,
-  fetchRoadsFailure,
-  resetRoads,
-} = roadSlice.actions;
+export const { fetchRoadsStart, fetchRoadsSuccess, fetchRoadsFailure, resetRoads } =
+  roadSlice.actions;
 
 export default roadSlice.reducer;
-

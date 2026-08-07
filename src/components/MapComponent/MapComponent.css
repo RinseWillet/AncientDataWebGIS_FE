@@ -75,7 +75,9 @@
     height: 40vh;
   }
 
-  /* on small phones, card takes bottom strip instead of right panel */
+  /* on small phones, card takes bottom strip instead of right panel;
+     actual height (45%/88%) is set by the sheet-half/sheet-full classes
+     in BottomSheetCard.css based on the current bottom-sheet state */
   .infoCard {
     top: auto;
     bottom: 0;
@@ -83,12 +85,29 @@
     left: 0;
     width: 100%;
     max-width: 100%;
-    height: 50%;
     border-radius: 8px 8px 0 0;
     box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
     overflow-y: auto;
     pointer-events: auto;
     touch-action: manipulation;
   }
+
+  /* Leaflet's default zoom/layers controls (26px / ~36px) are undersized for
+     touch; bump them to a ≥ 44px tap target on mobile without changing the
+     overall control chrome/behaviour. */
+  .leaflet-touch .leaflet-bar a,
+  .leaflet-control-zoom-in,
+  .leaflet-control-zoom-out {
+    width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    font-size: 1.4rem;
+  }
+
+  .leaflet-control-layers-toggle {
+    width: 44px !important;
+    height: 44px !important;
+  }
 }
+
 

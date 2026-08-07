@@ -7,6 +7,7 @@ import { siteIcon } from './Styles/markerStyles';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import './MapComponent.css';
+import { PhotoMarker } from './MapContent';
 
 const position: [number, number] = [51.8, 5.8];
 
@@ -94,15 +95,15 @@ const MapComponent = ({
       <MapContainer
         id="map"
         className={adjustMapHeight ? 'infoMap_adjusted' : 'infoMap'}
-        ref={(instance) => { if (instance) setMap(instance); }}
+        ref={(instance) => {
+          if (instance) setMap(instance);
+        }}
         center={position}
         zoom={9}
         zoomControl={false}
         tapTolerance={30}
       >
-        {showInfoCard && (
-          <MapInfoCard searchItem={searchItem} clearSelection={clearSelection} />
-        )}
+        {showInfoCard && <MapInfoCard searchItem={searchItem} clearSelection={clearSelection} />}
 
         <MapBuilder
           setShowInfoCard={setShowInfoCard}
@@ -122,4 +123,3 @@ const MapComponent = ({
 };
 
 export default MapComponent;
-

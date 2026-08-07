@@ -1,5 +1,14 @@
-import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, TileLayer, useMap, WMSTileLayer } from 'react-leaflet';
-import L, { Icon, DivIcon, PathOptions, LeafletMouseEvent } from 'leaflet';
+import {
+  GeoJSON,
+  LayersControl,
+  Marker,
+  Popup,
+  ScaleControl,
+  TileLayer,
+  useMap,
+  WMSTileLayer,
+} from 'react-leaflet';
+import L, { DivIcon, Icon, LeafletMouseEvent, PathOptions } from 'leaflet';
 import {
   castellumIcon,
   cemeteryIcon,
@@ -29,7 +38,7 @@ import './MapContent.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import GeometryEditor from '../GeometryEditor/GeometryEditor';
-import { useEffect, useState, MutableRefObject, useRef, useCallback } from 'react';
+import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 
 interface SearchItem {
   type: string;
@@ -88,11 +97,16 @@ const getSiteIcon = (type: string): Icon | DivIcon => siteIconMap[type] ?? siteI
 
 const roadStyleDifferentiator = (roadProps: { type?: string }): PathOptions => {
   switch (roadProps.type) {
-    case 'possible road': return possibleRoad;
-    case 'hypothetical route': return hypotheticalRoute;
-    case 'road': return road;
-    case 'hist_rec': return histRec;
-    default: return notShowRoad;
+    case 'possible road':
+      return possibleRoad;
+    case 'hypothetical route':
+      return hypotheticalRoute;
+    case 'road':
+      return road;
+    case 'hist_rec':
+      return histRec;
+    default:
+      return notShowRoad;
   }
 };
 
@@ -112,6 +126,8 @@ const MapContent = ({
 }: MapContentProps) => {
   const map = useMap();
   const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
+  const pendingAutoZoom = useRef(false);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   // queryItem drives the "arrived via SiteInfo/RoadInfo" highlight + zoom.
   // focusItem is zoom-only (e.g. after closing back to the plain atlas):
@@ -140,12 +156,15 @@ const MapContent = ({
   useEffect(() => {
     if (!map) return;
     Object.entries(siteMarkersRef.current).forEach(([id, marker]) => {
-      const isSelectedFromSearch = searchItem?.type === 'site' && String(searchItem.id) === String(id);
-      const isSelectedFromQuery = effectiveQueryItem?.type === 'site' && String(effectiveQueryItem.id) === String(id);
+      const isSelectedFromSearch =
+        searchItem?.type === 'site' && String(searchItem.id) === String(id);
+      const isSelectedFromQuery =
+        effectiveQueryItem?.type === 'site' && String(effectiveQueryItem.id) === String(id);
       if (isSelectedFromSearch || isSelectedFromQuery) {
         marker.setIcon(highlightedSiteIcon);
       } else {
-        const feature = (marker as L.Marker & { feature?: { properties?: { siteType?: string } } }).feature;
+        const feature = (marker as L.Marker & { feature?: { properties?: { siteType?: string } } })
+          .feature;
         const icon = feature?.properties?.siteType
           ? getSiteIcon(feature.properties.siteType)
           : siteIcon;
@@ -162,7 +181,11 @@ const MapContent = ({
     if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
     else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
     else pad = { bottomRight: [10, 250], topLeft: [10, 10] }; // Mobile: account for 50vh infocard
-    map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft, maxZoom: 14 });
+    map.fitBounds(bounds, {
+      paddingBottomRight: pad.bottomRight,
+      paddingTopLeft: pad.topLeft,
+      maxZoom: 14,
+    });
   };
 
   const clickZoomRoad = (layer: L.Path) => {
@@ -175,30 +198,39 @@ const MapContent = ({
     map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft });
   };
 
-  const zoomToPlace = useCallback((type: string, id: string | number) => {
-    if (!map) return;
-    const x = map.getPixelBounds().getSize().x;
-    let pad: { bottomRight: [number, number]; topLeft: [number, number] };
-    if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
-    else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
-    else pad = { bottomRight: [10, 250], topLeft: [10, 10] };
+  const zoomToPlace = useCallback(
+    (type: string, id: string | number) => {
+      if (!map) return;
+      const x = map.getPixelBounds().getSize().x;
+      let pad: { bottomRight: [number, number]; topLeft: [number, number] };
+      if (x > 800) pad = { bottomRight: [400, 10], topLeft: [0, 10] };
+      else if (x > 600) pad = { bottomRight: [150, 5], topLeft: [0, 5] };
+      else pad = { bottomRight: [10, 250], topLeft: [10, 10] };
 
-    if (type === 'site') {
-      const marker = siteMarkersRef.current[id];
-      if (!marker) return;
-      const bounds = L.latLngBounds([marker.getLatLng()]);
-      map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft, maxZoom: 14 });
-    } else if (type === 'road') {
-      const roadLayer = roadLayersRef.current[id];
-      if (!roadLayer || !('getBounds' in roadLayer)) return;
-      const bounds = (roadLayer as unknown as L.Polyline).getBounds();
-      map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft });
-    }
-  }, [map, siteMarkersRef, roadLayersRef]);
+      if (type === 'site') {
+        const marker = siteMarkersRef.current[id];
+        if (!marker) return;
+        const bounds = L.latLngBounds([marker.getLatLng()]);
+        map.fitBounds(bounds, {
+          paddingBottomRight: pad.bottomRight,
+          paddingTopLeft: pad.topLeft,
+          maxZoom: 14,
+        });
+      } else if (type === 'road') {
+        const roadLayer = roadLayersRef.current[id];
+        if (!roadLayer || !('getBounds' in roadLayer)) return;
+        const bounds = (roadLayer as unknown as L.Polyline).getBounds();
+        map.fitBounds(bounds, { paddingBottomRight: pad.bottomRight, paddingTopLeft: pad.topLeft });
+      }
+    },
+    [map, siteMarkersRef, roadLayersRef]
+  );
 
   const clickSite = (e: LeafletMouseEvent) => {
-    const id = (e.sourceTarget as L.Marker & { feature?: { properties?: { id?: string | number } } })
-      .feature?.properties?.id;
+    pendingAutoZoom.current = false;
+    const id = (
+      e.sourceTarget as L.Marker & { feature?: { properties?: { id?: string | number } } }
+    ).feature?.properties?.id;
     setQueryDismissed(true);
     setSearchItem({ type: 'site', id: id ?? '' });
     clickZoomSite(e);
@@ -206,6 +238,7 @@ const MapContent = ({
   };
 
   const clickRoad = (e: LeafletMouseEvent) => {
+    pendingAutoZoom.current = false;
     const id = (e.target as L.Path & { feature?: { properties?: { id?: string | number } } })
       .feature?.properties?.id;
     setQueryDismissed(true);
@@ -221,62 +254,77 @@ const MapContent = ({
     const zoomTarget = queryItem?.id !== '' && queryItem?.id != null ? queryItem : focusItem;
     if (!map || !zoomTarget || zoomTarget.id === '') return;
 
+    pendingAutoZoom.current = true;
+
     let retryCount = 0;
     const maxRetries = 10; // Max 1 second of retries (10 * 100ms)
 
     const attemptZoom = () => {
+      if (!pendingAutoZoom.current) return;
       if (zoomTarget.type === 'site') {
         if (siteMarkersRef.current[zoomTarget.id]) {
           zoomToPlace(zoomTarget.type, zoomTarget.id);
         } else if (retryCount < maxRetries) {
           retryCount++;
-          setTimeout(attemptZoom, 100);
+          retryTimeoutRef.current = setTimeout(attemptZoom, 100);
         }
       } else if (zoomTarget.type === 'road') {
         if (roadLayersRef.current[zoomTarget.id]) {
           zoomToPlace(zoomTarget.type, zoomTarget.id);
         } else if (retryCount < maxRetries) {
           retryCount++;
-          setTimeout(attemptZoom, 100);
+          retryTimeoutRef.current = setTimeout(attemptZoom, 100);
         }
       }
     };
 
     // Wait initial delay for GeoJSON layers to render, then attempt zoom with retry
-    const delayedZoom = setTimeout(attemptZoom, 300);
+    retryTimeoutRef.current = setTimeout(attemptZoom, 300);
 
-    return () => clearTimeout(delayedZoom);
+    return () => {
+      pendingAutoZoom.current = false;
+      clearTimeout(retryTimeoutRef.current);
+    };
   }, [queryItem, focusItem, map, siteMarkersRef, roadLayersRef, zoomToPlace]);
 
   return (
     <>
-       <LayersControl position="topleft" collapsed={true}>
-         <LayersControl.BaseLayer checked name="Positron Modern Topographical">
-           <TileLayer
-             attribution=" OpenStreetMap contributors,  CartoDB"
-             url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-           />
-         </LayersControl.BaseLayer>
-         <LayersControl.BaseLayer name="Open Street Map Topographical">
-           <TileLayer
-             attribution=" OpenStreetMap"
-             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-           />
-         </LayersControl.BaseLayer>
-         <LayersControl.BaseLayer name="Satellite">
-           <TileLayer
-             attribution="Tiles  Esri"
-             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-           />
-         </LayersControl.BaseLayer>
-         <LayersControl.BaseLayer name="1801–1828: Kartenaufnahme der Rheinlande">
-           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_tranchot?" layers="nw_tranchot" />
-         </LayersControl.BaseLayer>
-         <LayersControl.BaseLayer name="1836–1850: Preuische Kartenaufnahme">
-           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?" layers="nw_uraufnahme_rw" />
-         </LayersControl.BaseLayer>
-         <LayersControl.BaseLayer name="1891–1912: Preuische Kartenaufnahme">
-           <WMSTileLayer url="https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?" layers="nw_neuaufnahme" />
+      <LayersControl position="topleft" collapsed={true}>
+        <LayersControl.BaseLayer checked name="Positron Modern Topographical">
+          <TileLayer
+            attribution=" OpenStreetMap contributors,  CartoDB"
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Open Street Map Topographical">
+          <TileLayer
+            attribution=" OpenStreetMap"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            attribution="Tiles  Esri"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="1801–1828: Kartenaufnahme der Rheinlande">
+          <WMSTileLayer
+            url="https://www.wms.nrw.de/geobasis/wms_nw_tranchot?"
+            layers="nw_tranchot"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="1836–1850: Preuische Kartenaufnahme">
+          <WMSTileLayer
+            url="https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?"
+            layers="nw_uraufnahme_rw"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="1891–1912: Preuische Kartenaufnahme">
+          <WMSTileLayer
+            url="https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?"
+            layers="nw_neuaufnahme"
+          />
         </LayersControl.BaseLayer>
 
         <LayersControl.Overlay checked name="Archaeological Sites">
@@ -290,36 +338,44 @@ const MapContent = ({
               siteMarkersRef.current[id] = marker;
               return marker;
             }}
-             onEachFeature={(_feature, layer) => {
-               layer.on({ click: clickSite });
-             }}
+            onEachFeature={(_feature, layer) => {
+              layer.on({ click: clickSite });
+            }}
           />
         </LayersControl.Overlay>
 
-         <LayersControl.Overlay checked name="Roads and Routes">
-           <GeoJSON
-             data={roadData as GeoJSON.FeatureCollection}
-             style={(feature) => {
-               const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
-               return isSelected
-                 ? { weight: 3, color: 'yellow', zIndex: 20 }
-                 : roadStyleDifferentiator(feature?.properties ?? {});
-             }}
-              onEachFeature={(_feature, layer) => {
-                const id = _feature.properties?.id;
-                roadLayersRef.current[id] = layer;
-                layer.on({ click: clickRoad });
-              }}
-           />
-         </LayersControl.Overlay>
+        <LayersControl.Overlay checked name="Roads and Routes">
+          <GeoJSON
+            data={roadData as GeoJSON.FeatureCollection}
+            style={(feature) => {
+              const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
+              return isSelected
+                ? { weight: 3, color: 'yellow', zIndex: 20 }
+                : roadStyleDifferentiator(feature?.properties ?? {});
+            }}
+            onEachFeature={(_feature, layer) => {
+              const id = _feature.properties?.id;
+              roadLayersRef.current[id] = layer;
+              layer.on({ click: clickRoad });
+            }}
+          />
+        </LayersControl.Overlay>
 
         {photoMarkers.length > 0 && (
           <LayersControl.Overlay checked name="Photos">
             <>
               {photoMarkers.map((photo) => (
-                <Marker key={photo.id} position={[photo.latitude, photo.longitude]} icon={photoPinIcon}>
+                <Marker
+                  key={photo.id}
+                  position={[photo.latitude, photo.longitude]}
+                  icon={photoPinIcon}
+                >
                   <Popup>
-                    <img src={photo.fullUrl} alt={photo.caption ?? ''} style={{ maxWidth: '180px', display: 'block' }} />
+                    <img
+                      src={photo.fullUrl}
+                      alt={photo.caption ?? ''}
+                      style={{ maxWidth: '180px', display: 'block' }}
+                    />
                     {photo.caption && <span>{photo.caption}</span>}
                   </Popup>
                 </Marker>
@@ -342,4 +398,3 @@ const MapContent = ({
 };
 
 export default MapContent;
-
