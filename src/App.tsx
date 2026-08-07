@@ -8,6 +8,7 @@ import AdminRoute from './components/Routes/AdminRoute';
 
 const About = lazy(() => import('./pages/About'));
 const Atlas = lazy(() => import('./pages/Atlas'));
+const BookChapter = lazy(() => import('./pages/BookChapter'));
 const Home = lazy(() => import('./pages/Home'));
 const News = lazy(() => import('./pages/News'));
 const RoadInfo = lazy(() => import('./pages/RoadInfo'));
@@ -30,6 +31,7 @@ const App = () => {
           <Route path="/home" element={<Home />} />
           <Route path="/news" element={<News />} />
           <Route path="/about" element={<About />} />
+          <Route path="/book/:slug" element={<BookChapter />} />
           <Route path="/login" element={<LoginRegister />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/atlas" element={<Atlas />} />
