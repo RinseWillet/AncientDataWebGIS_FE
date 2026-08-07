@@ -53,6 +53,11 @@ const NavbarHook = () => {
           </NavLink>
         </li>
         <li>
+          <NavLink to="/book/01-introduction" className={linkClassName} onClick={closeMobileMenu}>
+            Research
+          </NavLink>
+        </li>
+        <li>
           <NavLink to="/datalist" className={linkClassName} onClick={closeMobileMenu}>
             DataList
           </NavLink>

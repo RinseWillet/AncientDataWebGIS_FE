@@ -1,0 +1,113 @@
+/* Styling for the interactive book: chapter prose, images, TOC, chapter nav */
+
+.book-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.book-toc {
+  flex: 0 0 220px;
+  position: sticky;
+  top: 1rem;
+  font-size: 1.4rem;
+}
+
+.book-toc__title {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.book-toc__part {
+  font-size: 1.2rem;
+  color: var(--font-color-3, #333);
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.book-toc ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.book-toc__link {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--font-color-3, #333);
+}
+
+.book-toc__link--active {
+  font-weight: var(--font-bold, 700);
+  color: var(--accent-color, #ff2e63);
+}
+
+.book-chapter {
+  flex: 1 1 auto;
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.book-figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.book-figure img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.book-figure figcaption {
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.book-chapter-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ccc;
+  font-size: 1.4rem;
+}
+
+.book-chapter-nav__previous {
+  text-align: left;
+}
+
+.book-chapter-nav__next {
+  text-align: right;
+}
+
+@media screen and (max-width: 1125px) {
+  .book-layout {
+    flex-direction: column;
+  }
+
+  .book-toc {
+    position: static;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .book-chapter {
+    font-size: 1.4rem;
+  }
+
+  .book-figure figcaption {
+    font-size: 1.1rem;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .book-chapter {
+    font-size: 1.2rem;
+  }
+}
+
