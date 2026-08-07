@@ -1,0 +1,55 @@
+/* Styling for the News / changelog page */
+
+.news-page {
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.news-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.news-item {
+  margin-top: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.news-item:last-child {
+  border-bottom: none;
+}
+
+.news-item__date {
+  display: block;
+  font-size: 1.2rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.news-item__title {
+  font-size: 1.8rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.news-item__body {
+  font-size: 1.6rem;
+}
+
+@media screen and (max-width: 850px) {
+  .news-item__title {
+    font-size: 1.6rem;
+  }
+
+  .news-item__body {
+    font-size: 1.4rem;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .news-item__body {
+    font-size: 1.2rem;
+  }
+}
+

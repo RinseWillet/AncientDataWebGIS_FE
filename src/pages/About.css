@@ -1,0 +1,49 @@
+/* Styling for the redesigned About page */
+
+.about-page {
+  max-width: 70ch;
+  margin: 0 auto;
+}
+
+.about-photo {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.about-photo img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+.about-photo figcaption {
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.about-page section {
+  margin-top: 2rem;
+}
+
+.about-page ul {
+  padding-left: 1.5rem;
+  list-style: disc;
+}
+
+.about-page li {
+  margin-bottom: 0.5rem;
+  font-size: 1.6rem;
+}
+
+@media screen and (max-width: 850px) {
+  .about-page li {
+    font-size: 1.4rem;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .about-page li {
+    font-size: 1.2rem;
+  }
+}
+

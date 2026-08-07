@@ -1,0 +1,195 @@
+/* ── Home page ─────────────────────────────────────────── */
+.home-container {
+  max-width: var(--content-max-width, 1400px);
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0.5rem 0;
+}
+
+/* ── hero ─────────────────────────────────────────────── */
+.home-hero {
+  max-width: 70ch;
+}
+
+.home-hero h1 {
+  font-size: 2.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.home-hero p {
+  font-size: 1.5rem;
+  line-height: 1.6;
+}
+
+/* ── stats strip ──────────────────────────────────────── */
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.home-stat-card {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  color: white;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+
+.home-stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.home-stat-card h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  color: white;
+  line-height: 1.4;
+}
+
+.home-stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1;
+}
+
+.home-stat-card--sites  { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.home-stat-card--roads  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.home-stat-card--length { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+
+.home-stats-error {
+  color: #900;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.home-stats-link {
+  margin-top: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.home-stats-link a {
+  color: var(--font-color-3-accent, #333);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* ── skeleton loading (mirrors Dashboard.css) ─────────── */
+.skeleton-block {
+  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
+  background-size: 200% 100%;
+  animation: home-shimmer 1.5s infinite;
+  border-radius: 8px;
+  min-height: 70px;
+}
+
+@keyframes home-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── map preview ──────────────────────────────────────── */
+.home-map-preview-frame {
+  position: relative;
+  height: 320px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.home-map-preview-frame .wrapper,
+.home-map-preview-frame .infoMap_adjusted {
+  height: 100%;
+}
+
+.home-map-preview-cta {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: var(--z-fixed, 100);
+  background-color: var(--accent-color-2, #15b58e);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.15s ease;
+}
+
+.home-map-preview-cta:hover {
+  background-color: #0d7a5f;
+}
+
+/* ── link cards ───────────────────────────────────────── */
+.home-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.home-link-card {
+  display: block;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #333;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.home-link-card h3 {
+  font-size: 1.5rem;
+  margin: 0 0 0.4rem;
+  color: #333;
+}
+
+.home-link-card p {
+  font-size: 1.3rem;
+  line-height: 1.5;
+  color: #666;
+  margin: 0;
+}
+
+/* ── responsive ───────────────────────────────────────── */
+@media screen and (max-width: 850px) {
+  .home-hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .home-hero p {
+    font-size: 1.4rem;
+  }
+
+  .home-map-preview-frame {
+    height: 240px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .home-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-map-preview-frame {
+    height: 200px;
+  }
+}
+
