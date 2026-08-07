@@ -59,6 +59,7 @@ const renderWithProviders = (id = '42') => {
         siteData: null,
         selectedSite: siteFeatureCollection,
         loading: false,
+        selectedLoading: false,
         error: null,
         loaded: true,
       },

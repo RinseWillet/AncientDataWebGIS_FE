@@ -9,15 +9,12 @@ import RoadService from '../services/RoadService';
 import { geoJSONtoWKT } from '../utils/geometryUtils';
 import MapComponent from '../components/MapComponent/MapComponent';
 import ModernReferencePicker from '../components/ModernReferencePicker/ModernReferencePicker';
+import ModernReferenceList from '../components/ModernReferenceList/ModernReferenceList';
 import MediaGallery from '../components/MediaGallery/MediaGallery';
+import type { MediaAsset } from '../types/media';
+import type { GeoJsonFeatureCollection, GeoJsonGeometry, ModernReference, RoadProperties } from '../types/geoJson';
+import { assetsToPhotoMarkers } from '../utils/photoMarkers';
 import './InfoPage.css';
-
-interface ModernReference {
-  id: number;
-  shortRef: string;
-  fullRef: string;
-  url: string | null;
-}
 
 interface RoadEditFormData {
   name: string;
@@ -30,31 +27,6 @@ interface RoadEditFormData {
   cat_nr: string;
 }
 
-interface FeatureProperties {
-  name?: string;
-  type?: string;
-  typeDescription?: string;
-  location?: string;
-  description?: string;
-  date?: string;
-  references?: string;
-  historicalReferences?: string;
-  cat_nr?: string;
-}
-
-interface GeoJsonGeometry {
-  type: string;
-  coordinates: unknown;
-}
-
-interface GeoJsonFeature {
-  properties?: FeatureProperties;
-  geometry?: GeoJsonGeometry;
-}
-
-interface GeoJsonCollection {
-  features?: GeoJsonFeature[];
-}
 
 const RoadInfo = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -103,11 +75,11 @@ const RoadInfo = () => {
   } else if (error) {
     return <p style={{ color: 'red' }}>{error}</p>;
   } else {
-    const collection = selectedRoad as GeoJsonCollection;
+    const collection = selectedRoad as GeoJsonFeatureCollection;
     const feature = collection.features?.[0];
     if (!feature) return <p>No feature found</p>;
 
-    const { properties = {} } = feature;
+    const properties = (feature.properties ?? {}) as RoadProperties;
     const {
       name, type, typeDescription, location,
       description, date, references, historicalReferences,
@@ -119,28 +91,7 @@ const RoadInfo = () => {
       ? { lat: firstCoord[1], lng: firstCoord[0] }
       : { lat: 51.8, lng: 5.8 };
 
-    const photoMarkers = galleryAssets
-      .filter((asset) => asset.latitude != null && asset.longitude != null)
-      .map((asset) => ({
-        id: asset.id,
-        latitude: asset.latitude as number,
-        longitude: asset.longitude as number,
-        fullUrl: asset.fullUrl,
-        caption: asset.caption,
-      }));
-
-    const modernReferenceRenderer = (refs: ModernReference[]) => {
-      if (refs.length > 0) {
-        return refs.map((ref) =>
-          ref.url === null ? (
-            <li key={ref.id} className="reference-listitem__nolink">{ref.fullRef}</li>
-          ) : (
-            <li key={ref.id}><a href={ref.url} className="reference-listitem__link">{ref.fullRef}</a></li>
-          ),
-        );
-      }
-      return <span>{references}</span>;
-    };
+    const photoMarkers = assetsToPhotoMarkers(galleryAssets);
 
     const handleSave = async () => {
       try {
@@ -153,8 +104,8 @@ const RoadInfo = () => {
 
         await dispatch(fetchRoadById(id ?? ''));
 
-        const refreshedCollection = selectedRoad as GeoJsonCollection;
-        const updatedGeom = refreshedCollection?.features?.[0]?.geometry;
+        const refreshed = await RoadService.findByIdGeoJson(id ?? '');
+        const updatedGeom = (refreshed.data as GeoJsonFeatureCollection)?.features?.[0]?.geometry;
         if (updatedGeom) {
           setEditFormData((prev) => ({
             ...prev,
@@ -210,7 +161,8 @@ const RoadInfo = () => {
                   {isAdmin && (
                     <button className="info-btn" onClick={() => {
                       if (!feature) return;
-                      const { properties: p = {}, geometry: g = {} as GeoJsonGeometry } = feature;
+                      const p = (feature.properties ?? {}) as RoadProperties;
+                      const g = (feature.geometry ?? {}) as GeoJsonGeometry;
                       setEditFormData({
                         name: p.name ?? '',
                         type: p.type ?? '',
@@ -230,7 +182,7 @@ const RoadInfo = () => {
                   {location && <><h4>Location:</h4><span>{location}</span></>}
                   {description && <><h4>Description:</h4><span>{description}</span></>}
                   {date && <><h4>Date:</h4><span>{date}</span></>}
-                  {references && <><h4>References:</h4>{modernReferenceRenderer(modRef)}</>}
+                  {references && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={references} /></>}
                   {historicalReferences && <><h4>Historical references:</h4><span>{historicalReferences}</span></>}
                 </>
               )}
