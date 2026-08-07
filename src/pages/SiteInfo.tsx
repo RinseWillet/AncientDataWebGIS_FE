@@ -83,7 +83,7 @@ const SiteInfo = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const { selectedSite, loading } = useAppSelector((state: RootState) => state.sites);
+  const { selectedSite, selectedLoading } = useAppSelector((state: RootState) => state.sites);
   const [selectedReferences, setSelectedReferences] = useState<ModernReference[]>([]);
   const [galleryAssets, setGalleryAssets] = useState<MediaAsset[]>([]);
   const { referencesBySiteId } = useAppSelector((state: RootState) => state.modRef);
@@ -124,7 +124,7 @@ const SiteInfo = () => {
     return <span>{properties.references}</span>;
   };
 
-  if (loading || !selectedSite || !modRef) {
+  if (selectedLoading || !selectedSite || !modRef) {
     return (
       <div className="pagebox">
         <div className="roadinfo-card"><p>Loading data...</p></div>
@@ -167,10 +167,11 @@ const SiteInfo = () => {
 
       const refreshed = await SiteService.findByIdGeoJson(id ?? '');
       const refreshedFeature = (refreshed.data as GeoJsonCollection)?.features?.[0];
-      if (refreshedFeature?.geometry) {
+      const refreshedGeometry = refreshedFeature?.geometry;
+      if (refreshedGeometry) {
         setEditFormData((prev) => ({
           ...prev,
-          geom: geoJSONtoWKT(refreshedFeature.geometry),
+          geom: geoJSONtoWKT(refreshedGeometry),
         }));
       }
 

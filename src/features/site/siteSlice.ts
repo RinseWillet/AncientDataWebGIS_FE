@@ -5,6 +5,7 @@ interface SiteState {
   siteData: GeoJsonFeatureCollection | null;
   selectedSite: GeoJsonFeatureCollection | null;
   loading: boolean;
+  selectedLoading: boolean;
   error: string | null;
   loaded?: boolean;
 }
@@ -13,6 +14,7 @@ const initialState: SiteState = {
   siteData: null,
   selectedSite: null,
   loading: false,
+  selectedLoading: false,
   error: null,
 };
 
@@ -37,19 +39,20 @@ const siteSlice = createSlice({
       state.siteData = null;
       state.selectedSite = null;
       state.loading = false;
+      state.selectedLoading = false;
       state.error = null;
       state.loaded = false;
     },
     fetchSiteByIdStart: (state) => {
-      state.loading = true;
+      state.selectedLoading = true;
       state.error = null;
     },
     fetchSiteByIdSuccess: (state, action: PayloadAction<GeoJsonFeatureCollection>) => {
-      state.loading = false;
+      state.selectedLoading = false;
       state.selectedSite = action.payload;
     },
     fetchSiteByIdFailure: (state, action: PayloadAction<string>) => {
-      state.loading = false;
+      state.selectedLoading = false;
       state.error = action.payload;
     },
   },
@@ -66,4 +69,3 @@ export const {
 } = siteSlice.actions;
 
 export default siteSlice.reducer;
-
