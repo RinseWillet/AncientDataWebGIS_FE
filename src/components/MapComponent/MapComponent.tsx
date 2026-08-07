@@ -8,18 +8,10 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import './MapComponent.css';
 import { PhotoMarker } from './MapContent';
+import { QueryItem, SearchItem } from './mapTypes';
 
 const position: [number, number] = [51.8, 5.8];
 
-interface SearchItem {
-  type: string;
-  id: string | number;
-}
-
-interface QueryItem {
-  type: string;
-  id: string | number;
-}
 
 interface MapComponentProps {
   queryItem?: QueryItem;

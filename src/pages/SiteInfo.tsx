@@ -9,16 +9,13 @@ import SiteService from '../services/SiteService';
 import MapComponent from '../components/MapComponent/MapComponent';
 import { geoJSONtoWKT } from '../utils/geometryUtils';
 import ModernReferencePicker from '../components/ModernReferencePicker/ModernReferencePicker';
+import ModernReferenceList from '../components/ModernReferenceList/ModernReferenceList';
 import MediaGallery from '../components/MediaGallery/MediaGallery';
 import type { MediaAsset } from '../types/media';
+import type { GeoJsonFeatureCollection, GeoJsonGeometry, ModernReference, SiteProperties } from '../types/geoJson';
+import { siteTypeConverter } from '../utils/siteTypes';
+import { assetsToPhotoMarkers } from '../utils/photoMarkers';
 import './InfoPage.css';
-
-interface ModernReference {
-  id: number;
-  shortRef: string;
-  fullRef: string;
-  url: string | null;
-}
 
 interface SiteEditFormData {
   name: string;
@@ -31,51 +28,6 @@ interface SiteEditFormData {
   geom: string;
 }
 
-interface FeatureProperties {
-  name?: string;
-  siteType?: string;
-  status?: string;
-  description?: string;
-  references?: string;
-  province?: string;
-  pleiadesId?: string;
-}
-
-interface GeoJsonGeometry {
-  type: string;
-  coordinates: unknown;
-}
-
-interface GeoJsonFeature {
-  properties?: FeatureProperties;
-  geometry?: GeoJsonGeometry;
-}
-
-interface GeoJsonCollection {
-  features?: GeoJsonFeature[];
-}
-
-const siteTypeConverter = (siteType?: string): string => {
-  const lookup: Record<string, string> = {
-    castellum: 'castellum',
-    pos_castellum: 'possible castellum',
-    legfort: 'legionary fortress / castra',
-    watchtower: 'watchtower',
-    city: 'autonomous city',
-    cem: '(Roman) cemetery',
-    ptum: 'possible barrow',
-    tum: '(Prehistoric?) barrow',
-    villa: 'villa',
-    pvilla: 'possible villa',
-    sett: 'settlement',
-    settS: 'settlement with stone buildings',
-    sanctuary: 'sanctuary',
-    ship: 'shipwreck',
-    pship: 'possible shipwreck',
-    site: 'generic site',
-  };
-  return (siteType ? lookup[siteType] : undefined) ?? 'unknown';
-};
 
 const SiteInfo = () => {
   const isAdmin = useAppSelector(selectIsAdmin);
@@ -111,18 +63,6 @@ const SiteInfo = () => {
     }
   }, [dispatch, id]);
 
-  const modernReferenceRenderer = (refs: ModernReference[]) => {
-    if (refs.length > 0) {
-      return refs.map((ref) =>
-        ref.url ? (
-          <li key={ref.id}><a className="reference-listitem__link" href={ref.url}>{ref.fullRef}</a></li>
-        ) : (
-          <li key={ref.id} className="reference-listitem__nolink">{ref.fullRef}</li>
-        ),
-      );
-    }
-    return <span>{properties.references}</span>;
-  };
 
   if (selectedLoading || !selectedSite || !modRef) {
     return (
@@ -132,11 +72,12 @@ const SiteInfo = () => {
     );
   }
 
-  const collection = selectedSite as GeoJsonCollection;
+  const collection = selectedSite as GeoJsonFeatureCollection;
   const feature = collection?.features?.[0];
   if (!feature) return <p>No feature found</p>;
 
-  const { properties = {}, geometry = {} as GeoJsonGeometry } = feature;
+  const properties = (feature.properties ?? {}) as SiteProperties;
+  const geometry = (feature.geometry ?? {}) as GeoJsonGeometry;
 
   // Point coordinates are [lng, lat]; fall back to app default center
   const pointCoord = geometry.coordinates as number[] | undefined;
@@ -144,15 +85,7 @@ const SiteInfo = () => {
     ? { lat: pointCoord[1], lng: pointCoord[0] }
     : { lat: 51.8, lng: 5.8 };
 
-  const photoMarkers = galleryAssets
-    .filter((asset) => asset.latitude != null && asset.longitude != null)
-    .map((asset) => ({
-      id: asset.id,
-      latitude: asset.latitude as number,
-      longitude: asset.longitude as number,
-      fullUrl: asset.fullUrl,
-      caption: asset.caption,
-    }));
+  const photoMarkers = assetsToPhotoMarkers(galleryAssets);
 
   const handleSave = async () => {
     try {
@@ -166,7 +99,7 @@ const SiteInfo = () => {
       await dispatch(fetchSiteById(id ?? ''));
 
       const refreshed = await SiteService.findByIdGeoJson(id ?? '');
-      const refreshedFeature = (refreshed.data as GeoJsonCollection)?.features?.[0];
+      const refreshedFeature = (refreshed.data as GeoJsonFeatureCollection)?.features?.[0];
       const refreshedGeometry = refreshedFeature?.geometry;
       if (refreshedGeometry) {
         setEditFormData((prev) => ({
@@ -240,7 +173,7 @@ const SiteInfo = () => {
               <span>{siteTypeConverter(properties.siteType)}</span>
               {properties.description && <><h4>Description:</h4><span>{properties.description}</span></>}
               {properties.status && <><h4>Status:</h4><span>{properties.status}</span></>}
-              {properties.references && <><h4>References:</h4>{modernReferenceRenderer(modRef)}</>}
+              {properties.references && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={properties.references} /></>}
               {properties.province && <><h4>Province:</h4><span>{properties.province}</span></>}
               {properties.pleiadesId && <><h4>Pleiades:</h4><span>{properties.pleiadesId}</span></>}
             </>

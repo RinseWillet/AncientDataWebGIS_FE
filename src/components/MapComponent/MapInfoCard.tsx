@@ -7,31 +7,10 @@ import { fetchRoadById } from '../../features/road/roadThunks';
 import MediaService from '../../services/MediaService';
 import type { MediaAsset } from '../../types/media';
 import BottomSheetCard from './BottomSheetCard';
+import { SearchItem } from './mapTypes';
+import { siteTypeLabels } from '../../utils/siteTypes';
 import './MapInfoCard.css';
 
-const siteTypeMap: Record<string, string> = {
-  castellum: 'castellum',
-  pos_castellum: 'possible castellum',
-  legfort: 'legionary fortress / castra',
-  watchtower: 'watchtower',
-  city: 'autonomous city',
-  cem: '(Roman) cemetery',
-  ptum: 'possible barrow',
-  tum: '(Prehistoric?) barrow',
-  villa: 'villa',
-  pvilla: 'possible villa',
-  sett: 'settlement',
-  settS: 'settlement with stone buildings',
-  sanctuary: 'sanctuary',
-  ship: 'shipwreck',
-  pship: 'possible shipwreck',
-  site: 'generic site',
-};
-
-interface SearchItem {
-  type: string;
-  id: string | number;
-}
 
 interface MapInfoCardProps {
   searchItem: SearchItem;
@@ -138,7 +117,7 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   };
 
   if (searchItem.type === 'site') {
-    const siteType = siteTypeMap[details.siteType ?? ''] ?? 'unknown';
+    const siteType = siteTypeLabels[details.siteType ?? ''] ?? 'unknown';
     return (
       <BottomSheetCard onDismiss={clearSelection}>
         <button className="closeBtn" onClick={clearSelection}>

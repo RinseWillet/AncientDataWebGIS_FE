@@ -60,6 +60,7 @@ const renderWithProviders = (id = '5') => {
         roadData: null,
         selectedRoad: roadFeatureCollection,
         loading: false,
+        selectedLoading: false,
         error: null,
         loaded: true,
       },

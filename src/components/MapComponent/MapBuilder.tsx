@@ -4,18 +4,11 @@ import type { RootState } from '../../app/store';
 import { fetchRoads } from '../../features/road/roadThunks';
 import { fetchSites } from '../../features/site/siteThunks';
 import MapContent from './MapContent';
+import type { PhotoMarker } from './MapContent';
+import { QueryItem, SearchItem } from './mapTypes';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-interface SearchItem {
-  type: string;
-  id: string | number;
-}
-
-interface QueryItem {
-  type: string;
-  id: string | number;
-}
 
 interface MapBuilderProps {
   setShowInfoCard: (show: boolean) => void;
