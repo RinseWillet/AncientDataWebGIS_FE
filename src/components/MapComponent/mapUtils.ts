@@ -1,4 +1,15 @@
 import L from 'leaflet';
+import { LayerConfig } from './layersConfig';
+
+/** Builds a Leaflet tile/WMS layer instance from a `layersConfig` entry. */
+export const buildLayer = (config: LayerConfig): L.Layer =>
+  config.kind === 'tile'
+    ? L.tileLayer(config.url, { attribution: config.attribution })
+    : L.tileLayer.wms(config.url, {
+        layers: config.layers,
+        format: 'image/png',
+        transparent: true,
+      });
 
 export interface ZoomPadding {
   bottomRight: [number, number];

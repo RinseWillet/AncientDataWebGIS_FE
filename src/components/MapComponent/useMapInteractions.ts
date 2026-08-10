@@ -1,8 +1,10 @@
-import { MutableRefObject, useEffect, useRef } from 'react';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from './siteIcons';
 import { QueryItem, SearchItem } from './mapTypes';
+import { LayerGroupName, layersConfig } from './layersConfig';
+import { buildLayer } from './mapUtils';
 
 type SiteMarkersRef = MutableRefObject<Record<string | number, L.Marker>>;
 type RoadLayersRef = MutableRefObject<Record<string | number, L.Layer>>;
@@ -91,4 +93,99 @@ export const useAutoZoom = (
   return { pendingAutoZoom };
 };
 
+export type OverlayKey = 'sites' | 'roads' | 'photos';
+
+export interface OverlayVisibility {
+  sites: boolean;
+  roads: boolean;
+  photos: boolean;
+}
+
+/** Groups whose layer selection is exclusive (radio-like: one active at a time). */
+type ExclusiveGroupName = Extract<LayerGroupName, 'Historical Maps' | 'Aerial Imagery'>;
+
+export interface LayerPanelState {
+  activeBaseLayer: string;
+  activeHistoricalLayer: string | null;
+  activeAerialLayer: string | null;
+  overlayVisibility: OverlayVisibility;
+}
+
+export interface LayerPanelControl {
+  state: LayerPanelState;
+  selectBaseLayer: (name: string) => void;
+  toggleExclusiveLayer: (group: ExclusiveGroupName, name: string) => void;
+  toggleOverlay: (key: OverlayKey) => void;
+}
+
+const findLayerConfig = (group: LayerGroupName, name: string) =>
+  layersConfig.find((config) => config.group === group && config.name === name);
+
+const defaultBaseLayerName = (): string =>
+  layersConfig.find((config) => config.kind === 'tile' && config.checked)?.name ??
+  (layersConfig.find((config) => config.kind === 'tile')?.name as string);
+
+/**
+ * Drives the actual Leaflet base/historical/aerial layers for the Atlas
+ * `LayerPanel`: one active base layer (always on), and at most one active
+ * layer per exclusive overlay group (historical maps / aerial imagery).
+ * Sites/roads/photos visibility is tracked here too, but toggling those is
+ * left to the caller (MapContent renders/unmounts its own GeoJSON layers).
+ */
+export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
+  const [activeBaseLayer, setActiveBaseLayer] = useState<string>(defaultBaseLayerName);
+  const [activeHistoricalLayer, setActiveHistoricalLayer] = useState<string | null>(null);
+  const [activeAerialLayer, setActiveAerialLayer] = useState<string | null>(null);
+  const [overlayVisibility, setOverlayVisibility] = useState<OverlayVisibility>({
+    sites: true,
+    roads: true,
+    photos: true,
+  });
+
+  useEffect(() => {
+    if (!map) return;
+    const config = findLayerConfig('Topographical', activeBaseLayer);
+    if (!config) return;
+    const layer = buildLayer(config).addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map, activeBaseLayer]);
+
+  useEffect(() => {
+    if (!map || !activeHistoricalLayer) return;
+    const config = findLayerConfig('Historical Maps', activeHistoricalLayer);
+    if (!config) return;
+    const layer = buildLayer(config).addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map, activeHistoricalLayer]);
+
+  useEffect(() => {
+    if (!map || !activeAerialLayer) return;
+    const config = findLayerConfig('Aerial Imagery', activeAerialLayer);
+    if (!config) return;
+    const layer = buildLayer(config).addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map, activeAerialLayer]);
+
+  const toggleExclusiveLayer = (group: ExclusiveGroupName, name: string) => {
+    const setActive = group === 'Historical Maps' ? setActiveHistoricalLayer : setActiveAerialLayer;
+    setActive((prev) => (prev === name ? null : name));
+  };
+
+  const toggleOverlay = (key: OverlayKey) => {
+    setOverlayVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  return {
+    state: { activeBaseLayer, activeHistoricalLayer, activeAerialLayer, overlayVisibility },
+    selectBaseLayer: setActiveBaseLayer,
+    toggleExclusiveLayer,
+    toggleOverlay,
+  };
+};
 

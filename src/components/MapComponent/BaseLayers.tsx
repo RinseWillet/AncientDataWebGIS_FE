@@ -5,24 +5,8 @@ import L from 'leaflet';
 // Must be imported after `leaflet` so the plugin can attach to the global `L`.
 import 'leaflet-groupedlayercontrol';
 import 'leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.css';
-
-interface TileLayerConfig {
-  kind: 'tile';
-  name: string;
-  attribution: string;
-  url: string;
-  checked?: boolean;
-}
-
-interface WmsLayerConfig {
-  kind: 'wms';
-  name: string;
-  url: string;
-  layers: string;
-  checked?: boolean;
-}
-
-type LayerConfig = TileLayerConfig | WmsLayerConfig;
+import { layersConfig, TileLayerConfig, WmsLayerConfig } from './layersConfig';
+import { buildLayer } from './mapUtils';
 
 interface OverlayGroupConfig {
   /** Group label shown in the layer control, e.g. "Aerial Photos (Ruhr, Germany)". */
@@ -33,92 +17,37 @@ interface OverlayGroupConfig {
 }
 
 /** True basemaps: mutually exclusive, always fill the whole map. */
-const baseLayerConfigs: TileLayerConfig[] = [
-  {
-    kind: 'tile',
-    name: 'Positron Modern Topographical',
-    attribution: ' OpenStreetMap contributors,  CartoDB',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    checked: true,
-  },
-  {
-    kind: 'tile',
-    name: 'Open Street Map Topographical',
-    attribution: ' OpenStreetMap',
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  },
-  {
-    kind: 'tile',
-    name: 'Satellite',
-    attribution: 'Tiles  Esri',
-    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  },
-];
+const baseLayerConfigs: TileLayerConfig[] = layersConfig.filter(
+  (config): config is TileLayerConfig => config.kind === 'tile'
+);
 
 /**
  * Grouped overlays: layered on top of whichever base map is active. Each group
  * is exclusive, so e.g. switching between aerial-photo years swaps them out
- * without needing to change the base map underneath.
+ * without needing to change the base map underneath. Derived from
+ * `layersConfig`, grouping WMS entries by their display label (falling back
+ * to the canonical `group` name) and preserving config order.
  */
-const overlayGroups: OverlayGroupConfig[] = [
-  {
-    groupName: 'Historical Maps (NRW)',
-    exclusive: true,
-    layers: [
-      {
-        kind: 'wms',
-        name: '1801–1828: Kartenaufnahme der Rheinlande',
-        url: 'https://www.wms.nrw.de/geobasis/wms_nw_tranchot?',
-        layers: 'nw_tranchot',
-      },
-      {
-        kind: 'wms',
-        name: '1836–1850: Preuische Kartenaufnahme',
-        url: 'https://www.wms.nrw.de/geobasis/wms_nw_uraufnahme?',
-        layers: 'nw_uraufnahme_rw',
-      },
-      {
-        kind: 'wms',
-        name: '1891–1912: Preuische Kartenaufnahme',
-        url: 'https://www.wms.nrw.de/geobasis/wms_nw_neuaufnahme?',
-        layers: 'nw_neuaufnahme',
-      },
-    ],
-  },
-  {
-    groupName: 'Aerial Photos (Ruhr, Germany)',
-    exclusive: true,
-    layers: [
-      {
-        kind: 'wms',
-        name: '1926',
-        url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1926?',
-        layers: 'lubi_1926',
-      },
-      {
-        kind: 'wms',
-        name: '1934',
-        url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1934?',
-        layers: 'lubi_1934',
-      },
-      {
-        kind: 'wms',
-        name: '1952',
-        url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1952?',
-        layers: 'lubi_1952',
-      },
-    ],
-  },
-];
+const overlayGroups: OverlayGroupConfig[] = (() => {
+  const groupOrder: string[] = [];
+  const layersByGroup = new Map<string, WmsLayerConfig[]>();
 
-const buildLayer = (config: LayerConfig): L.Layer =>
-  config.kind === 'tile'
-    ? L.tileLayer(config.url, { attribution: config.attribution })
-    : L.tileLayer.wms(config.url, {
-        layers: config.layers,
-        format: 'image/png',
-        transparent: true,
-      });
+  layersConfig.forEach((config) => {
+    if (config.kind !== 'wms') return;
+    const groupName = config.groupLabel ?? config.group;
+    if (!layersByGroup.has(groupName)) {
+      layersByGroup.set(groupName, []);
+      groupOrder.push(groupName);
+    }
+    layersByGroup.get(groupName)?.push(config);
+  });
+
+  return groupOrder.map((groupName) => ({
+    groupName,
+    exclusive: true,
+    layers: layersByGroup.get(groupName) ?? [],
+  }));
+})();
 
 /** Builds the flat base-layer map and picks out the default (checked) layer. */
 const buildBaseLayerEntries = (configs: TileLayerConfig[]) => {

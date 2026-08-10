@@ -21,6 +21,9 @@ interface MapBuilderProps {
   onGeometryChange?: (wkt: string) => void;
   siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>>;
   photoMarkers?: PhotoMarker[];
+  selectable?: boolean;
+  showLayerChrome?: boolean;
+  layerPanel?: boolean;
 }
 
 const MapBuilder = ({
@@ -34,6 +37,9 @@ const MapBuilder = ({
   onGeometryChange,
   siteMarkersRef,
   photoMarkers,
+  selectable,
+  showLayerChrome,
+  layerPanel,
 }: MapBuilderProps) => {
   const dispatch = useAppDispatch();
 
@@ -67,6 +73,9 @@ const MapBuilder = ({
       onGeometryChange={onGeometryChange}
       siteMarkersRef={siteMarkersRef}
       photoMarkers={photoMarkers}
+      selectable={selectable}
+      showLayerChrome={showLayerChrome}
+      layerPanel={layerPanel}
     />
   );
 };

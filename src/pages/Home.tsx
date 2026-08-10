@@ -97,7 +97,7 @@ const Home = () => {
 
         <section className="home-map-preview" aria-label="Map preview">
           <div className="home-map-preview-frame">
-            <MapComponent adjustMapHeight />
+            <MapComponent adjustMapHeight selectable={false} showLayerChrome={false} />
             <Link to="/atlas" className="home-map-preview-cta">
               Open full Atlas &rarr;
             </Link>

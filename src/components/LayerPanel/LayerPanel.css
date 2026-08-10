@@ -1,0 +1,106 @@
+/* Docked flush to the map's left edge (not a floating card) so it reads as
+   part of the map chrome. z-index must clear Leaflet's own pane stack
+   (tile pane 200, marker pane 600, popup pane 700) - matches the z-index
+   `.infoCard` (MapComponent.css) already uses for the same reason. Leaves
+   room at the bottom for the ScaleControl (bottom-left). */
+.layer-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 40px;
+  z-index: 999;
+  width: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 0 6px 6px 0;
+  box-shadow: 2px 0 10px 2px var(--shadow-color);
+  font-size: 0.85rem;
+  color: var(--font-color-3);
+}
+
+/* Collapsed state: a slim vertical tab centered on the left edge, never
+   covering map content. */
+.layer-panel--collapsed {
+  top: 50%;
+  bottom: auto;
+  left: 0;
+  transform: translateY(-50%);
+  width: auto;
+  padding: 0.75rem 0.4rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: var(--font-bold, 700);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.layer-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.layer-panel__title {
+  font-weight: var(--font-bold, 700);
+}
+
+.layer-panel__collapse-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.layer-panel__section {
+  border-bottom: 1px solid #eee;
+}
+
+.layer-panel__section:last-child {
+  border-bottom: none;
+}
+
+.layer-panel__section-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: var(--font-bold, 700);
+  text-align: left;
+}
+
+.layer-panel__section-caret {
+  color: #888;
+}
+
+.layer-panel__section-body {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.75rem 0.5rem;
+}
+
+.layer-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.layer-panel__row-input {
+  min-width: 16px;
+  min-height: 16px;
+}
+
+.layer-panel__row-label {
+  cursor: pointer;
+}

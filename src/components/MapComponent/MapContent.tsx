@@ -1,4 +1,4 @@
-import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, useMap } from 'react-leaflet';
+import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, TileLayer, useMap } from 'react-leaflet';
 import L, { LeafletMouseEvent, PathOptions } from 'leaflet';
 import {
   histRec,
@@ -14,10 +14,12 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import GeometryEditor from '../GeometryEditor/GeometryEditor';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
 import BaseLayers from './BaseLayers';
+import { positronBaseLayer } from './layersConfig';
 import { getSiteIcon } from './siteIcons';
 import { fitBoundsWithPadding } from './mapUtils';
-import { useAutoZoom, useMarkerHighlight } from './useMapInteractions';
+import { useAutoZoom, useLayerPanelControl, useMarkerHighlight } from './useMapInteractions';
 import { QueryItem, SearchItem } from './mapTypes';
+import LayerPanel from '../LayerPanel/LayerPanel';
 
 export interface PhotoMarker {
   id: number;
@@ -40,6 +42,9 @@ interface MapContentProps {
   onGeometryChange?: (wkt: string) => void;
   siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>>;
   photoMarkers?: PhotoMarker[];
+  selectable?: boolean;
+  showLayerChrome?: boolean;
+  layerPanel?: boolean;
 }
 
 
@@ -71,9 +76,13 @@ const MapContent = ({
   onGeometryChange = () => {},
   siteMarkersRef,
   photoMarkers = [],
+  selectable = true,
+  showLayerChrome = true,
+  layerPanel = false,
 }: MapContentProps) => {
   const map = useMap();
   const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
+  const layerPanelControl = useLayerPanelControl(layerPanel ? map : null);
 
   // queryItem drives the "arrived via SiteInfo/RoadInfo" highlight + zoom.
   // focusItem is zoom-only (e.g. after closing back to the plain atlas):
@@ -147,70 +156,112 @@ const MapContent = ({
     setShowInfoCard(true);
   };
 
+  const siteLayer = (
+    <GeoJSON
+      data={siteData as GeoJSON.FeatureCollection}
+      pointToLayer={(feature, latlng) => {
+        const id = feature.properties?.id;
+        const icon = getSiteIcon(feature.properties?.siteType);
+        const marker = new L.Marker(latlng, { icon, alt: feature.properties?.name });
+        (marker as L.Marker & { feature: GeoJSON.Feature }).feature = feature;
+        siteMarkersRef.current[id] = marker;
+        return marker;
+      }}
+      onEachFeature={(_feature, layer) => {
+        if (selectable) layer.on({ click: clickSite });
+      }}
+    />
+  );
+
+  const roadLayer = (
+    <GeoJSON
+      data={roadData as GeoJSON.FeatureCollection}
+      style={(feature) => {
+        const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
+        return isSelected
+          ? { weight: 3, color: 'yellow', zIndex: 20 }
+          : roadStyleDifferentiator(feature?.properties ?? {});
+      }}
+      onEachFeature={(_feature, layer) => {
+        const id = _feature.properties?.id;
+        roadLayersRef.current[id] = layer;
+        if (selectable) layer.on({ click: clickRoad });
+      }}
+    />
+  );
+
+  const photoLayer = photoMarkers.length > 0 && (
+    <>
+      {photoMarkers.map((photo) => (
+        <Marker key={photo.id} position={[photo.latitude, photo.longitude]} icon={photoPinIcon}>
+          <Popup>
+            <img
+              src={photo.fullUrl}
+              alt={photo.caption ?? ''}
+              style={{ maxWidth: '180px', display: 'block' }}
+            />
+            {photo.caption && <span>{photo.caption}</span>}
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
+
+  let layerChrome: JSX.Element;
+  if (layerPanel) {
+    layerChrome = (
+      <>
+        {/* Custom collapsible sidebar (Atlas only), replacing the grouped
+            Leaflet layer control: drives the active base/historical/aerial
+            layer itself, and exposes sites/roads/photos visibility so we
+            can mount/unmount those GeoJSON layers below. */}
+        <LayerPanel control={layerPanelControl} hasPhotos={photoMarkers.length > 0} />
+        {layerPanelControl.state.overlayVisibility.sites && siteLayer}
+        {layerPanelControl.state.overlayVisibility.roads && roadLayer}
+        {layerPanelControl.state.overlayVisibility.photos && photoLayer}
+      </>
+    );
+  } else if (showLayerChrome) {
+    layerChrome = (
+      <>
+        {/* Standalone grouped control: base maps + collapsible overlay groups
+            (historical maps / aerial photos) that stack on top of the base map. */}
+        <BaseLayers />
+
+        <LayersControl position="topleft" collapsed={true}>
+          <LayersControl.Overlay checked name="Archaeological Sites">
+            {siteLayer}
+          </LayersControl.Overlay>
+
+          <LayersControl.Overlay checked name="Roads and Routes">
+            {roadLayer}
+          </LayersControl.Overlay>
+
+          {photoMarkers.length > 0 && (
+            <LayersControl.Overlay checked name="Photos">
+              {photoLayer}
+            </LayersControl.Overlay>
+          )}
+        </LayersControl>
+      </>
+    );
+  } else {
+    layerChrome = (
+      <>
+        {/* Fixed, non-toggleable base tile + unwrapped overlays: no layer
+            control chrome at all (used where selection/basemap picking are
+            intentionally disabled, e.g. the Home page preview map). */}
+        <TileLayer url={positronBaseLayer.url} attribution={positronBaseLayer.attribution} />
+        {siteLayer}
+        {roadLayer}
+        {photoLayer}
+      </>
+    );
+  }
+
   return (
     <>
-      {/* Standalone grouped control: base maps + collapsible overlay groups
-          (historical maps / aerial photos) that stack on top of the base map. */}
-      <BaseLayers />
-
-      <LayersControl position="topleft" collapsed={true}>
-        <LayersControl.Overlay checked name="Archaeological Sites">
-          <GeoJSON
-            data={siteData as GeoJSON.FeatureCollection}
-            pointToLayer={(feature, latlng) => {
-              const id = feature.properties?.id;
-              const icon = getSiteIcon(feature.properties?.siteType);
-              const marker = new L.Marker(latlng, { icon, alt: feature.properties?.name });
-              (marker as L.Marker & { feature: GeoJSON.Feature }).feature = feature;
-              siteMarkersRef.current[id] = marker;
-              return marker;
-            }}
-            onEachFeature={(_feature, layer) => {
-              layer.on({ click: clickSite });
-            }}
-          />
-        </LayersControl.Overlay>
-
-        <LayersControl.Overlay checked name="Roads and Routes">
-          <GeoJSON
-            data={roadData as GeoJSON.FeatureCollection}
-            style={(feature) => {
-              const isSelected = String(feature?.properties?.id) === String(selectedRoadId);
-              return isSelected
-                ? { weight: 3, color: 'yellow', zIndex: 20 }
-                : roadStyleDifferentiator(feature?.properties ?? {});
-            }}
-            onEachFeature={(_feature, layer) => {
-              const id = _feature.properties?.id;
-              roadLayersRef.current[id] = layer;
-              layer.on({ click: clickRoad });
-            }}
-          />
-        </LayersControl.Overlay>
-
-        {photoMarkers.length > 0 && (
-          <LayersControl.Overlay checked name="Photos">
-            <>
-              {photoMarkers.map((photo) => (
-                <Marker
-                  key={photo.id}
-                  position={[photo.latitude, photo.longitude]}
-                  icon={photoPinIcon}
-                >
-                  <Popup>
-                    <img
-                      src={photo.fullUrl}
-                      alt={photo.caption ?? ''}
-                      style={{ maxWidth: '180px', display: 'block' }}
-                    />
-                    {photo.caption && <span>{photo.caption}</span>}
-                  </Popup>
-                </Marker>
-              ))}
-            </>
-          </LayersControl.Overlay>
-        )}
-      </LayersControl>
+      {layerChrome}
 
       {isEditing && (
         <GeometryEditor
