@@ -6,8 +6,13 @@ import * as dashboardService from '../services/DashboardService';
 import { DashboardSummary } from '../types/dashboard';
 
 vi.mock('../components/MapComponent/MapComponent', () => ({
-  default: (props: { adjustMapHeight?: boolean }) => (
-    <div data-testid="mock-map" data-adjust-map-height={String(props.adjustMapHeight)} />
+  default: (props: { adjustMapHeight?: boolean; selectable?: boolean; showLayerChrome?: boolean }) => (
+    <div
+      data-testid="mock-map"
+      data-adjust-map-height={String(props.adjustMapHeight)}
+      data-selectable={String(props.selectable)}
+      data-show-layer-chrome={String(props.showLayerChrome)}
+    />
   ),
 }));
 
@@ -50,7 +55,10 @@ describe('Home', () => {
     renderHome();
 
     expect(screen.getByRole('heading', { name: 'AncientData', level: 1 })).toBeInTheDocument();
-    expect(screen.getByTestId('mock-map')).toHaveAttribute('data-adjust-map-height', 'true');
+    const map = screen.getByTestId('mock-map');
+    expect(map).toHaveAttribute('data-adjust-map-height', 'true');
+    expect(map).toHaveAttribute('data-selectable', 'false');
+    expect(map).toHaveAttribute('data-show-layer-chrome', 'false');
     expect(screen.getByRole('link', { name: /open full atlas/i })).toHaveAttribute(
       'href',
       '/atlas'

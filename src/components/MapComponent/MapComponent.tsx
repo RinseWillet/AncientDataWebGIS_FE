@@ -21,6 +21,9 @@ interface MapComponentProps {
   geometry?: string;
   onGeometryChange?: (wkt: string) => void;
   photoMarkers?: PhotoMarker[];
+  selectable?: boolean;
+  showLayerChrome?: boolean;
+  layerPanel?: boolean;
 }
 
 const MapComponent = ({
@@ -31,6 +34,9 @@ const MapComponent = ({
   geometry,
   onGeometryChange = () => {},
   photoMarkers,
+  selectable,
+  showLayerChrome,
+  layerPanel,
 }: MapComponentProps) => {
   const [map, setMap] = useState<L.Map | null>(null);
   const [showInfoCard, setShowInfoCard] = useState(false);
@@ -108,6 +114,9 @@ const MapComponent = ({
           onGeometryChange={onGeometryChange}
           siteMarkersRef={siteMarkersRef}
           photoMarkers={photoMarkers}
+          selectable={selectable}
+          showLayerChrome={showLayerChrome}
+          layerPanel={layerPanel}
         />
       </MapContainer>
     </div>

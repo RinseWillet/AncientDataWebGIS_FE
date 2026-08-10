@@ -20,6 +20,7 @@ export const siteTypeLabels: Record<string, string> = {
   ship: 'shipwreck',
   pship: 'possible shipwreck',
   site: 'generic site',
+  milestone: 'milestone',
 };
 
 /** Resolve a `siteType` code to its label, defaulting to 'unknown'. */

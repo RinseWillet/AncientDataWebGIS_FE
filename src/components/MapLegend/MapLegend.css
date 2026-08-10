@@ -1,0 +1,118 @@
+/* Positioned inside the map (absolute, relative to the Leaflet container),
+   NOT `position: fixed` - the map area doesn't fill the full viewport (there
+   is a header/footer around .pagebox), so a viewport-fixed overlay would
+   land below the map, over the footer.
+
+   Docked on the right edge, mirroring `LayerPanel`'s left dock. `bottom: 40px`
+   leaves room for Leaflet's default attribution control (bottom-right).
+   `MapLegend` auto-collapses when a site/road is selected (see the
+   `hasSelection` prop), so it doesn't need to dodge `MapInfoCard` positionally
+   - both simply won't be expanded at the same time. z-index matches
+   `.infoCard`/`.layer-panel`'s convention for clearing Leaflet's own panes
+   (tile pane 200, marker pane 600, popup pane 700). */
+.map-legend {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 40px;
+  z-index: 999;
+  width: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 6px 0 0 6px;
+  box-shadow: -2px 0 10px 2px var(--shadow-color);
+  font-size: 0.8rem;
+  color: var(--font-color-3);
+}
+
+/* Collapsed state: a slim vertical tab centered on the right edge, never
+   covering map content. */
+.map-legend--collapsed {
+  top: 50%;
+  bottom: auto;
+  right: 0;
+  transform: translateY(-50%);
+  width: auto;
+  padding: 0.75rem 0.4rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: var(--font-bold, 700);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+.map-legend__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid #eee;
+}
+
+.map-legend__title {
+  font-weight: var(--font-bold, 700);
+}
+
+.map-legend__collapse-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.map-legend__section {
+  padding: 0.4rem 0.6rem;
+}
+
+.map-legend__section + .map-legend__section {
+  border-top: 1px solid #eee;
+}
+
+.map-legend__section-title {
+  margin: 0 0 0.3rem;
+  font-size: 0.78rem;
+  font-weight: var(--font-bold, 700);
+  color: #666;
+}
+
+.map-legend__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.map-legend__row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.15rem 0;
+}
+
+.map-legend__icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.map-legend__swatch {
+  display: inline-block;
+  width: 20px;
+  height: 0;
+  border-top: 3px solid;
+  flex-shrink: 0;
+}
+
+.map-legend__swatch--dashed {
+  border-top-style: dashed;
+}
+
+@media screen and (max-width: 600px) {
+  .map-legend {
+    width: 160px;
+  }
+}

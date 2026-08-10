@@ -189,6 +189,7 @@ const SiteInfo = () => {
               geometry={editFormData.geom}
               onGeometryChange={(newWkt) => setEditFormData((prev) => ({ ...prev, geom: newWkt }))}
               photoMarkers={photoMarkers}
+              selectable={false}
             />
           </div>
           <div className="infopage-image">

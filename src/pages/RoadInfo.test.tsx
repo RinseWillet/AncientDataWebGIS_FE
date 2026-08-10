@@ -19,7 +19,13 @@ vi.mock('../services/RoadService', () => ({
 }));
 
 vi.mock('../components/MapComponent/MapComponent', () => ({
-  default: () => <div data-testid="mock-map" />,
+  default: (props: { selectable?: boolean; showLayerChrome?: boolean }) => (
+    <div
+      data-testid="mock-map"
+      data-selectable={String(props.selectable)}
+      data-show-layer-chrome={String(props.showLayerChrome)}
+    />
+  ),
 }));
 
 vi.mock('../components/MediaGallery/MediaGallery', () => ({
@@ -104,6 +110,16 @@ describe('RoadInfo', () => {
     });
     expect(screen.getByText('BACK')).toBeInTheDocument();
     expect(screen.getByText('View on Map')).toBeInTheDocument();
+  });
+
+  it('disables click-to-select on the map but keeps the layer chrome', async () => {
+    renderWithProviders();
+    await waitFor(() => {
+      expect(screen.getByText('Test Road')).toBeInTheDocument();
+    });
+    const map = screen.getByTestId('mock-map');
+    expect(map).toHaveAttribute('data-selectable', 'false');
+    expect(map).toHaveAttribute('data-show-layer-chrome', 'undefined');
   });
 
   it('navigates to DataList when BACK is clicked', async () => {
