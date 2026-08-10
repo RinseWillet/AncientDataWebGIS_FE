@@ -149,9 +149,11 @@ const MapContent = ({
 
   return (
     <>
-      <LayersControl position="topleft" collapsed={true}>
-        <BaseLayers />
+      {/* Standalone grouped control: base maps + collapsible overlay groups
+          (historical maps / aerial photos) that stack on top of the base map. */}
+      <BaseLayers />
 
+      <LayersControl position="topleft" collapsed={true}>
         <LayersControl.Overlay checked name="Archaeological Sites">
           <GeoJSON
             data={siteData as GeoJSON.FeatureCollection}
