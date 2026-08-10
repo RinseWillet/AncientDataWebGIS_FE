@@ -4,11 +4,20 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import Atlas from './Atlas';
 
 vi.mock('../components/MapComponent/MapComponent', () => ({
-  default: (props: { queryItem: unknown; adjustMapHeight: boolean }) => (
+  default: (props: {
+    queryItem: unknown;
+    adjustMapHeight: boolean;
+    selectable?: boolean;
+    showLayerChrome?: boolean;
+    layerPanel?: boolean;
+  }) => (
     <div
       data-testid="mock-map"
       data-adjust-map-height={String(props.adjustMapHeight)}
       data-query-item={JSON.stringify(props.queryItem)}
+      data-selectable={String(props.selectable)}
+      data-show-layer-chrome={String(props.showLayerChrome)}
+      data-layer-panel={String(props.layerPanel)}
     />
   ),
 }));
@@ -33,6 +42,14 @@ describe('Atlas', () => {
     const map = screen.getByTestId('mock-map');
     expect(map).toHaveAttribute('data-adjust-map-height', 'false');
     expect(screen.queryByText('BACK')).not.toBeInTheDocument();
+  });
+
+  it('passes layerPanel (and leaves selectable/showLayerChrome at their defaults)', () => {
+    renderAtlas('/atlas');
+    const map = screen.getByTestId('mock-map');
+    expect(map).toHaveAttribute('data-layer-panel', 'true');
+    expect(map).toHaveAttribute('data-selectable', 'undefined');
+    expect(map).toHaveAttribute('data-show-layer-chrome', 'undefined');
   });
 
   it('renders a full-height map with the road selected when visited via road_<id>', () => {
