@@ -1,13 +1,6 @@
 import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, TileLayer, useMap } from 'react-leaflet';
-import L, { LeafletMouseEvent, PathOptions } from 'leaflet';
-import {
-  histRec,
-  hypotheticalRoute,
-  notShowRoad,
-  photoPinIcon,
-  possibleRoad,
-  road,
-} from './Styles/markerStyles';
+import L, { LeafletMouseEvent } from 'leaflet';
+import { photoPinIcon } from './Styles/markerStyles';
 import './MapContent.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -20,6 +13,8 @@ import { fitBoundsWithPadding } from './mapUtils';
 import { useAutoZoom, useLayerPanelControl, useMarkerHighlight } from './useMapInteractions';
 import { QueryItem, SearchItem } from './mapTypes';
 import LayerPanel from '../LayerPanel/LayerPanel';
+import MapLegend from '../MapLegend/MapLegend';
+import { roadStyleDifferentiator } from '../../utils/roadTypes';
 
 export interface PhotoMarker {
   id: number;
@@ -46,22 +41,6 @@ interface MapContentProps {
   showLayerChrome?: boolean;
   layerPanel?: boolean;
 }
-
-
-const roadStyleDifferentiator = (roadProps: { type?: string }): PathOptions => {
-  switch (roadProps.type) {
-    case 'possible road':
-      return possibleRoad;
-    case 'hypothetical route':
-      return hypotheticalRoute;
-    case 'road':
-      return road;
-    case 'hist_rec':
-      return histRec;
-    default:
-      return notShowRoad;
-  }
-};
 
 const MapContent = ({
   siteData,
@@ -216,6 +195,7 @@ const MapContent = ({
             layer itself, and exposes sites/roads/photos visibility so we
             can mount/unmount those GeoJSON layers below. */}
         <LayerPanel control={layerPanelControl} hasPhotos={photoMarkers.length > 0} />
+        <MapLegend hasSelection={Boolean(searchItem?.type)} />
         {layerPanelControl.state.overlayVisibility.sites && siteLayer}
         {layerPanelControl.state.overlayVisibility.roads && roadLayer}
         {layerPanelControl.state.overlayVisibility.photos && photoLayer}

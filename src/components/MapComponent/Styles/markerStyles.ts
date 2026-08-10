@@ -52,6 +52,31 @@ export const tumulusIcon = makeIcon(tumulus);
 export const possibleTumulusIcon = makeIcon(ptumulus);
 export const mileStoneIcon = makeIcon(milestone);
 
+/**
+ * Raw icon URLs keyed by `siteType`, for contexts (e.g. MapLegend) that need
+ * a plain `<img>` source rather than a constructed Leaflet `Icon` instance.
+ * Mirrors `siteIcons.ts`'s `siteIconMap` key-for-key.
+ */
+export const siteTypeIconUrls: Record<string, string> = {
+  castellum: fort,
+  pos_castellum: pfort,
+  legfort: legfort,
+  watchtower: watchtower,
+  city: city,
+  cem: cemetery,
+  ptum: tumulus,
+  tum: tumulus,
+  villa: villa,
+  pvilla: pvilla,
+  sett: sett,
+  settS: settS,
+  sanctuary: sanctuary,
+  ship: ship,
+  pship: pship,
+  site: site,
+  milestone: milestone,
+};
+
 export const possibleRoad: PathOptions = {
   color: '#000000',
   weight: 2.5,
