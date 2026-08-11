@@ -85,7 +85,7 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1926?',
-    layers: 'lubi_1926',
+    layers: 'ruhr-lubi_1926',
   },
   {
     kind: 'wms',
@@ -93,7 +93,7 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1934?',
-    layers: 'lubi_1934',
+    layers: 'ruhr-lubi_1934',
   },
   {
     kind: 'wms',
@@ -101,7 +101,15 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1952?',
-    layers: 'lubi_1952',
+    layers: 'ruhr-lubi_1952',
+  },
+  {
+    kind: 'wms',
+    name: '1952 Köln',
+    group: 'Aerial Imagery',
+    groupLabel: 'Aerial Photos (Köln, Germany)',
+    url: 'https://www.wms.nrw.de/geobasis/wms_nw_hist_dop_1952?',
+    layers: 'köln-lubi_1952',
   },
 ];
 
