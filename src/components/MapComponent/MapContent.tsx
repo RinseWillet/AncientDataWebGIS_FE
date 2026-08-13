@@ -186,6 +186,12 @@ const MapContent = ({
     </>
   );
 
+  // Topmost (frontmost) visible Physical layer whose catalog category is DEM -
+  // physicalLayers is already in front-to-back order, so the first match is correct.
+  const activeDemLayer = layerPanelControl.state.physicalLayers.find(
+    (layer) => layer.visible && layer.category === 'DEM'
+  );
+
   let layerChrome: JSX.Element;
   if (layerPanel) {
     layerChrome = (
@@ -195,7 +201,10 @@ const MapContent = ({
             layer itself, and exposes sites/roads/photos visibility so we
             can mount/unmount those GeoJSON layers below. */}
         <LayerPanel control={layerPanelControl} hasPhotos={photoMarkers.length > 0} />
-        <MapLegend hasSelection={Boolean(searchItem?.type)} />
+        <MapLegend
+          hasSelection={Boolean(searchItem?.type)}
+          activeDemLayerName={activeDemLayer?.name ?? null}
+        />
         {layerPanelControl.state.overlayVisibility.sites && siteLayer}
         {layerPanelControl.state.overlayVisibility.roads && roadLayer}
         {layerPanelControl.state.overlayVisibility.photos && photoLayer}

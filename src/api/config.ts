@@ -20,6 +20,9 @@ const getDefaultProdApiBaseUrl = (): string => {
 
 const baseURL = configuredBaseUrl || (import.meta.env.DEV ? defaultDevBaseUrl : getDefaultProdApiBaseUrl());
 
+/** Resolved API base URL (e.g. `http://localhost:8080/api` or `/webGIS/api`), for callers that need to build a raw URL outside axios (e.g. a Leaflet WMS tile layer). */
+export const apiBaseUrl = baseURL;
+
 const apiClient = axios.create({
   baseURL,
   headers: {

@@ -104,3 +104,38 @@
 .layer-panel__row-label {
   cursor: pointer;
 }
+
+/* Physical layer rows carry an opacity slider + reorder buttons in addition
+   to the toggle/label every other row has, so they wrap onto a second line
+   rather than squeezing everything into one. */
+.layer-panel__row--physical {
+  flex-wrap: wrap;
+}
+
+.layer-panel__row--physical .layer-panel__row-label {
+  flex: 1 1 auto;
+}
+
+.layer-panel__opacity-slider {
+  order: 3;
+  flex: 1 1 100%;
+  width: calc(100% - 1.5rem);
+  margin-left: 1.5rem;
+}
+
+.layer-panel__order-btn {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
+.layer-panel__order-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

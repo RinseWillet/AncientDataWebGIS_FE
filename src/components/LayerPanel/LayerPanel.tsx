@@ -47,7 +47,15 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
 
-  const { state, selectBaseLayer, toggleExclusiveLayer, toggleOverlay } = control;
+  const {
+    state,
+    selectBaseLayer,
+    toggleExclusiveLayer,
+    toggleOverlay,
+    togglePhysicalLayer,
+    setPhysicalLayerOpacity,
+    movePhysicalLayer,
+  } = control;
 
   const toggleSection = (section: string) => {
     setCollapsedSections((prev) => {
@@ -138,6 +146,73 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
           </section>
         );
       })}
+
+      {state.physicalLayers.length > 0 && (
+        <section className="layer-panel__section">
+          <button
+            type="button"
+            className="layer-panel__section-header"
+            onClick={() => toggleSection('Physical')}
+            aria-expanded={!collapsedSections.has('Physical')}
+          >
+            <span className="layer-panel__section-title">Physical</span>
+            <span className="layer-panel__section-caret">
+              {collapsedSections.has('Physical') ? '▸' : '▾'}
+            </span>
+          </button>
+
+          {!collapsedSections.has('Physical') && (
+            <ul className="layer-panel__section-body">
+              {state.physicalLayers.map((layer, index) => {
+                const inputId = `layer-panel-physical-${layer.source}`;
+                return (
+                  <li className="layer-panel__row layer-panel__row--physical" key={layer.source}>
+                    <input
+                      id={inputId}
+                      className="layer-panel__row-input"
+                      type="checkbox"
+                      checked={layer.visible}
+                      onChange={() => togglePhysicalLayer(layer.source)}
+                    />
+                    <label className="layer-panel__row-label" htmlFor={inputId}>
+                      {layer.name}
+                    </label>
+                    <input
+                      className="layer-panel__opacity-slider"
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      value={layer.opacity}
+                      disabled={!layer.visible}
+                      aria-label={`${layer.name} opacity`}
+                      onChange={(e) => setPhysicalLayerOpacity(layer.source, Number(e.target.value))}
+                    />
+                    <button
+                      type="button"
+                      className="layer-panel__order-btn"
+                      disabled={index === 0}
+                      aria-label={`Move ${layer.name} up`}
+                      onClick={() => movePhysicalLayer(layer.source, 'up')}
+                    >
+                      &#9650;
+                    </button>
+                    <button
+                      type="button"
+                      className="layer-panel__order-btn"
+                      disabled={index === state.physicalLayers.length - 1}
+                      aria-label={`Move ${layer.name} down`}
+                      onClick={() => movePhysicalLayer(layer.source, 'down')}
+                    >
+                      &#9660;
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="layer-panel__section">
         <button

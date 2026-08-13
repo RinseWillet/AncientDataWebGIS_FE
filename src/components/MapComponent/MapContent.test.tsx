@@ -1,9 +1,25 @@
-import { render, cleanup, waitFor } from '@testing-library/react';
+import { render, cleanup, waitFor, fireEvent } from '@testing-library/react';
 import { MapContainer } from 'react-leaflet';
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import MapContent from './MapContent';
 import type { MutableRefObject } from 'react';
 import type L from 'leaflet';
+import { rasterService } from '../../services/RasterService';
+import type { RasterLayer } from '../../types/raster';
+
+vi.mock('../../services/RasterService', () => ({
+  rasterService: { getCatalog: vi.fn() },
+}));
+
+const buildRasterLayer = (overrides: Partial<RasterLayer> = {}): RasterLayer => ({
+  name: 'Sheet A2',
+  source: 'ancientdata:1818-de-man-a2',
+  bounds: { south: 51.79, west: 5.75, north: 51.83, east: 5.84 },
+  zoom: { min: 12, max: 19 },
+  attribution: '1818 De Man - Nijmegen',
+  category: 'HISTORICAL_MAP',
+  ...overrides,
+});
 
 const siteData = {
   type: 'FeatureCollection',
@@ -44,6 +60,10 @@ const clickSiteMarker = (container: HTMLElement) => {
   if (!marker) throw new Error('site marker not found');
   marker.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
 };
+
+beforeEach(() => {
+  vi.mocked(rasterService.getCatalog).mockResolvedValue([]);
+});
 
 describe('MapContent selection behavior', () => {
   afterEach(() => cleanup());
@@ -92,5 +112,39 @@ describe('MapContent layer chrome', () => {
 
     expect(container.querySelector('.layer-panel')).toBeInTheDocument();
     expect(container.querySelector('.leaflet-control-layers')).not.toBeInTheDocument();
+  });
+});
+
+describe('MapContent Physical layers (raster catalog)', () => {
+  afterEach(() => cleanup());
+
+  it('adds a WMS tile layer to the map when a Physical catalog entry is toggled visible', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([buildRasterLayer()]);
+    const { container, findByLabelText } = renderMapContent({ layerPanel: true });
+
+    const checkbox = await findByLabelText('Sheet A2');
+    fireEvent.click(checkbox);
+
+    await waitFor(() => {
+      expect(
+        container.querySelector('.leaflet-tile-pane img[src*="/raster/ancientdata/wms"]')
+      ).toBeInTheDocument();
+    });
+  });
+
+  it('shows MapLegend\'s Elevation section only once a DEM-category (not historical-map) layer is visible', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([
+      buildRasterLayer({ name: 'Historical Sheet', source: 'ancientdata:hist', category: 'HISTORICAL_MAP' }),
+      buildRasterLayer({ name: 'Test DEM', source: 'ancientdata:dem', category: 'DEM' }),
+    ]);
+    const { findByLabelText, queryByText } = renderMapContent({ layerPanel: true });
+
+    const historicalCheckbox = await findByLabelText('Historical Sheet');
+    fireEvent.click(historicalCheckbox);
+    expect(queryByText('Elevation')).not.toBeInTheDocument();
+
+    const demCheckbox = await findByLabelText('Test DEM');
+    fireEvent.click(demCheckbox);
+    await waitFor(() => expect(queryByText('Elevation')).toBeInTheDocument());
   });
 });

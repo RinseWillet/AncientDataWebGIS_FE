@@ -4,7 +4,9 @@ import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from './siteIcons';
 import { QueryItem, SearchItem } from './mapTypes';
 import { LayerGroupName, layersConfig } from './layersConfig';
-import { buildLayer } from './mapUtils';
+import { buildLayer, buildPhysicalLayer } from './mapUtils';
+import { rasterService } from '../../services/RasterService';
+import { RasterLayerCategory } from '../../types/raster';
 
 type SiteMarkersRef = MutableRefObject<Record<string | number, L.Marker>>;
 type RoadLayersRef = MutableRefObject<Record<string | number, L.Layer>>;
@@ -104,11 +106,29 @@ export interface OverlayVisibility {
 /** Groups whose layer selection is exclusive (radio-like: one active at a time). */
 type ExclusiveGroupName = Extract<LayerGroupName, 'Historical Maps' | 'Aerial Imagery'>;
 
+/**
+ * A raster catalog entry (see `/api/raster/catalog`, E3-2) as tracked by the
+ * "Physical" LayerPanel group. Unlike the exclusive Historical/Aerial
+ * groups, any number of these can be visible at once, each with its own
+ * opacity. `physicalLayers`' array order is also its map z-order: index 0
+ * is the topmost (rendered last/on top), matching how it's listed in the
+ * LayerPanel (first row = frontmost layer).
+ */
+export interface PhysicalLayerState {
+  source: string;
+  name: string;
+  attribution: string;
+  category: RasterLayerCategory;
+  visible: boolean;
+  opacity: number;
+}
+
 export interface LayerPanelState {
   activeBaseLayer: string;
   activeHistoricalLayer: string | null;
   activeAerialLayer: string | null;
   overlayVisibility: OverlayVisibility;
+  physicalLayers: PhysicalLayerState[];
 }
 
 export interface LayerPanelControl {
@@ -116,6 +136,9 @@ export interface LayerPanelControl {
   selectBaseLayer: (name: string) => void;
   toggleExclusiveLayer: (group: ExclusiveGroupName, name: string) => void;
   toggleOverlay: (key: OverlayKey) => void;
+  togglePhysicalLayer: (source: string) => void;
+  setPhysicalLayerOpacity: (source: string, opacity: number) => void;
+  movePhysicalLayer: (source: string, direction: 'up' | 'down') => void;
 }
 
 const findLayerConfig = (group: LayerGroupName, name: string) =>
@@ -141,6 +164,8 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     roads: true,
     photos: true,
   });
+  const [physicalLayers, setPhysicalLayers] = useState<PhysicalLayerState[]>([]);
+  const physicalLayerRefs = useRef<Record<string, L.TileLayer.WMS>>({});
 
   useEffect(() => {
     if (!map) return;
@@ -172,6 +197,71 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     };
   }, [map, activeAerialLayer]);
 
+  // Load the raster catalog once `map` is set - the caller only passes a
+  // real map instance when the Physical group is actually shown (layerPanel
+  // is true), so this skips the request entirely on RoadInfo/SiteInfo/Home.
+  // A failed fetch just leaves physicalLayers empty, so the LayerPanel's
+  // Physical section stays unrendered rather than showing a broken group.
+  useEffect(() => {
+    if (!map) return;
+    let cancelled = false;
+    rasterService
+      .getCatalog()
+      .then((catalog) => {
+        if (cancelled) return;
+        setPhysicalLayers(
+          catalog.map((entry) => ({
+            source: entry.source,
+            name: entry.name,
+            attribution: entry.attribution,
+            category: entry.category,
+            visible: false,
+            opacity: 1,
+          }))
+        );
+      })
+      .catch((error) => {
+        console.error('Failed to load raster catalog', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [map]);
+
+  // Sync visible physical layers to the map: add/remove on visibility
+  // change, update opacity in place, and re-apply z-order (index 0 = front)
+  // whenever the array's order changes.
+  useEffect(() => {
+    if (!map) return;
+    physicalLayers.forEach((physicalLayer) => {
+      const existing = physicalLayerRefs.current[physicalLayer.source];
+      if (physicalLayer.visible) {
+        if (existing) {
+          existing.setOpacity(physicalLayer.opacity);
+        } else {
+          physicalLayerRefs.current[physicalLayer.source] = buildPhysicalLayer(
+            physicalLayer.source,
+            physicalLayer.opacity
+          ).addTo(map);
+        }
+      } else if (existing) {
+        map.removeLayer(existing);
+        delete physicalLayerRefs.current[physicalLayer.source];
+      }
+    });
+    physicalLayers.forEach((physicalLayer, index) => {
+      physicalLayerRefs.current[physicalLayer.source]?.setZIndex(physicalLayers.length - index);
+    });
+  }, [map, physicalLayers]);
+
+  // Remove any remaining physical layers if the map instance itself changes/unmounts.
+  useEffect(() => {
+    return () => {
+      Object.values(physicalLayerRefs.current).forEach((layer) => map?.removeLayer(layer));
+      physicalLayerRefs.current = {};
+    };
+  }, [map]);
+
   const toggleExclusiveLayer = (group: ExclusiveGroupName, name: string) => {
     const setActive = group === 'Historical Maps' ? setActiveHistoricalLayer : setActiveAerialLayer;
     setActive((prev) => (prev === name ? null : name));
@@ -181,11 +271,44 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     setOverlayVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const togglePhysicalLayer = (source: string) => {
+    setPhysicalLayers((prev) =>
+      prev.map((layer) => (layer.source === source ? { ...layer, visible: !layer.visible } : layer))
+    );
+  };
+
+  const setPhysicalLayerOpacity = (source: string, opacity: number) => {
+    setPhysicalLayers((prev) =>
+      prev.map((layer) => (layer.source === source ? { ...layer, opacity } : layer))
+    );
+  };
+
+  /** direction 'up' moves a layer toward index 0 (frontmost/top row); 'down' moves it toward the back. */
+  const movePhysicalLayer = (source: string, direction: 'up' | 'down') => {
+    setPhysicalLayers((prev) => {
+      const index = prev.findIndex((layer) => layer.source === source);
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (index === -1 || targetIndex < 0 || targetIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  };
+
   return {
-    state: { activeBaseLayer, activeHistoricalLayer, activeAerialLayer, overlayVisibility },
+    state: {
+      activeBaseLayer,
+      activeHistoricalLayer,
+      activeAerialLayer,
+      overlayVisibility,
+      physicalLayers,
+    },
     selectBaseLayer: setActiveBaseLayer,
     toggleExclusiveLayer,
     toggleOverlay,
+    togglePhysicalLayer,
+    setPhysicalLayerOpacity,
+    movePhysicalLayer,
   };
 };
 
