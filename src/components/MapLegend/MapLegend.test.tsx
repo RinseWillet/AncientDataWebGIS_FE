@@ -60,6 +60,12 @@ describe('MapLegend', () => {
     expect(screen.queryByText('Elevation')).not.toBeInTheDocument();
   });
 
+  it('shows the DEM section when activeDemLayerName is passed through (real useActiveDemLayer, no mock)', () => {
+    render(<MapLegend activeDemLayerName="Test DEM" />);
+
+    expect(screen.getByText('Elevation')).toBeInTheDocument();
+  });
+
   it('shows the DEM section once useActiveDemLayer reports an active layer', async () => {
     vi.doMock('./useActiveDemLayer', () => ({
       useActiveDemLayer: () => ({ name: 'Test DEM' }),

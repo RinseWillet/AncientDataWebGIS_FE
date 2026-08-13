@@ -1,5 +1,6 @@
 import L from 'leaflet';
 import { LayerConfig } from './layersConfig';
+import { apiBaseUrl } from '../../api/config';
 
 /** Builds a Leaflet tile/WMS layer instance from a `layersConfig` entry. */
 export const buildLayer = (config: LayerConfig): L.Layer =>
@@ -10,6 +11,21 @@ export const buildLayer = (config: LayerConfig): L.Layer =>
         format: 'image/png',
         transparent: true,
       });
+
+/**
+ * Builds a Leaflet WMS layer for a raster catalog entry (`source` is a
+ * GeoServer "workspace:layer" id), requested through the backend's read-only
+ * `/api/raster/<workspace>/wms` proxy (see ADR-012).
+ */
+export const buildPhysicalLayer = (source: string, opacity: number): L.TileLayer.WMS => {
+  const workspace = source.split(':')[0];
+  return L.tileLayer.wms(`${apiBaseUrl}/raster/${workspace}/wms`, {
+    layers: source,
+    format: 'image/png',
+    transparent: true,
+    opacity,
+  });
+};
 
 export interface ZoomPadding {
   bottomRight: [number, number];

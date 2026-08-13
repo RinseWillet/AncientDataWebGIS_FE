@@ -8,6 +8,8 @@ import './MapLegend.css';
 interface MapLegendProps {
   /** True while a site/road is selected (MapInfoCard/BottomSheetCard is showing) - the legend hides entirely to stay out of its way. */
   hasSelection?: boolean;
+  /** Name of the topmost visible Physical layer whose category is DEM, or null if none is visible (see `useActiveDemLayer`). */
+  activeDemLayerName?: string | null;
 }
 
 /**
@@ -21,10 +23,10 @@ interface MapLegendProps {
  * relocate a tab to - instead MapLegend renders nothing at all while
  * `hasSelection` is true, reappearing (still collapsed) once it clears.
  */
-const MapLegend = ({ hasSelection = false }: MapLegendProps) => {
+const MapLegend = ({ hasSelection = false, activeDemLayerName = null }: MapLegendProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [prevHasSelection, setPrevHasSelection] = useState(hasSelection);
-  const activeDemLayer = useActiveDemLayer();
+  const activeDemLayer = useActiveDemLayer(activeDemLayerName);
 
   if (hasSelection !== prevHasSelection) {
     setPrevHasSelection(hasSelection);
