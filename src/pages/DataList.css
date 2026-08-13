@@ -131,12 +131,21 @@
     text-decoration: underline;
 }
 
+/* Height is set to clear the global 44px touch-target floor (button,
+   [role="button"] { min-height/min-width: 44px } in App.css) deliberately,
+   rather than declaring something smaller and having the browser silently
+   inflate it - that mismatch (declared 2.8rem/28px vs. enforced 44px, with
+   width unaffected since 5rem/50px already cleared the floor) is what made
+   this read as a near-circle before. */
 .dataSwitch-btn {
     background-color: var(--accent-color-2);
     border: 1px solid #aaa;
     border-radius: 99px;
-    width: 5rem;
-    height: 2.8rem;
+    width: 8.8rem;
+    height: 4.4rem;
+    display: flex;
+    align-items: center;
+    padding: 0 0.4rem;
     transition: background-color 0.1s ease, border-color 0.2s ease;
     cursor: pointer;
     box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.748);
@@ -145,13 +154,12 @@
 
 .dataSwitch-btn .thumb {
     position: relative;
-    height: 2rem;
-    width: 2rem;
+    height: 3.4rem;
+    width: 3.4rem;
     background-color: #fff;
     border-radius: 99px;
     transition: left 0.15s ease;
-    left: 3px;
-    top: 0;
+    left: 0;
 }
 
 .dataSwitch-btn.switched {
@@ -163,7 +171,7 @@
 }
 
 .dataSwitch-btn.switched .thumb {
-    left: calc(2.6rem);
+    left: 4.6rem;
 }
 
 .status-msg {
