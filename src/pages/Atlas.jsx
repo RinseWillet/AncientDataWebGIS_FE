@@ -1,4 +1,4 @@
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router';
 import MapComponent from '../components/MapComponent/MapComponent';
 import './Atlas.css';
 

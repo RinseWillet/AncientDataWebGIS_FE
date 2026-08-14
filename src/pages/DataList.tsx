@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import type { RootState } from '../app/store';
 import { fetchRoads } from '../features/road/roadThunks';

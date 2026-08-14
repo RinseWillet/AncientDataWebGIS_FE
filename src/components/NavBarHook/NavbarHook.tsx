@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router';
 import { IoClose, IoMenu } from 'react-icons/io5';
 import { useMediaQuery } from 'react-responsive';
 import { logout } from '../../features/authentication/authSlice';

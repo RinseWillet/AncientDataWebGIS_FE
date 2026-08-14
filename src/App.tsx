@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import './App.css';
 import 'leaflet/dist/leaflet.css';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import NavbarHook from './components/NavBarHook/NavbarHook';
 import Footer from './components/Footer/Footer';
 import AdminRoute from './components/Routes/AdminRoute';
