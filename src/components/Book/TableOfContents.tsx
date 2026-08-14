@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { chapters } from '../../content/book/chapters';
 import './Book.css';
 

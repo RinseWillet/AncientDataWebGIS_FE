@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link } from 'react-router';
 import ReactMarkdown from 'react-markdown';
 import { MarkdownImage } from '../components/Book/MarkdownImage';
 import TableOfContents from '../components/Book/TableOfContents';

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import './Footer.css';
 import yt from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';

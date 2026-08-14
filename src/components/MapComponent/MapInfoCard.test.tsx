@@ -1,9 +1,9 @@
 import { cleanup, render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import MapInfoCard from './MapInfoCard';
 import siteReducer from '../../features/site/siteSlice';
 import roadReducer from '../../features/road/roadSlice';
@@ -32,8 +32,8 @@ vi.mock('../../services/MediaService', () => ({
 }));
 
 const mockNavigate = vi.fn();
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actual = await vi.importActual('react-router');
   return {
     ...actual,
     useNavigate: vi.fn(),
