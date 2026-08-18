@@ -18,6 +18,7 @@ const buildRasterLayer = (overrides: Partial<RasterLayer> = {}): RasterLayer => 
   zoom: { min: 12, max: 19 },
   attribution: '1818 De Man - Nijmegen',
   category: 'HISTORICAL_MAP',
+  hillshade: false,
   ...overrides,
 });
 
@@ -146,5 +147,35 @@ describe('MapContent Physical layers (raster catalog)', () => {
     const demCheckbox = await findByLabelText('Test DEM');
     fireEvent.click(demCheckbox);
     await waitFor(() => expect(queryByText('Elevation')).toBeInTheDocument());
+  });
+
+  it('renders a hillshade catalog entry with the multiply-blend class on its tile layer', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([
+      buildRasterLayer({ name: 'Test Hillshade', source: 'ancientdata:hillshade', category: 'DEM', hillshade: true }),
+    ]);
+    const { container, findByLabelText } = renderMapContent({ layerPanel: true });
+
+    const checkbox = await findByLabelText('Test Hillshade');
+    fireEvent.click(checkbox);
+
+    await waitFor(() => {
+      expect(container.querySelector('.physical-layer--hillshade')).toBeInTheDocument();
+    });
+  });
+
+  it("does not show MapLegend's Elevation section for a hillshade-only visible DEM layer", async () => {
+    // The exact bug this test guards against: a hillshade sibling has no colour ramp of
+    // its own, so it shouldn't be treated as "the active DEM" for the legend even though
+    // its catalog category is DEM, same as its elevation counterpart.
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([
+      buildRasterLayer({ name: 'Test Hillshade', source: 'ancientdata:hillshade', category: 'DEM', hillshade: true }),
+    ]);
+    const { findByLabelText, queryByText } = renderMapContent({ layerPanel: true });
+
+    const checkbox = await findByLabelText('Test Hillshade');
+    fireEvent.click(checkbox);
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(queryByText('Elevation')).not.toBeInTheDocument();
   });
 });

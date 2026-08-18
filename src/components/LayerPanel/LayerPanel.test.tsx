@@ -15,6 +15,10 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
   togglePhysicalLayer: ReturnType<typeof vi.fn>;
   setPhysicalLayerOpacity: ReturnType<typeof vi.fn>;
   movePhysicalLayer: ReturnType<typeof vi.fn>;
+  toggleHistoricalMapSheet: ReturnType<typeof vi.fn>;
+  setHistoricalMapSheetOpacity: ReturnType<typeof vi.fn>;
+  moveHistoricalMapSheet: ReturnType<typeof vi.fn>;
+  toggleHistoricalMapCollection: ReturnType<typeof vi.fn>;
 } => {
   const selectBaseLayer = vi.fn();
   const toggleExclusiveLayer = vi.fn();
@@ -22,6 +26,10 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
   const togglePhysicalLayer = vi.fn();
   const setPhysicalLayerOpacity = vi.fn();
   const movePhysicalLayer = vi.fn();
+  const toggleHistoricalMapSheet = vi.fn();
+  const setHistoricalMapSheetOpacity = vi.fn();
+  const moveHistoricalMapSheet = vi.fn();
+  const toggleHistoricalMapCollection = vi.fn();
   const overlayVisibility: OverlayVisibility = {
     sites: true,
     roads: true,
@@ -37,6 +45,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
         activeAerialLayer: null,
         overlayVisibility,
         physicalLayers: [],
+        historicalMapSheets: [],
         ...overrides,
       },
       selectBaseLayer,
@@ -45,6 +54,10 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
       togglePhysicalLayer,
       setPhysicalLayerOpacity,
       movePhysicalLayer,
+      toggleHistoricalMapSheet,
+      setHistoricalMapSheetOpacity,
+      moveHistoricalMapSheet,
+      toggleHistoricalMapCollection,
     },
     selectBaseLayer,
     toggleExclusiveLayer,
@@ -52,14 +65,31 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
     togglePhysicalLayer,
     setPhysicalLayerOpacity,
     movePhysicalLayer,
+    toggleHistoricalMapSheet,
+    setHistoricalMapSheetOpacity,
+    moveHistoricalMapSheet,
+    toggleHistoricalMapCollection,
   };
 };
 
 const buildPhysicalLayer = (overrides: Partial<PhysicalLayerState> = {}): PhysicalLayerState => ({
+  source: 'ancientdata:merge-swalmen-cog',
+  name: 'Swalmen DEM',
+  attribution: 'AHN/NRW merged LiDAR DEM',
+  category: 'DEM',
+  hillshade: false,
+  visible: false,
+  opacity: 1,
+  ...overrides,
+});
+
+const buildHistoricalMapSheet = (overrides: Partial<PhysicalLayerState> = {}): PhysicalLayerState => ({
   source: 'ancientdata:1818-de-man-a2',
-  name: '1818 De Man - Nijmegen, Sheet A2',
+  name: 'Sheet A2',
   attribution: '1818 De Man - Nijmegen',
   category: 'HISTORICAL_MAP',
+  collection: '1818 De Man - Nijmegen',
+  hillshade: false,
   visible: false,
   opacity: 1,
   ...overrides,
@@ -140,53 +170,106 @@ describe('LayerPanel', () => {
     expect(screen.getByLabelText('1926')).toBeInTheDocument();
   });
 
-  it('does not render a Physical section when the raster catalog is empty', () => {
+  it('does not render a Physical section when the DEM catalog entries are empty', () => {
     const { control } = buildControl();
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.queryByText('Physical')).not.toBeInTheDocument();
   });
 
-  it('renders a Physical section row per catalog entry, with an opacity slider and reorder buttons', () => {
+  it('renders a Physical section row per DEM catalog entry, with an opacity slider and reorder buttons', () => {
     const { control } = buildControl({
       physicalLayers: [
-        buildPhysicalLayer({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
-        buildPhysicalLayer({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
+        buildPhysicalLayer({ source: 'ancientdata:swalmen', name: 'Swalmen DEM' }),
+        buildPhysicalLayer({ source: 'ancientdata:kleve', name: 'Kleve DEM' }),
       ],
     });
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.getByText('Physical')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sheet A2')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sheet A3')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sheet A2 opacity')).toBeInTheDocument();
+    expect(screen.getByLabelText('Swalmen DEM')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kleve DEM')).toBeInTheDocument();
+    expect(screen.getByLabelText('Swalmen DEM opacity')).toBeInTheDocument();
   });
 
   it('calls togglePhysicalLayer when a Physical row checkbox is clicked', () => {
     const { control, togglePhysicalLayer } = buildControl({
-      physicalLayers: [buildPhysicalLayer({ name: 'Sheet A2' })],
+      physicalLayers: [buildPhysicalLayer({ name: 'Swalmen DEM' })],
     });
     render(<LayerPanel control={control} hasPhotos />);
 
-    fireEvent.click(screen.getByLabelText('Sheet A2'));
-    expect(togglePhysicalLayer).toHaveBeenCalledWith('ancientdata:1818-de-man-a2');
+    fireEvent.click(screen.getByLabelText('Swalmen DEM'));
+    expect(togglePhysicalLayer).toHaveBeenCalledWith('ancientdata:merge-swalmen-cog');
   });
 
   it('calls setPhysicalLayerOpacity when the opacity slider changes', () => {
     const { control, setPhysicalLayerOpacity } = buildControl({
-      physicalLayers: [buildPhysicalLayer({ name: 'Sheet A2', visible: true })],
+      physicalLayers: [buildPhysicalLayer({ name: 'Swalmen DEM', visible: true })],
     });
     render(<LayerPanel control={control} hasPhotos />);
 
-    fireEvent.change(screen.getByLabelText('Sheet A2 opacity'), { target: { value: '0.5' } });
-    expect(setPhysicalLayerOpacity).toHaveBeenCalledWith('ancientdata:1818-de-man-a2', 0.5);
+    fireEvent.change(screen.getByLabelText('Swalmen DEM opacity'), { target: { value: '0.5' } });
+    expect(setPhysicalLayerOpacity).toHaveBeenCalledWith('ancientdata:merge-swalmen-cog', 0.5);
   });
 
   it('calls movePhysicalLayer and disables the boundary reorder buttons', () => {
     const { control, movePhysicalLayer } = buildControl({
       physicalLayers: [
-        buildPhysicalLayer({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
-        buildPhysicalLayer({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
+        buildPhysicalLayer({ source: 'ancientdata:swalmen', name: 'Swalmen DEM' }),
+        buildPhysicalLayer({ source: 'ancientdata:kleve', name: 'Kleve DEM' }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByLabelText('Move Swalmen DEM up')).toBeDisabled();
+    expect(screen.getByLabelText('Move Kleve DEM down')).toBeDisabled();
+
+    fireEvent.click(screen.getByLabelText('Move Swalmen DEM down'));
+    expect(movePhysicalLayer).toHaveBeenCalledWith('ancientdata:swalmen', 'down');
+  });
+
+  it('renders catalog-driven map sheets under the same "Historical Maps" header as the NRW WMS basemap picker', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getAllByText('Historical Maps')).toHaveLength(1);
+    // Existing exclusive NRW basemap picker still renders in the same section.
+    expect(screen.getByLabelText('1801–1828: Kartenaufnahme der Rheinlande')).toBeInTheDocument();
+    // New catalog-driven sheets render alongside it, with opacity/reorder controls.
+    expect(screen.getByLabelText('Sheet A2')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sheet A2 opacity')).toBeInTheDocument();
+  });
+
+  it('calls toggleHistoricalMapSheet when a map sheet row checkbox is clicked', () => {
+    const { control, toggleHistoricalMapSheet } = buildControl({
+      historicalMapSheets: [buildHistoricalMapSheet({ name: 'Sheet A2' })],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    fireEvent.click(screen.getByLabelText('Sheet A2'));
+    expect(toggleHistoricalMapSheet).toHaveBeenCalledWith('ancientdata:1818-de-man-a2');
+  });
+
+  it('calls setHistoricalMapSheetOpacity when a map sheet opacity slider changes', () => {
+    const { control, setHistoricalMapSheetOpacity } = buildControl({
+      historicalMapSheets: [buildHistoricalMapSheet({ name: 'Sheet A2', visible: true })],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    fireEvent.change(screen.getByLabelText('Sheet A2 opacity'), { target: { value: '0.5' } });
+    expect(setHistoricalMapSheetOpacity).toHaveBeenCalledWith('ancientdata:1818-de-man-a2', 0.5);
+  });
+
+  it('calls moveHistoricalMapSheet and disables the boundary reorder buttons', () => {
+    const { control, moveHistoricalMapSheet } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
       ],
     });
     render(<LayerPanel control={control} hasPhotos />);
@@ -195,6 +278,65 @@ describe('LayerPanel', () => {
     expect(screen.getByLabelText('Move Sheet A3 down')).toBeDisabled();
 
     fireEvent.click(screen.getByLabelText('Move Sheet A2 down'));
-    expect(movePhysicalLayer).toHaveBeenCalledWith('ancientdata:1818-de-man-a2', 'down');
+    expect(moveHistoricalMapSheet).toHaveBeenCalledWith('ancientdata:1818-de-man-a2', 'down');
+  });
+
+  it('groups sheets sharing a collection under one named atlas subsection', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
+        buildHistoricalMapSheet({
+          source: 'ancientdata:kleve-01',
+          name: 'Sheet 1',
+          collection: '1740 Duchy of Kleve',
+        }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('1818 De Man - Nijmegen')).toBeInTheDocument();
+    expect(screen.getByText('1740 Duchy of Kleve')).toBeInTheDocument();
+    expect(screen.getByLabelText('Toggle all 1818 De Man - Nijmegen sheets')).toBeInTheDocument();
+    expect(screen.getByLabelText('Toggle all 1740 Duchy of Kleve sheets')).toBeInTheDocument();
+  });
+
+  it('renders a sheet with no collection flat, without an atlas subsection wrapper', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [buildHistoricalMapSheet({ name: 'Standalone Sheet', collection: undefined })],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByLabelText('Standalone Sheet')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^Toggle all /)).not.toBeInTheDocument();
+  });
+
+  it('calls toggleHistoricalMapCollection when an atlas group\'s bulk-toggle checkbox is clicked', () => {
+    const { control, toggleHistoricalMapCollection } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2' }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3' }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    fireEvent.click(screen.getByLabelText('Toggle all 1818 De Man - Nijmegen sheets'));
+    expect(toggleHistoricalMapCollection).toHaveBeenCalledWith('1818 De Man - Nijmegen');
+  });
+
+  it('shows the atlas bulk-toggle checkbox as indeterminate when only some sheets are visible', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2', visible: true }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3', visible: false }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    const bulkToggle = screen.getByLabelText(
+      'Toggle all 1818 De Man - Nijmegen sheets'
+    ) as HTMLInputElement;
+    expect(bulkToggle.indeterminate).toBe(true);
+    expect(bulkToggle.checked).toBe(false);
   });
 });

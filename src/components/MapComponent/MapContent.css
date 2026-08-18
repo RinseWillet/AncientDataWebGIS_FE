@@ -15,6 +15,14 @@
   opacity: 0;
 }
 
+/* A DEM hillshade layer (E3-5) darkens/textures whatever's rendered beneath it
+   (its elevation counterpart's colour ramp) instead of drawing as an opaque tile -
+   requires the hillshade to be listed above its elevation sibling in the Physical
+   group's z-order (see RasterCatalogService's catalog order). */
+.physical-layer--hillshade {
+  mix-blend-mode: multiply;
+}
+
 /* css for the query marked, which is not an image, but rendered in css
   - inspiration and credit to the codepen of Andreas Storm (https://codepen.io/avstorm/pen/DZKLZL)
   who made an excellent css art for a map marker */

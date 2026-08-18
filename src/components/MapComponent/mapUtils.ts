@@ -16,15 +16,33 @@ export const buildLayer = (config: LayerConfig): L.Layer =>
  * Builds a Leaflet WMS layer for a raster catalog entry (`source` is a
  * GeoServer "workspace:layer" id), requested through the backend's read-only
  * `/api/raster/<workspace>/wms` proxy (see ADR-012).
+ *
+ * @param source a raster catalog entry's "workspace:layer" id
+ * @param opacity initial layer opacity, forwarded to the WMS `opacity` param
+ * @param isHillshade a multidirectional-hillshade sibling of a DEM layer (E3-5)
+ *   - rendered with a multiply CSS blend so it darkens/textures whatever's
+ *   beneath it (its elevation counterpart's colour ramp) instead of drawing as
+ *   an independent, opaque tile. Requires the hillshade to be listed/ordered
+ *   above its elevation sibling (see `RasterCatalogService`'s catalog order).
  */
-export const buildPhysicalLayer = (source: string, opacity: number): L.TileLayer.WMS => {
+export const buildPhysicalLayer = (
+  source: string,
+  opacity: number,
+  isHillshade = false
+): L.TileLayer.WMS => {
   const workspace = source.split(':')[0];
   return L.tileLayer.wms(`${apiBaseUrl}/raster/${workspace}/wms`, {
     layers: source,
     format: 'image/png',
     transparent: true,
     opacity,
-  });
+    // GeoServer's GWC "Explicitly require TILED Parameter" setting means a GetMap request
+    // only gets checked against the tile cache when it carries tiled=true - without this,
+    // every request bypasses GWC entirely and re-renders from the source COG on every pan/
+    // zoom, which is exactly the RAM/CPU load ADR-012's caching strategy exists to avoid.
+    tiled: true,
+    className: isHillshade ? 'physical-layer--hillshade' : undefined,
+  } as L.WMSOptions);
 };
 
 export interface ZoomPadding {

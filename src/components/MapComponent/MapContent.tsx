@@ -186,10 +186,14 @@ const MapContent = ({
     </>
   );
 
-  // Topmost (frontmost) visible Physical layer whose catalog category is DEM -
-  // physicalLayers is already in front-to-back order, so the first match is correct.
+  // Topmost (frontmost) visible, non-hillshade Physical layer - physicalLayers only ever
+  // holds DEM-category catalog entries (historical map sheets live in a separate group),
+  // and is already in front-to-back order, so the first match is correct. Hillshade
+  // siblings are excluded: they have no colour ramp of their own for the Elevation
+  // legend to explain, and default to sitting above their elevation counterpart in
+  // z-order specifically so a hillshade-only view shouldn't be treated as "the" active DEM.
   const activeDemLayer = layerPanelControl.state.physicalLayers.find(
-    (layer) => layer.visible && layer.category === 'DEM'
+    (layer) => layer.visible && !layer.hillshade
   );
 
   let layerChrome: JSX.Element;
