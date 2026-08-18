@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import { LayerConfig } from './layersConfig';
 import { apiBaseUrl } from '../../api/config';
+import { RasterBounds } from '../../types/raster';
 
 /** Builds a Leaflet tile/WMS layer instance from a `layersConfig` entry. */
 export const buildLayer = (config: LayerConfig): L.Layer =>
@@ -62,6 +63,18 @@ export const computeZoomPadding = (mapWidth: number): ZoomPadding => {
   if (mapWidth > 600) return { bottomRight: [150, 5], topLeft: [0, 5] };
   return { bottomRight: [10, 250], topLeft: [10, 10] };
 };
+
+/**
+ * Whether a raster catalog entry's WGS84 bounds overlap the map's current
+ * visible viewport (simple axis-aligned rectangle intersection - the research
+ * area doesn't cross the antimeridian, so no wraparound handling is needed).
+ * Used to gate Physical-layer selectability by viewport (E3-7).
+ */
+export const boundsIntersectViewport = (bounds: RasterBounds, viewport: L.LatLngBounds): boolean =>
+  bounds.west <= viewport.getEast() &&
+  bounds.east >= viewport.getWest() &&
+  bounds.south <= viewport.getNorth() &&
+  bounds.north >= viewport.getSouth();
 
 /** fitBounds a map to the given bounds using responsive padding. */
 export const fitBoundsWithPadding = (

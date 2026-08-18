@@ -72,14 +72,19 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
   };
 };
 
+const defaultBounds = { south: 51.14, west: 5.97, north: 51.35, east: 6.41 };
+
 const buildPhysicalLayer = (overrides: Partial<PhysicalLayerState> = {}): PhysicalLayerState => ({
   source: 'ancientdata:merge-swalmen-cog',
   name: 'Swalmen DEM',
   attribution: 'AHN/NRW merged LiDAR DEM',
   category: 'DEM',
   hillshade: false,
+  bounds: defaultBounds,
   visible: false,
   opacity: 1,
+  disabled: false,
+  disabledReason: null,
   ...overrides,
 });
 
@@ -90,8 +95,11 @@ const buildHistoricalMapSheet = (overrides: Partial<PhysicalLayerState> = {}): P
   category: 'HISTORICAL_MAP',
   collection: '1818 De Man - Nijmegen',
   hillshade: false,
+  bounds: defaultBounds,
   visible: false,
   opacity: 1,
+  disabled: false,
+  disabledReason: null,
   ...overrides,
 });
 
@@ -226,6 +234,42 @@ describe('LayerPanel', () => {
 
     fireEvent.click(screen.getByLabelText('Move Swalmen DEM down'));
     expect(movePhysicalLayer).toHaveBeenCalledWith('ancientdata:swalmen', 'down');
+  });
+
+  it('hides a gated-off Physical row entirely and shows its reason as a fallback message (E3-7)', () => {
+    const { control } = buildControl({
+      physicalLayers: [
+        buildPhysicalLayer({
+          name: 'Swalmen DEM',
+          disabled: true,
+          disabledReason: 'Zoom in further to enable Physical layers.',
+        }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('Physical')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Swalmen DEM')).not.toBeInTheDocument();
+    expect(screen.getByText('Zoom in further to enable Physical layers.')).toBeInTheDocument();
+  });
+
+  it('only lists the currently-selectable Physical rows when some are gated and some are not', () => {
+    const { control } = buildControl({
+      physicalLayers: [
+        buildPhysicalLayer({
+          source: 'ancientdata:swalmen',
+          name: 'Swalmen DEM',
+          disabled: true,
+          disabledReason: "Pan the map to this layer's area to enable it.",
+        }),
+        buildPhysicalLayer({ source: 'ancientdata:kleve', name: 'Kleve DEM' }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.queryByLabelText('Swalmen DEM')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Kleve DEM')).toBeInTheDocument();
+    expect(screen.queryByText("Pan the map to this layer's area to enable it.")).not.toBeInTheDocument();
   });
 
   it('renders catalog-driven map sheets under the same "Historical Maps" header as the NRW WMS basemap picker', () => {

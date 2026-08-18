@@ -273,6 +273,15 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
     state.historicalMapSheets
   );
 
+  // Only list currently-selectable Physical rows (E3-7 follow-up, confirmed with the
+  // project owner): showing every catalog entry disabled+hinted made the list too
+  // cluttered in practice, so out-of-view/below-floor layers are hidden entirely instead,
+  // with a single fallback message explaining why the list is empty/shorter than expected.
+  const selectablePhysicalLayers = state.physicalLayers.filter((layer) => !layer.disabled);
+  const physicalEmptyHint =
+    state.physicalLayers.find((layer) => layer.disabled)?.disabledReason ??
+    'No Physical layers available here.';
+
   return (
     <div className="layer-panel">
       <div className="layer-panel__header">
@@ -393,14 +402,17 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
             </span>
           </button>
 
-          {!collapsedSections.has('Physical') && (
-            <ToggleableLayerRows
-              layers={state.physicalLayers}
-              onToggle={togglePhysicalLayer}
-              onSetOpacity={setPhysicalLayerOpacity}
-              onMove={movePhysicalLayer}
-            />
-          )}
+          {!collapsedSections.has('Physical') &&
+            (selectablePhysicalLayers.length > 0 ? (
+              <ToggleableLayerRows
+                layers={selectablePhysicalLayers}
+                onToggle={togglePhysicalLayer}
+                onSetOpacity={setPhysicalLayerOpacity}
+                onMove={movePhysicalLayer}
+              />
+            ) : (
+              <p className="layer-panel__section-empty-hint">{physicalEmptyHint}</p>
+            ))}
         </section>
       )}
 
