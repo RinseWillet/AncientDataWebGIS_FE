@@ -116,6 +116,17 @@
   flex: 1 1 auto;
 }
 
+/* Fallback message shown instead of the Physical row list when no catalog entry is
+   currently selectable (E3-7 follow-up) - out-of-view/below-floor layers are hidden
+   entirely rather than listed disabled, so this explains why the section looks empty. */
+.layer-panel__section-empty-hint {
+  margin: 0;
+  padding: 0.25rem 0.75rem 0.5rem;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #888;
+}
+
 .layer-panel__opacity-slider {
   order: 3;
   flex: 1 1 100%;

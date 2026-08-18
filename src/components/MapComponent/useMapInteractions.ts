@@ -1,12 +1,12 @@
-import { Dispatch, MutableRefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from './siteIcons';
 import { QueryItem, SearchItem } from './mapTypes';
 import { LayerGroupName, layersConfig } from './layersConfig';
-import { buildLayer, buildPhysicalLayer } from './mapUtils';
+import { boundsIntersectViewport, buildLayer, buildPhysicalLayer } from './mapUtils';
 import { rasterService } from '../../services/RasterService';
-import { RasterLayerCategory } from '../../types/raster';
+import { RasterBounds, RasterLayerCategory } from '../../types/raster';
 
 type SiteMarkersRef = MutableRefObject<Record<string | number, L.Marker>>;
 type RoadLayersRef = MutableRefObject<Record<string | number, L.Layer>>;
@@ -129,7 +129,56 @@ export interface PhysicalLayerState {
   /** True for a multidirectional-hillshade sibling of a DEM layer (E3-5) - rendered
    * with a multiply blend over whatever's beneath it. See E3-2's `hillshade`. */
   hillshade: boolean;
+  /** WGS84 extent, from the catalog's `RasterBoundsDTO`. Used to gate Physical-layer
+   * selectability by viewport (E3-7); unused for Historical Maps sheets. */
+  bounds: RasterBounds;
+  /** Whether this row's toggle is currently blocked from being turned on (E3-7:
+   * below the global zoom floor, or its `bounds` don't intersect the current
+   * viewport). Always `false` for Historical Maps sheets - only the Physical
+   * group is viewport/zoom gated. Never `true` for an already-visible layer:
+   * panning/zooming away from an enabled layer must not trap the user unable
+   * to turn it back off, so gating only blocks the on-transition. */
+  disabled: boolean;
+  /** User-facing explanation shown next to a `disabled` row; `null` when not disabled. */
+  disabledReason: string | null;
 }
+
+/**
+ * Global minimum zoom below which the entire Physical group is disabled (E3-7),
+ * regardless of any individual layer's bounds. Set to 8 to match every DEM
+ * layer's own curated `zoom.min` in `RasterCatalogService`: below that, none of
+ * them would render tiles anyway, so this stops a fully-zoomed-out user from
+ * enabling all 5 DEM areas (and their hillshade siblings) at once and
+ * hammering GeoServer/the NAS, without being any stricter than the layers'
+ * existing zoom ranges. Confirmed with the project owner.
+ */
+export const PHYSICAL_MIN_ZOOM_FLOOR = 8;
+
+/** Whether `bounds` currently satisfies both E3-7 gates: at/above the zoom floor and
+ * intersecting the map's live viewport. Ignores visibility entirely - used both by
+ * `gatePhysicalLayer` (for a not-yet-visible row) and by the auto-off effect below
+ * (to decide whether an *already*-visible row needs to be turned off). */
+const isPhysicalLayerWithinGate = (bounds: RasterBounds, map: L.Map): boolean =>
+  map.getZoom() >= PHYSICAL_MIN_ZOOM_FLOOR && boundsIntersectViewport(bounds, map.getBounds());
+
+/**
+ * Decides whether one Physical-group row should be gated off (E3-7). Pure
+ * function of the layer and the map's live zoom/bounds, so it's cheap to
+ * recompute per render and easy to unit test without mounting Leaflet.
+ */
+export const gatePhysicalLayer = (
+  layer: Pick<PhysicalLayerState, 'visible' | 'bounds'>,
+  map: L.Map | null
+): { disabled: boolean; disabledReason: string | null } => {
+  if (layer.visible || !map) return { disabled: false, disabledReason: null };
+  if (map.getZoom() < PHYSICAL_MIN_ZOOM_FLOOR) {
+    return { disabled: true, disabledReason: 'Zoom in further to enable Physical layers.' };
+  }
+  if (!boundsIntersectViewport(layer.bounds, map.getBounds())) {
+    return { disabled: true, disabledReason: "Pan the map to this layer's area to enable it." };
+  }
+  return { disabled: false, disabledReason: null };
+};
 
 export interface LayerPanelState {
   activeBaseLayer: string;
@@ -195,8 +244,17 @@ const syncLayerGroupToMap = (
 const UNGROUPED_KEY = '__ungrouped__';
 const groupKeyOf = (layer: PhysicalLayerState): string => layer.collection ?? UNGROUPED_KEY;
 
-/** toggle/setOpacity/move handlers for one toggleable raster layer group's state setter. */
-const createLayerGroupHandlers = (setLayers: Dispatch<SetStateAction<PhysicalLayerState[]>>) => ({
+/**
+ * toggle/setOpacity/move handlers for one toggleable raster layer group's state setter.
+ * `shouldSkipForMove`, if given, marks additional neighbors 'move' should step over -
+ * used by the Physical group (E3-7) to skip gated-off layers that `LayerPanel` isn't
+ * currently rendering, so "move up/down" only reorders among the rows actually visible
+ * in the list rather than swapping with a hidden neighbor and appearing to do nothing.
+ */
+const createLayerGroupHandlers = (
+  setLayers: Dispatch<SetStateAction<PhysicalLayerState[]>>,
+  shouldSkipForMove: (layer: PhysicalLayerState) => boolean = () => false
+) => ({
   toggle: (source: string) =>
     setLayers((prev) =>
       prev.map((layer) => (layer.source === source ? { ...layer, visible: !layer.visible } : layer))
@@ -206,9 +264,10 @@ const createLayerGroupHandlers = (setLayers: Dispatch<SetStateAction<PhysicalLay
   /**
    * direction 'up' moves a layer toward index 0 (frontmost/top row); 'down' moves it toward
    * the back. Only swaps with the nearest neighbor sharing the same `collection` (or the
-   * shared ungrouped bucket), so reordering a sheet within one atlas can't shuffle it into
-   * a different atlas's z-order - matches how `ToggleableLayerRows` renders each collection
-   * as its own filtered slice, whose boundary (first/last row) buttons are disabled.
+   * shared ungrouped bucket) and not skipped by `shouldSkipForMove`, so reordering a sheet
+   * within one atlas can't shuffle it into a different atlas's z-order - matches how
+   * `ToggleableLayerRows` renders each collection as its own filtered slice, whose boundary
+   * (first/last row) buttons are disabled.
    */
   move: (source: string, direction: 'up' | 'down') =>
     setLayers((prev) => {
@@ -217,7 +276,11 @@ const createLayerGroupHandlers = (setLayers: Dispatch<SetStateAction<PhysicalLay
       const group = groupKeyOf(prev[index]);
       const step = direction === 'up' ? -1 : 1;
       let targetIndex = index + step;
-      while (targetIndex >= 0 && targetIndex < prev.length && groupKeyOf(prev[targetIndex]) !== group) {
+      while (
+        targetIndex >= 0 &&
+        targetIndex < prev.length &&
+        (groupKeyOf(prev[targetIndex]) !== group || shouldSkipForMove(prev[targetIndex]))
+      ) {
         targetIndex += step;
       }
       if (targetIndex < 0 || targetIndex >= prev.length) return prev;
@@ -315,8 +378,11 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
           category: entry.category,
           collection: entry.collection,
           hillshade: entry.hillshade,
+          bounds: entry.bounds,
           visible: false,
           opacity: 1,
+          disabled: false,
+          disabledReason: null,
         });
         setPhysicalLayers(catalog.filter((entry) => entry.category === 'DEM').map(toLayerState));
         setHistoricalMapSheets(
@@ -355,6 +421,46 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     };
   }, [map]);
 
+  // `map.getZoom()`/`getBounds()` are live reads off a mutable Leaflet instance, not
+  // reactive state, so `gatedPhysicalLayers` below needs an explicit nudge to recompute
+  // whenever the viewport actually changes (E3-7). The same handler also auto-turns a
+  // visible Physical layer back off once it stops satisfying the gate (E3-7 follow-up,
+  // confirmed with the project owner): otherwise it would keep requesting WMS tiles for
+  // wherever the user has since panned/zoomed to - defeating the point of gating enablement
+  // in the first place - and its row would stay checked but hidden from the filtered
+  // LayerPanel list below. Re-enabling it once back in range is a normal toggle.
+  const [viewportVersion, setViewportVersion] = useState(0);
+  useEffect(() => {
+    if (!map) return;
+    const onViewportChange = () => {
+      setViewportVersion((version) => version + 1);
+      setPhysicalLayers((prev) => {
+        let changed = false;
+        const next = prev.map((layer) => {
+          if (!layer.visible || isPhysicalLayerWithinGate(layer.bounds, map)) return layer;
+          changed = true;
+          return { ...layer, visible: false };
+        });
+        return changed ? next : prev;
+      });
+    };
+    map.on('moveend', onViewportChange);
+    map.on('zoomend', onViewportChange);
+    return () => {
+      map.off('moveend', onViewportChange);
+      map.off('zoomend', onViewportChange);
+    };
+  }, [map]);
+
+  // Physical (DEM) layers decorated with live viewport/zoom gating (E3-7). Historical Maps
+  // sheets are intentionally left ungated (always disabled: false), so only this group's
+  // derived list is recomputed here.
+  const gatedPhysicalLayers = useMemo(
+    () => physicalLayers.map((layer) => ({ ...layer, ...gatePhysicalLayer(layer, map) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [physicalLayers, map, viewportVersion]
+  );
+
   const toggleExclusiveLayer = (group: ExclusiveGroupName, name: string) => {
     const setActive = group === 'Historical Maps' ? setActiveHistoricalLayer : setActiveAerialLayer;
     setActive((prev) => (prev === name ? null : name));
@@ -364,8 +470,19 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     setOverlayVisibility((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const physicalLayerHandlers = createLayerGroupHandlers(setPhysicalLayers);
+  const physicalLayerHandlers = createLayerGroupHandlers(
+    setPhysicalLayers,
+    (layer) => !map || !isPhysicalLayerWithinGate(layer.bounds, map)
+  );
   const historicalMapSheetHandlers = createLayerGroupHandlers(setHistoricalMapSheets);
+
+  // Blocks turning a gated-off Physical row on (E3-7's "enabling one is blocked");
+  // turning an already-visible row off is never gated (see `gatePhysicalLayer`).
+  const togglePhysicalLayer = (source: string) => {
+    const layer = gatedPhysicalLayers.find((candidate) => candidate.source === source);
+    if (layer?.disabled) return;
+    physicalLayerHandlers.toggle(source);
+  };
 
   return {
     state: {
@@ -373,13 +490,13 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
       activeHistoricalLayer,
       activeAerialLayer,
       overlayVisibility,
-      physicalLayers,
+      physicalLayers: gatedPhysicalLayers,
       historicalMapSheets,
     },
     selectBaseLayer: setActiveBaseLayer,
     toggleExclusiveLayer,
     toggleOverlay,
-    togglePhysicalLayer: physicalLayerHandlers.toggle,
+    togglePhysicalLayer,
     setPhysicalLayerOpacity: physicalLayerHandlers.setOpacity,
     movePhysicalLayer: physicalLayerHandlers.move,
     toggleHistoricalMapSheet: historicalMapSheetHandlers.toggle,
