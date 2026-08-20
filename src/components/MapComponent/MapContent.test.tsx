@@ -41,7 +41,10 @@ const renderMapContent = (props: Partial<Parameters<typeof MapContent>[0]> = {})
   const siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>> = { current: {} };
 
   const result = render(
-    <MapContainer center={[51.8, 5.8]} zoom={9}>
+    // zoom 12 matches buildRasterLayer's default zoom.min, so a default HISTORICAL_MAP
+    // fixture stays selectable under E3-8's per-sheet zoom gate (still >= E3-7's Physical
+    // floor of 8, so DEM fixtures are unaffected).
+    <MapContainer center={[51.8, 5.8]} zoom={12}>
       <MapContent
         siteData={siteData}
         roadData={roadData}

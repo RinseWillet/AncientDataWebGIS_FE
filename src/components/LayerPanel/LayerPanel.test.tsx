@@ -74,6 +74,8 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
 
 const defaultBounds = { south: 51.14, west: 5.97, north: 51.35, east: 6.41 };
 
+const defaultZoom = { min: 8, max: 18 };
+
 const buildPhysicalLayer = (overrides: Partial<PhysicalLayerState> = {}): PhysicalLayerState => ({
   source: 'ancientdata:merge-swalmen-cog',
   name: 'Swalmen DEM',
@@ -81,6 +83,7 @@ const buildPhysicalLayer = (overrides: Partial<PhysicalLayerState> = {}): Physic
   category: 'DEM',
   hillshade: false,
   bounds: defaultBounds,
+  zoom: defaultZoom,
   visible: false,
   opacity: 1,
   disabled: false,
@@ -96,6 +99,7 @@ const buildHistoricalMapSheet = (overrides: Partial<PhysicalLayerState> = {}): P
   collection: '1818 De Man - Nijmegen',
   hillshade: false,
   bounds: defaultBounds,
+  zoom: { min: 12, max: 19 },
   visible: false,
   opacity: 1,
   disabled: false,
@@ -382,5 +386,61 @@ describe('LayerPanel', () => {
     ) as HTMLInputElement;
     expect(bulkToggle.indeterminate).toBe(true);
     expect(bulkToggle.checked).toBe(false);
+  });
+
+  it('hides a gated-off Historical Maps sheet entirely and shows a fallback message (E3-8)', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({
+          collection: undefined,
+          disabled: true,
+          disabledReason: 'No historical maps match this area/zoom — pan or zoom in to reveal sheets.',
+        }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('Historical Maps')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Sheet A2')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('No historical maps match this area/zoom — pan or zoom in to reveal sheets.')
+    ).toBeInTheDocument();
+  });
+
+  it('only lists the currently-selectable Historical Maps sheets when some are gated and some are not', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({
+          source: 'ancientdata:1818-de-man-a2',
+          name: 'Sheet A2',
+          collection: undefined,
+          disabled: true,
+        }),
+        buildHistoricalMapSheet({
+          source: 'ancientdata:1818-de-man-a3',
+          name: 'Sheet A3',
+          collection: undefined,
+        }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.queryByLabelText('Sheet A2')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Sheet A3')).toBeInTheDocument();
+  });
+
+  it('hides an atlas collection entirely when none of its sheets are currently selectable (E3-8)', () => {
+    const { control } = buildControl({
+      historicalMapSheets: [
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a2', name: 'Sheet A2', disabled: true }),
+        buildHistoricalMapSheet({ source: 'ancientdata:1818-de-man-a3', name: 'Sheet A3', disabled: true }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.queryByText('1818 De Man - Nijmegen')).not.toBeInTheDocument();
+    expect(
+      screen.getByText('No historical maps match this area/zoom — pan or zoom in to reveal sheets.')
+    ).toBeInTheDocument();
   });
 });
