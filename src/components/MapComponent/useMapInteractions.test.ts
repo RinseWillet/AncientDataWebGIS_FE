@@ -3,7 +3,13 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { rasterService } from '../../services/RasterService';
 import type { RasterLayer } from '../../types/raster';
-import { gatePhysicalLayer, PHYSICAL_MIN_ZOOM_FLOOR, useLayerPanelControl } from './useMapInteractions';
+import {
+  gateHistoricalMapSheet,
+  gatePhysicalLayer,
+  HISTORICAL_MAP_SHEET_GATE_HINT,
+  PHYSICAL_MIN_ZOOM_FLOOR,
+  useLayerPanelControl,
+} from './useMapInteractions';
 
 vi.mock('../../services/RasterService', () => ({
   rasterService: { getCatalog: vi.fn() },
@@ -202,5 +208,195 @@ describe('useLayerPanelControl Physical-layer toggle gating (E3-7)', () => {
       'ancientdata:b',
       'ancientdata:a',
     ]);
+  });
+});
+
+// E3-8: extends E3-7's viewport gating to Historical Maps sheets, but against each entry's own
+// `zoom.min` instead of one shared floor - a small cadastral sheet stays gated at a wide zoom
+// where a De Man-scale historical topo sheet would already be selectable.
+const deManSheetA2: RasterLayer = {
+  name: 'Sheet A2',
+  source: 'ancientdata:1818-de-man-a2',
+  bounds: swalmenBounds,
+  zoom: { min: 12, max: 19 },
+  attribution: '1818 De Man - Nijmegen',
+  category: 'HISTORICAL_MAP',
+  collection: '1818 De Man - Nijmegen',
+  hillshade: false,
+};
+
+describe('gateHistoricalMapSheet (E3-8)', () => {
+  it('never gates an already-visible sheet, even below its own zoom floor and out of view', () => {
+    const result = gateHistoricalMapSheet(
+      { visible: true, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(1, outOfViewViewport)
+    );
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('does not gate when there is no map yet', () => {
+    const result = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      null
+    );
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it("gates below the sheet's own zoom.min, regardless of bounds", () => {
+    const result = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(deManSheetA2.zoom.min - 1, inViewViewport)
+    );
+    expect(result).toEqual({ disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT });
+  });
+
+  it('does not gate on zoom exactly at the sheet own zoom.min', () => {
+    const result = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(deManSheetA2.zoom.min, inViewViewport)
+    );
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('gates an out-of-view sheet at/above its own zoom.min', () => {
+    const result = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(deManSheetA2.zoom.min, outOfViewViewport)
+    );
+    expect(result).toEqual({ disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT });
+  });
+
+  it('does not gate a sheet that is in view and at/above its own zoom.min', () => {
+    const result = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(deManSheetA2.zoom.min, inViewViewport)
+    );
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it("a tiny cadastral-scale sheet stays gated at a wide zoom that already selects a city-scale sheet", () => {
+    // Both sheets' bounds are fully inside a BENELUX-wide viewport (containment, not just
+    // overlap) - only the per-entry zoom floor tells them apart, which is the whole point of
+    // this story: a single shared floor couldn't distinguish them.
+    const wideViewport = L.latLngBounds([50, 3], [53, 8]);
+    const cadastralZoom = { min: 18, max: 20 };
+    const cityScale = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
+      fakeMap(14, wideViewport)
+    );
+    const cadastral = gateHistoricalMapSheet(
+      { visible: false, bounds: swalmenBounds, zoom: cadastralZoom },
+      fakeMap(14, wideViewport)
+    );
+    expect(cityScale.disabled).toBe(false);
+    expect(cadastral.disabled).toBe(true);
+  });
+});
+
+describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () => {
+  let container: HTMLDivElement;
+  let map: L.Map;
+
+  beforeEach(() => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    map = L.map(container);
+  });
+
+  afterEach(() => {
+    map.remove();
+    container.remove();
+  });
+
+  it('blocks turning on an out-of-view sheet, and allows it once panned into view', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
+    map.setView(outsideSwalmenBounds, deManSheetA2.zoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
+    expect(result.current.state.historicalMapSheets[0].disabled).toBe(true);
+
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(false);
+
+    act(() => map.setView(insideSwalmenBounds, deManSheetA2.zoom.min));
+    await waitFor(() => expect(result.current.state.historicalMapSheets[0].disabled).toBe(false));
+
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
+  });
+
+  it("blocks turning on a sheet below its own zoom.min", async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
+    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min - 1);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
+    expect(result.current.state.historicalMapSheets[0].disabledReason).toBe(HISTORICAL_MAP_SHEET_GATE_HINT);
+
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(false);
+  });
+
+  it('auto-turns off an already-visible sheet once zoomed below its own zoom.min', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
+    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
+
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
+
+    act(() => map.setView(insideSwalmenBounds, deManSheetA2.zoom.min - 1));
+    await waitFor(() => expect(result.current.state.historicalMapSheets[0].visible).toBe(false));
+  });
+
+  it('reorders "move" past a currently-hidden (gated-off) neighbor sheet', async () => {
+    const sheetA: RasterLayer = { ...deManSheetA2, name: 'Sheet A', source: 'ancientdata:a' };
+    const sheetB: RasterLayer = {
+      ...deManSheetA2,
+      name: 'Sheet B',
+      source: 'ancientdata:b',
+      bounds: { south: 40, west: 0, north: 41, east: 1 },
+    };
+    const sheetC: RasterLayer = {
+      ...deManSheetA2,
+      name: 'Sheet C',
+      source: 'ancientdata:c',
+      bounds: { south: 51.0, west: 6.0, north: 51.4, east: 6.4 },
+    };
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([sheetA, sheetB, sheetC]);
+
+    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(3));
+    expect(result.current.state.historicalMapSheets[1].disabled).toBe(true);
+
+    act(() => result.current.moveHistoricalMapSheet('ancientdata:a', 'down'));
+
+    expect(result.current.state.historicalMapSheets.map((layer) => layer.source)).toEqual([
+      'ancientdata:c',
+      'ancientdata:b',
+      'ancientdata:a',
+    ]);
+  });
+
+  it("select-all only touches currently-selectable sheets in a collection, leaving a gated-off sheet untouched", async () => {
+    const sheetInView: RasterLayer = { ...deManSheetA2, name: 'Sheet In View', source: 'ancientdata:in-view' };
+    const sheetOutOfView: RasterLayer = {
+      ...deManSheetA2,
+      name: 'Sheet Out Of View',
+      source: 'ancientdata:out-of-view',
+      bounds: { south: 40, west: 0, north: 41, east: 1 },
+    };
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([sheetInView, sheetOutOfView]);
+
+    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(2));
+    expect(result.current.state.historicalMapSheets[1].disabled).toBe(true);
+
+    act(() => result.current.toggleHistoricalMapCollection(deManSheetA2.collection as string));
+
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
+    expect(result.current.state.historicalMapSheets[1].visible).toBe(false);
   });
 });

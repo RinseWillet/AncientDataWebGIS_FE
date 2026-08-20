@@ -269,8 +269,16 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   const historicalMapEntries = layersConfig.filter((config) => config.group === 'Historical Maps');
   const hasHistoricalMapsContent = historicalMapEntries.length > 0 || state.historicalMapSheets.length > 0;
   const isHistoricalMapsCollapsed = collapsedSections.has('Historical Maps');
+
+  // Only list currently-selectable Historical Maps sheets (E3-8, extending E3-7's viewport-
+  // gating with each entry's own zoom.min): out-of-view/below-its-own-floor sheets are hidden
+  // entirely rather than shown disabled, matching the Physical group's E3-7 follow-up. Since
+  // `groupHistoricalMapSheets` only creates a collection entry for sheets actually present in
+  // its input, filtering here first also means an atlas with zero currently-selectable sheets
+  // is hidden entirely rather than rendered as an empty subsection, with no extra logic needed.
+  const selectableHistoricalMapSheets = state.historicalMapSheets.filter((layer) => !layer.disabled);
   const { ungrouped: ungroupedSheets, collections: sheetCollections } = groupHistoricalMapSheets(
-    state.historicalMapSheets
+    selectableHistoricalMapSheets
   );
 
   // Only list currently-selectable Physical rows (E3-7 follow-up, confirmed with the
@@ -338,6 +346,12 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
                     );
                   })}
                 </ul>
+              )}
+              {selectableHistoricalMapSheets.length === 0 && state.historicalMapSheets.length > 0 && (
+                <p className="layer-panel__section-empty-hint">
+                  {state.historicalMapSheets.find((layer) => layer.disabled)?.disabledReason ??
+                    'No historical maps match this area/zoom — pan or zoom in to reveal sheets.'}
+                </p>
               )}
               {ungroupedSheets.length > 0 && (
                 <ToggleableLayerRows
