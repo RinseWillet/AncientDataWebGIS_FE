@@ -3,6 +3,7 @@ import { siteTypeIconUrls } from '../MapComponent/Styles/markerStyles';
 import { siteTypeLabels } from '../../utils/siteTypes';
 import { roadStyleEntries } from '../../utils/roadTypes';
 import { useActiveDemLayer } from './useActiveDemLayer';
+import { demColorRamp } from './demColorRamp';
 import './MapLegend.css';
 
 interface MapLegendProps {
@@ -10,6 +11,12 @@ interface MapLegendProps {
   hasSelection?: boolean;
   /** Name of the topmost visible Physical layer whose category is DEM, or null if none is visible (see `useActiveDemLayer`). */
   activeDemLayerName?: string | null;
+  /** Attribution of that same layer, shown alongside its name under the ramp; null if none is visible. */
+  activeDemLayerAttribution?: string | null;
+  /** Whether the Site Types section renders, mirroring `LayerPanel`'s sites overlay toggle. Defaults to visible so existing callers are unaffected. */
+  showSites?: boolean;
+  /** Whether the Roads section renders, mirroring `LayerPanel`'s roads overlay toggle. Defaults to visible so existing callers are unaffected. */
+  showRoads?: boolean;
 }
 
 /**
@@ -23,7 +30,13 @@ interface MapLegendProps {
  * relocate a tab to - instead MapLegend renders nothing at all while
  * `hasSelection` is true, reappearing (still collapsed) once it clears.
  */
-const MapLegend = ({ hasSelection = false, activeDemLayerName = null }: MapLegendProps) => {
+const MapLegend = ({
+  hasSelection = false,
+  activeDemLayerName = null,
+  activeDemLayerAttribution = null,
+  showSites = true,
+  showRoads = true,
+}: MapLegendProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [prevHasSelection, setPrevHasSelection] = useState(hasSelection);
   const activeDemLayer = useActiveDemLayer(activeDemLayerName);
@@ -64,39 +77,55 @@ const MapLegend = ({ hasSelection = false, activeDemLayerName = null }: MapLegen
         </button>
       </div>
 
-      <section className="map-legend__section">
-        <h4 className="map-legend__section-title">Site Types</h4>
-        <ul className="map-legend__list">
-          {Object.entries(siteTypeIconUrls).map(([type, iconUrl]) => (
-            <li className="map-legend__row" key={type}>
-              <img className="map-legend__icon" src={iconUrl} alt="" />
-              <span className="map-legend__label">{siteTypeLabels[type] ?? type}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {showSites && (
+        <section className="map-legend__section">
+          <h4 className="map-legend__section-title">Site Types</h4>
+          <ul className="map-legend__list">
+            {Object.entries(siteTypeIconUrls).map(([type, iconUrl]) => (
+              <li className="map-legend__row" key={type}>
+                <img className="map-legend__icon" src={iconUrl} alt="" />
+                <span className="map-legend__label">{siteTypeLabels[type] ?? type}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
-      <section className="map-legend__section">
-        <h4 className="map-legend__section-title">Roads</h4>
-        <ul className="map-legend__list">
-          {roadStyleEntries.map((entry) => (
-            <li className="map-legend__row" key={entry.type}>
-              <span
-                className={`map-legend__swatch${entry.style.dashArray ? ' map-legend__swatch--dashed' : ''}`}
-                style={{
-                  borderTopColor: entry.style.color as string,
-                  opacity: entry.style.opacity,
-                }}
-              />
-              <span className="map-legend__label">{entry.label}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {showRoads && (
+        <section className="map-legend__section">
+          <h4 className="map-legend__section-title">Roads</h4>
+          <ul className="map-legend__list">
+            {roadStyleEntries.map((entry) => (
+              <li className="map-legend__row" key={entry.type}>
+                <span
+                  className={`map-legend__swatch${entry.style.dashArray ? ' map-legend__swatch--dashed' : ''}`}
+                  style={{
+                    borderTopColor: entry.style.color as string,
+                    opacity: entry.style.opacity,
+                  }}
+                />
+                <span className="map-legend__label">{entry.label}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {activeDemLayer && (
         <section className="map-legend__section">
           <h4 className="map-legend__section-title">Elevation</h4>
+          <ul className="map-legend__list">
+            {demColorRamp.map((stop) => (
+              <li className="map-legend__row" key={stop.quantity}>
+                <span className="map-legend__color-swatch" style={{ backgroundColor: stop.color }} />
+                <span className="map-legend__label">{stop.label}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="map-legend__meta">
+            {activeDemLayerName}
+            {activeDemLayerAttribution ? ` — ${activeDemLayerAttribution}` : ''}
+          </p>
         </section>
       )}
     </div>

@@ -208,6 +208,9 @@ const MapContent = ({
         <MapLegend
           hasSelection={Boolean(searchItem?.type)}
           activeDemLayerName={activeDemLayer?.name ?? null}
+          activeDemLayerAttribution={activeDemLayer?.attribution ?? null}
+          showSites={layerPanelControl.state.overlayVisibility.sites}
+          showRoads={layerPanelControl.state.overlayVisibility.roads}
         />
         {layerPanelControl.state.overlayVisibility.sites && siteLayer}
         {layerPanelControl.state.overlayVisibility.roads && roadLayer}

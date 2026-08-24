@@ -111,6 +111,20 @@
   border-top-style: dashed;
 }
 
+.map-legend__color-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.map-legend__meta {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  color: #888;
+}
+
 @media screen and (max-width: 600px) {
   .map-legend:not(.map-legend--collapsed) {
     width: 160px;
