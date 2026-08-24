@@ -117,6 +117,22 @@ describe('MapContent layer chrome', () => {
     expect(container.querySelector('.layer-panel')).toBeInTheDocument();
     expect(container.querySelector('.leaflet-control-layers')).not.toBeInTheDocument();
   });
+
+  it("passes LayerPanel's sites/roads overlay visibility through to MapLegend's showSites/showRoads, hiding each section when its overlay is toggled off", async () => {
+    const { findByLabelText, queryByText } = renderMapContent({ layerPanel: true });
+
+    expect(queryByText('Site Types')).toBeInTheDocument();
+    expect(queryByText('Roads')).toBeInTheDocument();
+
+    const sitesCheckbox = await findByLabelText('Archaeological Sites');
+    fireEvent.click(sitesCheckbox);
+    expect(queryByText('Site Types')).not.toBeInTheDocument();
+    expect(queryByText('Roads')).toBeInTheDocument();
+
+    const roadsCheckbox = await findByLabelText('Roads and Routes');
+    fireEvent.click(roadsCheckbox);
+    expect(queryByText('Roads')).not.toBeInTheDocument();
+  });
 });
 
 describe('MapContent Physical layers (raster catalog)', () => {
