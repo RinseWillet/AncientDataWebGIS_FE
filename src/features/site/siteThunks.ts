@@ -9,16 +9,7 @@ import {
 } from './siteSlice';
 import type { AppDispatch } from '../../app/store';
 import type { GeoJsonFeatureCollection } from '../../types/geoJson';
-
-interface ApiErrorWithMessage {
-  response?: { data?: { message?: string } };
-  message?: string;
-}
-
-const getErrorMessage = (error: unknown, fallback: string): string => {
-  const e = error as ApiErrorWithMessage;
-  return e?.response?.data?.message || e?.message || fallback;
-};
+import { getErrorMessage } from '../../utils/apiErrors';
 
 export const fetchSites = () => async (dispatch: AppDispatch) => {
   dispatch(fetchSitesStart());
@@ -39,4 +30,3 @@ export const fetchSiteById = (id: string | number) => async (dispatch: AppDispat
     dispatch(fetchSiteByIdFailure(getErrorMessage(error, 'Failed to load site.')));
   }
 };
-
