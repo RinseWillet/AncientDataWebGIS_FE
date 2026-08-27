@@ -44,6 +44,15 @@ React + Vite SPA rendering archaeological spatial data on a Leaflet map with edi
 - **UI:** Reusable components under `src/components`; page-level views under `src/pages`.
 - **Types:** `src/types`; geometry helpers `src/utils`.
 
+## Type Registries
+
+Site and road type label/icon/style data lives in exactly two files — never add a new siteType/road-type mapping anywhere else:
+
+- `src/utils/siteTypesConfig.ts` — one entry per `siteType` (label, marker icon, icon URL).
+- `src/utils/roadTypes.ts` — one entry per road `type` (label, line style).
+
+Adding, renaming, or restyling a type means touching only the relevant file; every consumer (map markers, info cards, legend, dashboard) reads from it.
+
 ## Hard Rules
 
 - Never call `axios`/`fetch()` directly. Use `apiClient` from `src/api/config.ts` via `src/services/`.

@@ -13,6 +13,8 @@ import {
 } from 'recharts';
 import { DashboardSummary } from '../types/dashboard';
 import { dashboardService } from '../services/DashboardService';
+import { siteTypeEntries } from '../utils/siteTypesConfig';
+import { roadStyleEntries } from '../utils/roadTypes';
 import './Dashboard.css';
 
 // Color palette for charts
@@ -27,18 +29,14 @@ const COLORS = [
   '#ffb347',
 ];
 
-// Label mapping for abbreviations to full names
-const LABEL_MAPPING: Record<string, string> = {
-  pvilla: 'Possible Villa',
-  ptum: 'Possible Tumulus',
-  cem: 'Cemetery',
-  hist_rec: 'Historical Reconstruction',
-  sett: 'Settlement',
-  tum: 'Tumulus',
-  pos_castellum: 'Possible Castellum',
-  setts: 'Settlement with Stone Buildings',
-  legfort: 'Legionary Fortress',
-};
+// Chart labels are sourced from the shared site/road type registries, keyed by
+// lowercased type since registry keys aren't uniformly lowercase (e.g. `settS`).
+const siteLabelByType = new Map(
+  siteTypeEntries.map((entry) => [entry.type.toLowerCase(), entry.label])
+);
+const roadLabelByType = new Map(
+  roadStyleEntries.map((entry) => [entry.type.toLowerCase(), entry.label])
+);
 
 const formatNumber = (value: number): string => new Intl.NumberFormat().format(value);
 
@@ -63,13 +61,11 @@ const formatTypeLabel = (value: string): string => {
     return 'Unknown Type';
   }
 
-  // Check if it matches a known abbreviation
-  if (LABEL_MAPPING[normalized]) {
-    return LABEL_MAPPING[normalized];
-  }
+  // Check if it matches a known site/road type
+  const registryLabel = siteLabelByType.get(normalized) ?? roadLabelByType.get(normalized);
 
   // Fall back to title case for unmapped labels
-  return toTitleCase(normalized);
+  return toTitleCase(registryLabel ?? normalized);
 };
 
 /** Shared by every chart's Tooltip `formatter`: resolves the hovered data point's type label. */

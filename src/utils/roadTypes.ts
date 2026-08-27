@@ -16,6 +16,8 @@ export interface RoadStyleEntry {
 /**
  * Canonical road `type` -> style/label mapping. Shared by MapContent's
  * on-map road styling and MapLegend's road style key so they never drift.
+ * To add, rename, or restyle a road type: edit this array only (add/edit a
+ * `PathOptions` style above if needed, then add/edit a row here).
  * `notShowRoad` (fully transparent, for unrecognized types) is deliberately
  * excluded here - there is nothing meaningful to show for it in a legend.
  */

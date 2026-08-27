@@ -8,7 +8,7 @@ import MediaService from '../../services/MediaService';
 import type { MediaAsset } from '../../types/media';
 import BottomSheetCard from './BottomSheetCard';
 import { SearchItem } from './mapTypes';
-import { siteTypeLabels } from '../../utils/siteTypes';
+import { siteTypeConverter } from '../../utils/siteTypesConfig';
 import './MapInfoCard.css';
 
 
@@ -117,7 +117,7 @@ const MapInfoCard = ({ searchItem, clearSelection }: MapInfoCardProps) => {
   };
 
   if (searchItem.type === 'site') {
-    const siteType = siteTypeLabels[details.siteType ?? ''] ?? 'unknown';
+    const siteType = siteTypeConverter(details.siteType);
     return (
       <BottomSheetCard onDismiss={clearSelection}>
         <button className="closeBtn" onClick={clearSelection}>
