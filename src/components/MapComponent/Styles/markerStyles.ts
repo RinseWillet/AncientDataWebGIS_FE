@@ -1,21 +1,5 @@
 import L, { Icon, PathOptions } from 'leaflet';
-import fort from '../../../assets/fort.png';
-import pfort from '../../../assets/pfort.png';
-import watchtower from '../../../assets/watchtower.png';
-import city from '../../../assets/city.png';
-import villa from '../../../assets/villa.png';
-import pvilla from '../../../assets/pvilla.png';
-import legfort from '../../../assets/legfort.png';
-import settS from '../../../assets/settS.png';
-import sett from '../../../assets/sett.png';
-import tumulus from '../../../assets/tumulus.png';
-import ptumulus from '../../../assets/ptumulus.png';
-import cemetery from '../../../assets/cemetery.png';
-import sanctuary from '../../../assets/sanctuary.png';
-import ship from '../../../assets/ship.png';
-import pship from '../../../assets/pship.png';
 import site from '../../../assets/site.png';
-import milestone from '../../../assets/milestone.png';
 
 export const highlightedSiteIcon = L.divIcon({
   className: 'highlighted-site-icon',
@@ -31,51 +15,11 @@ export const photoPinIcon = L.divIcon({
   iconAnchor: [14, 28],
 });
 
-const makeIcon = (iconUrl: string): Icon =>
+export const makeIcon = (iconUrl: string): Icon =>
   new Icon({ iconUrl, iconSize: [30, 30] });
 
-export const castellumIcon = makeIcon(fort);
-export const possibleCastellumIcon = makeIcon(pfort);
-export const legionaryFortIcon = makeIcon(legfort);
-export const watchtowerIcon = makeIcon(watchtower);
-export const cityIcon = makeIcon(city);
-export const villaIcon = makeIcon(villa);
-export const possibleVillaIcon = makeIcon(pvilla);
-export const settlementStoneIcon = makeIcon(settS);
-export const settlementIcon = makeIcon(sett);
+/** Generic fallback marker: used for the 'site' type and any unrecognized `siteType`. */
 export const siteIcon = makeIcon(site);
-export const shipIcon = makeIcon(ship);
-export const possibleShipIcon = makeIcon(pship);
-export const cemeteryIcon = makeIcon(cemetery);
-export const sanctuaryIcon = makeIcon(sanctuary);
-export const tumulusIcon = makeIcon(tumulus);
-export const possibleTumulusIcon = makeIcon(ptumulus);
-export const mileStoneIcon = makeIcon(milestone);
-
-/**
- * Raw icon URLs keyed by `siteType`, for contexts (e.g. MapLegend) that need
- * a plain `<img>` source rather than a constructed Leaflet `Icon` instance.
- * Mirrors `siteIcons.ts`'s `siteIconMap` key-for-key.
- */
-export const siteTypeIconUrls: Record<string, string> = {
-  castellum: fort,
-  pos_castellum: pfort,
-  legfort: legfort,
-  watchtower: watchtower,
-  city: city,
-  cem: cemetery,
-  ptum: tumulus,
-  tum: tumulus,
-  villa: villa,
-  pvilla: pvilla,
-  sett: sett,
-  settS: settS,
-  sanctuary: sanctuary,
-  ship: ship,
-  pship: pship,
-  site: site,
-  milestone: milestone,
-};
 
 export const possibleRoad: PathOptions = {
   color: '#000000',

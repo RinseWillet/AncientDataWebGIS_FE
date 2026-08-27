@@ -13,7 +13,7 @@ import ModernReferenceList from '../components/ModernReferenceList/ModernReferen
 import MediaGallery from '../components/MediaGallery/MediaGallery';
 import type { MediaAsset } from '../types/media';
 import type { GeoJsonFeatureCollection, GeoJsonGeometry, ModernReference, SiteProperties } from '../types/geoJson';
-import { siteTypeConverter } from '../utils/siteTypes';
+import { siteTypeConverter } from '../utils/siteTypesConfig';
 import { assetsToPhotoMarkers } from '../utils/photoMarkers';
 import './InfoPage.css';
 

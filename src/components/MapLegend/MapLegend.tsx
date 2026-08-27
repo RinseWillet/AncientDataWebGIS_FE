@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { siteTypeIconUrls } from '../MapComponent/Styles/markerStyles';
-import { siteTypeLabels } from '../../utils/siteTypes';
+import { siteTypeEntries } from '../../utils/siteTypesConfig';
 import { roadStyleEntries } from '../../utils/roadTypes';
 import { useActiveDemLayer } from './useActiveDemLayer';
 import { demColorRamp } from './demColorRamp';
@@ -81,10 +80,10 @@ const MapLegend = ({
         <section className="map-legend__section">
           <h4 className="map-legend__section-title">Site Types</h4>
           <ul className="map-legend__list">
-            {Object.entries(siteTypeIconUrls).map(([type, iconUrl]) => (
-              <li className="map-legend__row" key={type}>
-                <img className="map-legend__icon" src={iconUrl} alt="" />
-                <span className="map-legend__label">{siteTypeLabels[type] ?? type}</span>
+            {siteTypeEntries.map((entry) => (
+              <li className="map-legend__row" key={entry.type}>
+                <img className="map-legend__icon" src={entry.iconUrl} alt="" />
+                <span className="map-legend__label">{entry.label}</span>
               </li>
             ))}
           </ul>

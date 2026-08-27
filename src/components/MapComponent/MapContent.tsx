@@ -8,7 +8,7 @@ import GeometryEditor from '../GeometryEditor/GeometryEditor';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
 import BaseLayers from './BaseLayers';
 import { positronBaseLayer } from './layersConfig';
-import { getSiteIcon } from './siteIcons';
+import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { fitBoundsWithPadding } from './mapUtils';
 import { useAutoZoom, useLayerPanelControl, useMarkerHighlight } from './useMapInteractions';
 import { QueryItem, SearchItem } from './mapTypes';

@@ -1,7 +1,7 @@
 import { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
-import { getSiteIcon } from './siteIcons';
+import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { QueryItem, SearchItem } from './mapTypes';
 import { LayerGroupName, layersConfig } from './layersConfig';
 import { boundsIntersectViewport, buildLayer, buildPhysicalLayer } from './mapUtils';

@@ -8,8 +8,8 @@ export interface DemColorRampStop {
  * Hand-kept TS mirror of the 8 <ColorMapEntry> stops in
  * `docs/features/dem-elevation-ramp.sld` (the shared GeoServer style applied to every
  * DEM-category raster layer, -25m to 155m). Static/curated like `roadStyleEntries`
- * (utils/roadTypes.ts) and `siteTypeIconUrls` (Styles/markerStyles.ts) - keep in sync by
- * hand if the .sld ramp ever changes.
+ * (utils/roadTypes.ts) and `siteTypeEntries` (utils/siteTypesConfig.ts) - keep in sync
+ * by hand if the .sld ramp ever changes.
  */
 export const demColorRamp: DemColorRampStop[] = [
   { color: '#2c1a4d', quantity: -25, label: '-25m (mining district low)' },
