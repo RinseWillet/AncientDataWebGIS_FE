@@ -5,7 +5,13 @@ import L from 'leaflet';
 // Must be imported after `leaflet` so the plugin can attach to the global `L`.
 import 'leaflet-groupedlayercontrol';
 import 'leaflet-groupedlayercontrol/dist/leaflet.groupedlayercontrol.min.css';
-import { layersConfig, TileLayerConfig, WmsLayerConfig } from './layersConfig';
+import {
+  isBaseLayerConfig,
+  layersConfig,
+  TileLayerConfig,
+  VectorLayerConfig,
+  WmsLayerConfig,
+} from './layersConfig';
 import { buildLayer } from './mapUtils';
 
 interface OverlayGroupConfig {
@@ -17,9 +23,8 @@ interface OverlayGroupConfig {
 }
 
 /** True basemaps: mutually exclusive, always fill the whole map. */
-const baseLayerConfigs: TileLayerConfig[] = layersConfig.filter(
-  (config): config is TileLayerConfig => config.kind === 'tile'
-);
+const baseLayerConfigs: (TileLayerConfig | VectorLayerConfig)[] =
+  layersConfig.filter(isBaseLayerConfig);
 
 /**
  * Grouped overlays: layered on top of whichever base map is active. Each group
@@ -50,7 +55,7 @@ const overlayGroups: OverlayGroupConfig[] = (() => {
 })();
 
 /** Builds the flat base-layer map and picks out the default (checked) layer. */
-const buildBaseLayerEntries = (configs: TileLayerConfig[]) => {
+const buildBaseLayerEntries = (configs: (TileLayerConfig | VectorLayerConfig)[]) => {
   const entries: Record<string, L.Layer> = {};
   let defaultLayer: L.Layer | undefined;
 
@@ -138,6 +143,24 @@ const BaseLayers = () => {
       removeAllLayers(map, baseLayerEntries, groupedOverlayEntries);
     };
   }, [map]);
+
+  return null;
+};
+
+/**
+ * Renders a single fixed, non-toggleable base layer (tile or vector)
+ * imperatively via `buildLayer`, for pages with no layer-control chrome
+ * (e.g. the Home page preview map).
+ */
+export const FixedBaseLayer = ({ config }: { config: TileLayerConfig | VectorLayerConfig }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    const layer = buildLayer(config).addTo(map);
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [map, config]);
 
   return null;
 };

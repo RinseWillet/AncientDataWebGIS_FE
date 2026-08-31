@@ -46,6 +46,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
         overlayVisibility,
         physicalLayers: [],
         historicalMapSheets: [],
+        gatedAerialLayerNames: [],
         ...overrides,
       },
       selectBaseLayer,
@@ -149,6 +150,37 @@ describe('LayerPanel', () => {
 
     fireEvent.click(screen.getByLabelText('1926'));
     expect(toggleExclusiveLayer).toHaveBeenCalledWith('Aerial Imagery', '1926');
+  });
+
+  it('hides a gated-off Aerial Imagery row entirely and shows a fallback message (E3-9)', () => {
+    const { control } = buildControl({ gatedAerialLayerNames: ['1926'] });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('Aerial Imagery')).toBeInTheDocument();
+    expect(screen.queryByLabelText('1926')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('1934')).toBeInTheDocument();
+    expect(screen.getByLabelText('1952')).toBeInTheDocument();
+  });
+
+  it('shows the empty-state hint when every Aerial Imagery entry is gated off (E3-9)', () => {
+    const { control } = buildControl({ gatedAerialLayerNames: ['1926', '1934', '1952', '1952 Köln'] });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.queryByLabelText('1926')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('1934')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('1952')).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Pan or zoom in to this layer's coverage area to enable it.")
+    ).toBeInTheDocument();
+  });
+
+  it('never gates the Topographical section, which has no bounds/zoom on its entries (E3-9)', () => {
+    const { control } = buildControl({ gatedAerialLayerNames: ['1926', '1934', '1952'] });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByLabelText('Positron Modern Topographical')).toBeInTheDocument();
+    expect(screen.getByLabelText('Open Street Map Topographical')).toBeInTheDocument();
+    expect(screen.getByLabelText('Satellite')).toBeInTheDocument();
   });
 
   it('calls toggleOverlay for sites/roads/photos rows', () => {

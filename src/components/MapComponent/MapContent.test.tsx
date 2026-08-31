@@ -99,10 +99,9 @@ describe('MapContent layer chrome', () => {
     const { container } = renderMapContent({ showLayerChrome: false });
 
     expect(container.querySelector('.leaflet-control-layers')).not.toBeInTheDocument();
-    const tileImages = container.querySelectorAll('.leaflet-tile-pane .leaflet-layer');
-    expect(tileImages).toHaveLength(1);
-    const tileImg = container.querySelector('.leaflet-tile-pane img');
-    expect(tileImg).toHaveAttribute('src', expect.stringContaining('basemaps.cartocdn.com/light_all'));
+    const baseLayers = container.querySelectorAll('.leaflet-tile-pane .leaflet-layer');
+    expect(baseLayers).toHaveLength(1);
+    expect(container.querySelector('.leaflet-tile-pane .maplibre-gl-mock')).toBeInTheDocument();
   });
 
   it('renders the grouped layer-control chrome by default (showLayerChrome true)', () => {

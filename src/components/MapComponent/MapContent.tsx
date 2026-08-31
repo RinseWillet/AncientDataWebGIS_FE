@@ -1,4 +1,4 @@
-import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, TileLayer, useMap } from 'react-leaflet';
+import { GeoJSON, LayersControl, Marker, Popup, ScaleControl, useMap } from 'react-leaflet';
 import L, { LeafletMouseEvent } from 'leaflet';
 import { photoPinIcon } from './Styles/markerStyles';
 import './MapContent.css';
@@ -6,7 +6,7 @@ import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import GeometryEditor from '../GeometryEditor/GeometryEditor';
 import { MutableRefObject, useCallback, useRef, useState } from 'react';
-import BaseLayers from './BaseLayers';
+import BaseLayers, { FixedBaseLayer } from './BaseLayers';
 import { positronBaseLayer } from './layersConfig';
 import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { fitBoundsWithPadding } from './mapUtils';
@@ -247,7 +247,7 @@ const MapContent = ({
         {/* Fixed, non-toggleable base tile + unwrapped overlays: no layer
             control chrome at all (used where selection/basemap picking are
             intentionally disabled, e.g. the Home page preview map). */}
-        <TileLayer url={positronBaseLayer.url} attribution={positronBaseLayer.attribution} />
+        <FixedBaseLayer config={positronBaseLayer} />
         {siteLayer}
         {roadLayer}
         {photoLayer}

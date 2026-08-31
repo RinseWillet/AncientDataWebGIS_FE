@@ -1,3 +1,5 @@
+import { RasterBounds, RasterZoom } from '../../types/raster';
+
 /**
  * Single source of truth for every selectable map layer. Consumed by
  * `BaseLayers.tsx` (Leaflet grouped layer control, used on RoadInfo/SiteInfo)
@@ -24,21 +26,40 @@ export interface TileLayerConfig extends LayerConfigBase {
   url: string;
 }
 
+export interface VectorLayerConfig extends LayerConfigBase {
+  kind: 'vector';
+  attribution: string;
+  styleUrl: string;
+}
+
 export interface WmsLayerConfig extends LayerConfigBase {
   kind: 'wms';
   url: string;
   layers: string;
+  /**
+   * Optional viewport/zoom gate (E3-9, mirroring E3-7/E3-8's raster-catalog gating): when
+   * present, `LayerPanel` hides this entry unless the map viewport intersects `bounds` and
+   * the zoom is at or above `zoom.min`. Entries without `bounds` are never gated.
+   */
+  bounds?: RasterBounds;
+  zoom?: RasterZoom;
 }
 
-export type LayerConfig = TileLayerConfig | WmsLayerConfig;
+export type LayerConfig = TileLayerConfig | VectorLayerConfig | WmsLayerConfig;
+
+/** Base layers: mutually exclusive raster or vector tiles that fill the whole map. */
+export const isBaseLayerConfig = (
+  config: LayerConfig
+): config is TileLayerConfig | VectorLayerConfig =>
+  config.kind === 'tile' || config.kind === 'vector';
 
 export const layersConfig: LayerConfig[] = [
   {
-    kind: 'tile',
+    kind: 'vector',
     name: 'Positron Modern Topographical',
     group: 'Topographical',
-    attribution: ' OpenStreetMap contributors,  CartoDB',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    attribution: ' OpenFreeMap  OpenMapTiles  OpenStreetMap contributors',
+    styleUrl: 'https://tiles.openfreemap.org/styles/positron',
     checked: true,
   },
   {
@@ -85,7 +106,9 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1926?',
-    layers: 'ruhr-lubi_1926',
+    layers: 'lubi_1926',
+    bounds: { south: 51.167497, west: 6.227895, north: 51.860887, east: 8.055436 },
+    zoom: { min: 9, max: 19 },
   },
   {
     kind: 'wms',
@@ -93,7 +116,9 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1934?',
-    layers: 'ruhr-lubi_1934',
+    layers: 'lubi_1934',
+    bounds: { south: 51.167497, west: 6.227895, north: 51.860887, east: 8.055436 },
+    zoom: { min: 9, max: 19 },
   },
   {
     kind: 'wms',
@@ -101,19 +126,22 @@ export const layersConfig: LayerConfig[] = [
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Ruhr, Germany)',
     url: 'https://geodaten.metropoleruhr.de/lubi/lubi_1952?',
-    layers: 'ruhr-lubi_1952',
+    layers: 'lubi_1952',
+    bounds: { south: 51.167497, west: 6.227895, north: 51.860887, east: 8.055436 },
+    zoom: { min: 9, max: 19 },
   },
   {
     kind: 'wms',
     name: '1952 Köln',
     group: 'Aerial Imagery',
     groupLabel: 'Aerial Photos (Köln, Germany)',
-    url: 'https://www.wms.nrw.de/geobasis/wms_nw_hist_dop_1952?',
-    layers: 'köln-lubi_1952',
+    url: 'https://www.wms.nrw.de/geobasis/wms_nw_hist_dop?',
+    layers: 'nw_hist_dop_1952',
   },
 ];
 
-/** The default base map, used to render a fixed tile layer when `showLayerChrome` is false. */
+/** The default base map, used to render a fixed base layer when `showLayerChrome` is false. */
 export const positronBaseLayer = layersConfig.find(
-  (config): config is TileLayerConfig => config.kind === 'tile' && Boolean(config.checked)
-) as TileLayerConfig;
+  (config): config is TileLayerConfig | VectorLayerConfig =>
+    isBaseLayerConfig(config) && Boolean(config.checked)
+) as TileLayerConfig | VectorLayerConfig;
