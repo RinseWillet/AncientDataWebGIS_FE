@@ -247,10 +247,17 @@ const aerialImageryConfigs = layersConfig.filter(
   (config): config is WmsLayerConfig => config.group === 'Aerial Imagery'
 );
 
+/** Which "Aerial Imagery" subgroup a config belongs to (e.g. Ruhr vs. NRW), so each region
+ * can be selected independently instead of sharing one map-wide exclusive slot. Falls back
+ * to the top-level group name for entries with no `groupLabel`. */
+const aerialSubgroupLabel = (config: WmsLayerConfig): string => config.groupLabel ?? config.group;
+
 export interface LayerPanelState {
   activeBaseLayer: string;
   activeHistoricalLayer: string | null;
-  activeAerialLayer: string | null;
+  /** Names of the currently active "Aerial Imagery" layers, at most one per subgroup (E.g.
+   * one Ruhr year and one NRW year can be active at the same time). */
+  activeAerialLayerNames: string[];
   overlayVisibility: OverlayVisibility;
   /** DEM-category catalog entries only (rendered under "Physical"). */
   physicalLayers: PhysicalLayerState[];
@@ -398,7 +405,15 @@ const defaultBaseLayerName = (): string =>
 export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
   const [activeBaseLayer, setActiveBaseLayer] = useState<string>(defaultBaseLayerName);
   const [activeHistoricalLayer, setActiveHistoricalLayer] = useState<string | null>(null);
-  const [activeAerialLayer, setActiveAerialLayer] = useState<string | null>(null);
+  /** One active layer name per "Aerial Imagery" subgroup (keyed by `aerialSubgroupLabel`),
+   * so Ruhr and NRW selections don't clobber each other. */
+  const [activeAerialLayersBySubgroup, setActiveAerialLayersBySubgroup] = useState<
+    Record<string, string | null>
+  >({});
+  const activeAerialLayerNames = useMemo(
+    () => Object.values(activeAerialLayersBySubgroup).filter((name): name is string => Boolean(name)),
+    [activeAerialLayersBySubgroup]
+  );
   const [overlayVisibility, setOverlayVisibility] = useState<OverlayVisibility>({
     sites: true,
     roads: true,
@@ -430,14 +445,16 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
   }, [map, activeHistoricalLayer]);
 
   useEffect(() => {
-    if (!map || !activeAerialLayer) return;
-    const config = findLayerConfig('Aerial Imagery', activeAerialLayer);
-    if (!config) return;
-    const layer = buildLayer(config).addTo(map);
+    if (!map) return;
+    const layers = activeAerialLayerNames
+      .map((name) => findLayerConfig('Aerial Imagery', name))
+      .filter((config): config is WmsLayerConfig => Boolean(config))
+      .map((config) => buildLayer(config).addTo(map));
     return () => {
-      map.removeLayer(layer);
+      layers.forEach((layer) => map.removeLayer(layer));
     };
-  }, [map, activeAerialLayer]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, activeAerialLayersBySubgroup]);
 
   // Load the raster catalog once `map` is set - the caller only passes a
   // real map instance when the Physical/Historical Maps groups are actually
@@ -536,14 +553,22 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
         });
         return changed ? next : prev;
       });
-      // Same auto-off principle extended to the "Aerial Imagery" exclusive group (E3-9):
+      // Same auto-off principle extended to the "Aerial Imagery" exclusive subgroups (E3-9):
       // an active Ruhr lubi layer that's panned/zoomed out of its own coverage area is
       // deactivated rather than left checked-but-hidden from the filtered LayerPanel list.
-      setActiveAerialLayer((current) => {
-        if (!current) return current;
-        const config = findLayerConfig('Aerial Imagery', current);
-        if (!config) return current;
-        return gateExclusiveLayerConfig(config, false, map).disabled ? null : current;
+      // Each subgroup (Ruhr, NRW, ...) is checked independently.
+      setActiveAerialLayersBySubgroup((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        Object.entries(prev).forEach(([subgroup, name]) => {
+          if (!name) return;
+          const config = findLayerConfig('Aerial Imagery', name);
+          if (config && gateExclusiveLayerConfig(config, false, map).disabled) {
+            next[subgroup] = null;
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
       });
     };
     map.on('moveend', onViewportChange);
@@ -572,19 +597,33 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
   const gatedAerialLayerNames = useMemo(
     () =>
       aerialImageryConfigs
-        .filter((config) => gateExclusiveLayerConfig(config, config.name === activeAerialLayer, map).disabled)
+        .filter(
+          (config) =>
+            gateExclusiveLayerConfig(config, activeAerialLayerNames.includes(config.name), map).disabled
+        )
         .map((config) => config.name),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [map, viewportVersion, activeAerialLayer]
+    [map, viewportVersion, activeAerialLayerNames]
   );
 
   const toggleExclusiveLayer = (group: ExclusiveGroupName, name: string) => {
-    const setActive = group === 'Historical Maps' ? setActiveHistoricalLayer : setActiveAerialLayer;
-    setActive((prev) => {
-      if (prev === name) return null;
-      const config = findLayerConfig(group, name);
-      if (config && gateExclusiveLayerConfig(config, false, map).disabled) return prev;
-      return name;
+    if (group === 'Historical Maps') {
+      setActiveHistoricalLayer((prev) => {
+        if (prev === name) return null;
+        const config = findLayerConfig(group, name);
+        if (config && gateExclusiveLayerConfig(config, false, map).disabled) return prev;
+        return name;
+      });
+      return;
+    }
+
+    const config = findLayerConfig(group, name);
+    if (!config) return;
+    const subgroup = aerialSubgroupLabel(config);
+    setActiveAerialLayersBySubgroup((prev) => {
+      if (prev[subgroup] === name) return { ...prev, [subgroup]: null };
+      if (gateExclusiveLayerConfig(config, false, map).disabled) return prev;
+      return { ...prev, [subgroup]: name };
     });
   };
 
@@ -621,7 +660,7 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     state: {
       activeBaseLayer,
       activeHistoricalLayer,
-      activeAerialLayer,
+      activeAerialLayerNames,
       overlayVisibility,
       physicalLayers: gatedPhysicalLayers,
       historicalMapSheets: gatedHistoricalMapSheets,
