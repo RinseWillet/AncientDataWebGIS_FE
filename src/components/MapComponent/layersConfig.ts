@@ -24,21 +24,33 @@ export interface TileLayerConfig extends LayerConfigBase {
   url: string;
 }
 
+export interface VectorLayerConfig extends LayerConfigBase {
+  kind: 'vector';
+  attribution: string;
+  styleUrl: string;
+}
+
 export interface WmsLayerConfig extends LayerConfigBase {
   kind: 'wms';
   url: string;
   layers: string;
 }
 
-export type LayerConfig = TileLayerConfig | WmsLayerConfig;
+export type LayerConfig = TileLayerConfig | VectorLayerConfig | WmsLayerConfig;
+
+/** Base layers: mutually exclusive raster or vector tiles that fill the whole map. */
+export const isBaseLayerConfig = (
+  config: LayerConfig
+): config is TileLayerConfig | VectorLayerConfig =>
+  config.kind === 'tile' || config.kind === 'vector';
 
 export const layersConfig: LayerConfig[] = [
   {
-    kind: 'tile',
+    kind: 'vector',
     name: 'Positron Modern Topographical',
     group: 'Topographical',
-    attribution: ' OpenStreetMap contributors,  CartoDB',
-    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    attribution: ' OpenFreeMap  OpenMapTiles  OpenStreetMap contributors',
+    styleUrl: 'https://tiles.openfreemap.org/styles/positron',
     checked: true,
   },
   {
@@ -113,7 +125,8 @@ export const layersConfig: LayerConfig[] = [
   },
 ];
 
-/** The default base map, used to render a fixed tile layer when `showLayerChrome` is false. */
+/** The default base map, used to render a fixed base layer when `showLayerChrome` is false. */
 export const positronBaseLayer = layersConfig.find(
-  (config): config is TileLayerConfig => config.kind === 'tile' && Boolean(config.checked)
-) as TileLayerConfig;
+  (config): config is TileLayerConfig | VectorLayerConfig =>
+    isBaseLayerConfig(config) && Boolean(config.checked)
+) as TileLayerConfig | VectorLayerConfig;

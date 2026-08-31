@@ -1,17 +1,28 @@
 import L from 'leaflet';
+import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import { LayerConfig } from './layersConfig';
 import { apiBaseUrl } from '../../api/config';
 import { RasterBounds } from '../../types/raster';
 
-/** Builds a Leaflet tile/WMS layer instance from a `layersConfig` entry. */
-export const buildLayer = (config: LayerConfig): L.Layer =>
-  config.kind === 'tile'
-    ? L.tileLayer(config.url, { attribution: config.attribution })
-    : L.tileLayer.wms(config.url, {
-        layers: config.layers,
-        format: 'image/png',
-        transparent: true,
-      });
+/** Builds a Leaflet tile/vector/WMS layer instance from a `layersConfig` entry. */
+export const buildLayer = (config: LayerConfig): L.Layer => {
+  if (config.kind === 'tile') return L.tileLayer(config.url, { attribution: config.attribution });
+  if (config.kind === 'vector') {
+    // The plugin always disables MapLibre GL's own on-canvas attribution
+    // control and instead surfaces `customAttribution` through Leaflet's -
+    // OpenFreeMap's style sources carry no attribution metadata of their
+    // own, so without this the map would show no attribution at all.
+    return maplibreGL({
+      style: config.styleUrl,
+      attributionControl: { customAttribution: config.attribution },
+    });
+  }
+  return L.tileLayer.wms(config.url, {
+    layers: config.layers,
+    format: 'image/png',
+    transparent: true,
+  });
+};
 
 /**
  * Builds a Leaflet WMS layer for a raster catalog entry (`source` is a

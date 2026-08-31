@@ -1,4 +1,24 @@
 import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
+import L from 'leaflet';
+
+// jsdom has no WebGL context, so the real @maplibre/maplibre-gl-leaflet layer
+// throws on mount. Every test that renders a real Leaflet map (MapContent,
+// BaseLayers, useLayerPanelControl) can hit the Positron vector base layer,
+// so this is mocked globally rather than per test file. The fake still
+// renders a placeholder div into the tile pane so DOM assertions that count
+// base-layer elements keep working.
+vi.mock('@maplibre/maplibre-gl-leaflet', () => {
+  const MockMaplibreLayer = L.Layer.extend({
+    onAdd(map) {
+      this._container = L.DomUtil.create('div', 'leaflet-layer maplibre-gl-mock', map.getPane('tilePane'));
+    },
+    onRemove() {
+      L.DomUtil.remove(this._container);
+    },
+  });
+  return { maplibreGL: () => new MockMaplibreLayer() };
+});
 
 if (!window.matchMedia) {
   window.matchMedia = function matchMedia(query) {

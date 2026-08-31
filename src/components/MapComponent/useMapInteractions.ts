@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { QueryItem, SearchItem } from './mapTypes';
-import { LayerGroupName, layersConfig } from './layersConfig';
+import { isBaseLayerConfig, LayerGroupName, layersConfig } from './layersConfig';
 import { boundsIntersectViewport, buildLayer, buildPhysicalLayer } from './mapUtils';
 import { rasterService } from '../../services/RasterService';
 import { RasterBounds, RasterLayerCategory, RasterZoom } from '../../types/raster';
@@ -350,8 +350,8 @@ const findLayerConfig = (group: LayerGroupName, name: string) =>
   layersConfig.find((config) => config.group === group && config.name === name);
 
 const defaultBaseLayerName = (): string =>
-  layersConfig.find((config) => config.kind === 'tile' && config.checked)?.name ??
-  (layersConfig.find((config) => config.kind === 'tile')?.name as string);
+  layersConfig.find((config) => isBaseLayerConfig(config) && config.checked)?.name ??
+  (layersConfig.find(isBaseLayerConfig)?.name as string);
 
 /**
  * Drives the actual Leaflet base/historical/aerial layers for the Atlas
