@@ -275,6 +275,9 @@ export interface LayerPanelControl {
   togglePhysicalLayer: (source: string) => void;
   setPhysicalLayerOpacity: (source: string, opacity: number) => void;
   movePhysicalLayer: (source: string, direction: 'up' | 'down') => void;
+  /** Turns every layer in a Physical `collection` (e.g. a DEM + its hillshade sibling) on if
+   * any are hidden, or off if all are visible. */
+  togglePhysicalCollection: (collection: string) => void;
   toggleHistoricalMapSheet: (source: string) => void;
   setHistoricalMapSheetOpacity: (source: string, opacity: number) => void;
   moveHistoricalMapSheet: (source: string, direction: 'up' | 'down') => void;
@@ -672,6 +675,7 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     togglePhysicalLayer,
     setPhysicalLayerOpacity: physicalLayerHandlers.setOpacity,
     movePhysicalLayer: physicalLayerHandlers.move,
+    togglePhysicalCollection: physicalLayerHandlers.toggleCollection,
     toggleHistoricalMapSheet,
     setHistoricalMapSheetOpacity: historicalMapSheetHandlers.setOpacity,
     moveHistoricalMapSheet: historicalMapSheetHandlers.move,

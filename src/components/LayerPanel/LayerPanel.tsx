@@ -133,22 +133,24 @@ const CollectionToggleCheckbox = ({ collection, layers, onToggleCollection }: Co
   );
 };
 
-interface HistoricalMapCollectionGroup {
+interface LayerCollectionGroup {
   collection: string;
   layers: PhysicalLayerState[];
 }
 
-/** Splits catalog-driven historical map sheets into named atlas groups (e.g. "1818 De
- * Man - Nijmegen") plus a flat "ungrouped" bucket for any standalone entry with no
- * `collection` - preserves catalog order both across groups and within each group. */
-const groupHistoricalMapSheets = (
-  sheets: PhysicalLayerState[]
-): { ungrouped: PhysicalLayerState[]; collections: HistoricalMapCollectionGroup[] } => {
+/** Splits a catalog-driven layer list (Historical Maps sheets or Physical/DEM layers) into
+ * named groups by `collection` (e.g. "1818 De Man - Nijmegen", or a DEM area like "Swalmen"
+ * grouping its DEM + hillshade sibling) plus a flat "ungrouped" bucket for any standalone
+ * entry with no `collection` - preserves catalog order both across groups and within each
+ * group. */
+const groupLayersByCollection = (
+  layers: PhysicalLayerState[]
+): { ungrouped: PhysicalLayerState[]; collections: LayerCollectionGroup[] } => {
   const ungrouped: PhysicalLayerState[] = [];
-  const collections: HistoricalMapCollectionGroup[] = [];
+  const collections: LayerCollectionGroup[] = [];
   const collectionIndex = new Map<string, number>();
 
-  sheets.forEach((layer) => {
+  layers.forEach((layer) => {
     if (!layer.collection) {
       ungrouped.push(layer);
       return;
@@ -165,6 +167,50 @@ const groupHistoricalMapSheets = (
   return { ungrouped, collections };
 };
 
+interface CollectionSubsectionProps {
+  collection: string;
+  layers: PhysicalLayerState[];
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  onToggle: (source: string) => void;
+  onSetOpacity: (source: string, opacity: number) => void;
+  onMove: (source: string, direction: 'up' | 'down') => void;
+  onToggleCollection: (collection: string) => void;
+}
+
+/** One named, collapsible `collection` group (an atlas or a DEM area) nested inside
+ * "Historical Maps"/"Physical" - shared by both since they're both catalog-driven,
+ * multi-select, opacity/reorderable layer lists grouped the same way. */
+const CollectionSubsection = ({
+  collection,
+  layers,
+  isCollapsed,
+  onToggleCollapse,
+  onToggle,
+  onSetOpacity,
+  onMove,
+  onToggleCollection,
+}: CollectionSubsectionProps) => (
+  <div className="layer-panel__subsection">
+    <div className="layer-panel__section-header layer-panel__section-header--group">
+      <CollectionToggleCheckbox collection={collection} layers={layers} onToggleCollection={onToggleCollection} />
+      <button
+        type="button"
+        className="layer-panel__section-header-toggle"
+        onClick={onToggleCollapse}
+        aria-expanded={!isCollapsed}
+      >
+        <span className="layer-panel__section-title">{collection}</span>
+        <span className="layer-panel__section-caret">{isCollapsed ? '▸' : '▾'}</span>
+      </button>
+    </div>
+
+    {!isCollapsed && (
+      <ToggleableLayerRows layers={layers} onToggle={onToggle} onSetOpacity={onSetOpacity} onMove={onMove} />
+    )}
+  </div>
+);
+
 /**
  * Custom, collapsible left sidebar for selecting the active base map,
  * historical/aerial overlay, and sites/roads/photos visibility on the
@@ -173,7 +219,15 @@ const groupHistoricalMapSheets = (
  */
 const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   const [collapsed, setCollapsed] = useState(false);
+  // Top-level sections (Topographical, Historical Maps, Aerial Imagery, Physical, ...):
+  // default expanded, so membership here means "explicitly collapsed".
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  // Named subgroups nested inside a section (an aerial-imagery region, a historical atlas, a
+  // DEM area): default *collapsed*, so membership here means "explicitly expanded". Otherwise
+  // a subgroup that only just became selectable (e.g. panning into its coverage area) would
+  // pop open showing every layer inside it, rather than staying tucked away until the user
+  // asks to see it - confirmed with the project owner as the preferred, less-cluttered default.
+  const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
 
   const {
     state,
@@ -183,6 +237,7 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
     togglePhysicalLayer,
     setPhysicalLayerOpacity,
     movePhysicalLayer,
+    togglePhysicalCollection,
     toggleHistoricalMapSheet,
     setHistoricalMapSheetOpacity,
     moveHistoricalMapSheet,
@@ -196,6 +251,20 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
         next.delete(section);
       } else {
         next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const isSubsectionCollapsed = (key: string) => !expandedSubsections.has(key);
+
+  const toggleSubsection = (key: string) => {
+    setExpandedSubsections((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
       }
       return next;
     });
@@ -288,22 +357,20 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
         {!isSectionCollapsed && subgroupOrder.length > 1 &&
           subgroupOrder.map((label) => {
             const subsectionKey = `${group}:${label}`;
-            const isSubsectionCollapsed = collapsedSections.has(subsectionKey);
+            const isCollapsed = isSubsectionCollapsed(subsectionKey);
 
             return (
               <div className="layer-panel__subsection" key={label}>
                 <button
                   type="button"
                   className="layer-panel__section-header"
-                  onClick={() => toggleSection(subsectionKey)}
-                  aria-expanded={!isSubsectionCollapsed}
+                  onClick={() => toggleSubsection(subsectionKey)}
+                  aria-expanded={!isCollapsed}
                 >
                   <span className="layer-panel__section-title">{label}</span>
-                  <span className="layer-panel__section-caret">
-                    {isSubsectionCollapsed ? '▸' : '▾'}
-                  </span>
+                  <span className="layer-panel__section-caret">{isCollapsed ? '▸' : '▾'}</span>
                 </button>
-                {!isSubsectionCollapsed && renderEntryRows(entriesBySubgroup.get(label) ?? [])}
+                {!isCollapsed && renderEntryRows(entriesBySubgroup.get(label) ?? [])}
               </div>
             );
           })}
@@ -324,11 +391,11 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   // Only list currently-selectable Historical Maps sheets (E3-8, extending E3-7's viewport-
   // gating with each entry's own zoom.min): out-of-view/below-its-own-floor sheets are hidden
   // entirely rather than shown disabled, matching the Physical group's E3-7 follow-up. Since
-  // `groupHistoricalMapSheets` only creates a collection entry for sheets actually present in
+  // `groupLayersByCollection` only creates a collection entry for sheets actually present in
   // its input, filtering here first also means an atlas with zero currently-selectable sheets
   // is hidden entirely rather than rendered as an empty subsection, with no extra logic needed.
   const selectableHistoricalMapSheets = state.historicalMapSheets.filter((layer) => !layer.disabled);
-  const { ungrouped: ungroupedSheets, collections: sheetCollections } = groupHistoricalMapSheets(
+  const { ungrouped: ungroupedSheets, collections: sheetCollections } = groupLayersByCollection(
     selectableHistoricalMapSheets
   );
 
@@ -336,7 +403,11 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   // project owner): showing every catalog entry disabled+hinted made the list too
   // cluttered in practice, so out-of-view/below-floor layers are hidden entirely instead,
   // with a single fallback message explaining why the list is empty/shorter than expected.
+  // Grouped by area (e.g. "Swalmen", pairing a DEM with its hillshade sibling) the same way
+  // Historical Maps sheets are grouped into atlases.
   const selectablePhysicalLayers = state.physicalLayers.filter((layer) => !layer.disabled);
+  const { ungrouped: ungroupedPhysicalLayers, collections: physicalCollections } =
+    groupLayersByCollection(selectablePhysicalLayers);
   const physicalEmptyHint =
     state.physicalLayers.find((layer) => layer.disabled)?.disabledReason ??
     'No Physical layers available here.';
@@ -413,37 +484,19 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
                 />
               )}
               {sheetCollections.map(({ collection, layers }) => {
-                const sectionKey = `atlas:${collection}`;
-                const isCollapsed = collapsedSections.has(sectionKey);
-
+                const subsectionKey = `atlas:${collection}`;
                 return (
-                  <div className="layer-panel__subsection" key={collection}>
-                    <div className="layer-panel__section-header layer-panel__section-header--group">
-                      <CollectionToggleCheckbox
-                        collection={collection}
-                        layers={layers}
-                        onToggleCollection={toggleHistoricalMapCollection}
-                      />
-                      <button
-                        type="button"
-                        className="layer-panel__section-header-toggle"
-                        onClick={() => toggleSection(sectionKey)}
-                        aria-expanded={!isCollapsed}
-                      >
-                        <span className="layer-panel__section-title">{collection}</span>
-                        <span className="layer-panel__section-caret">{isCollapsed ? '▸' : '▾'}</span>
-                      </button>
-                    </div>
-
-                    {!isCollapsed && (
-                      <ToggleableLayerRows
-                        layers={layers}
-                        onToggle={toggleHistoricalMapSheet}
-                        onSetOpacity={setHistoricalMapSheetOpacity}
-                        onMove={moveHistoricalMapSheet}
-                      />
-                    )}
-                  </div>
+                  <CollectionSubsection
+                    key={collection}
+                    collection={collection}
+                    layers={layers}
+                    isCollapsed={isSubsectionCollapsed(subsectionKey)}
+                    onToggleCollapse={() => toggleSubsection(subsectionKey)}
+                    onToggle={toggleHistoricalMapSheet}
+                    onSetOpacity={setHistoricalMapSheetOpacity}
+                    onMove={moveHistoricalMapSheet}
+                    onToggleCollection={toggleHistoricalMapCollection}
+                  />
                 );
               })}
             </>
@@ -469,12 +522,32 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
 
           {!collapsedSections.has('Physical') &&
             (selectablePhysicalLayers.length > 0 ? (
-              <ToggleableLayerRows
-                layers={selectablePhysicalLayers}
-                onToggle={togglePhysicalLayer}
-                onSetOpacity={setPhysicalLayerOpacity}
-                onMove={movePhysicalLayer}
-              />
+              <>
+                {ungroupedPhysicalLayers.length > 0 && (
+                  <ToggleableLayerRows
+                    layers={ungroupedPhysicalLayers}
+                    onToggle={togglePhysicalLayer}
+                    onSetOpacity={setPhysicalLayerOpacity}
+                    onMove={movePhysicalLayer}
+                  />
+                )}
+                {physicalCollections.map(({ collection, layers }) => {
+                  const subsectionKey = `physical:${collection}`;
+                  return (
+                    <CollectionSubsection
+                      key={collection}
+                      collection={collection}
+                      layers={layers}
+                      isCollapsed={isSubsectionCollapsed(subsectionKey)}
+                      onToggleCollapse={() => toggleSubsection(subsectionKey)}
+                      onToggle={togglePhysicalLayer}
+                      onSetOpacity={setPhysicalLayerOpacity}
+                      onMove={movePhysicalLayer}
+                      onToggleCollection={togglePhysicalCollection}
+                    />
+                  );
+                })}
+              </>
             ) : (
               <p className="layer-panel__section-empty-hint">{physicalEmptyHint}</p>
             ))}

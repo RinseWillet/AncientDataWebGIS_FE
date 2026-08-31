@@ -15,6 +15,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
   togglePhysicalLayer: ReturnType<typeof vi.fn>;
   setPhysicalLayerOpacity: ReturnType<typeof vi.fn>;
   movePhysicalLayer: ReturnType<typeof vi.fn>;
+  togglePhysicalCollection: ReturnType<typeof vi.fn>;
   toggleHistoricalMapSheet: ReturnType<typeof vi.fn>;
   setHistoricalMapSheetOpacity: ReturnType<typeof vi.fn>;
   moveHistoricalMapSheet: ReturnType<typeof vi.fn>;
@@ -26,6 +27,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
   const togglePhysicalLayer = vi.fn();
   const setPhysicalLayerOpacity = vi.fn();
   const movePhysicalLayer = vi.fn();
+  const togglePhysicalCollection = vi.fn();
   const toggleHistoricalMapSheet = vi.fn();
   const setHistoricalMapSheetOpacity = vi.fn();
   const moveHistoricalMapSheet = vi.fn();
@@ -55,6 +57,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
       togglePhysicalLayer,
       setPhysicalLayerOpacity,
       movePhysicalLayer,
+      togglePhysicalCollection,
       toggleHistoricalMapSheet,
       setHistoricalMapSheetOpacity,
       moveHistoricalMapSheet,
@@ -66,6 +69,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
     togglePhysicalLayer,
     setPhysicalLayerOpacity,
     movePhysicalLayer,
+    togglePhysicalCollection,
     toggleHistoricalMapSheet,
     setHistoricalMapSheetOpacity,
     moveHistoricalMapSheet,
@@ -113,6 +117,10 @@ describe('LayerPanel', () => {
     cleanup();
   });
 
+  // Named subgroups (an aerial-imagery region, a historical atlas, a DEM area) render
+  // collapsed by default, so a row inside one is hidden until its own header is clicked.
+  const expandSubsection = (label: string) => fireEvent.click(screen.getByText(label));
+
   it('renders a section per non-empty layersConfig group, plus the overlay group', () => {
     const { control } = buildControl();
     render(<LayerPanel control={control} hasPhotos />);
@@ -123,6 +131,7 @@ describe('LayerPanel', () => {
     expect(screen.getByText('Sites, Roads & Photos')).toBeInTheDocument();
 
     expect(screen.getByLabelText('Positron Modern Topographical')).toBeInTheDocument();
+    expandSubsection('Aerial Photos (Ruhr, Germany)');
     expect(screen.getByLabelText('1926')).toBeInTheDocument();
     expect(screen.getByLabelText('Archaeological Sites')).toBeInTheDocument();
   });
@@ -148,6 +157,7 @@ describe('LayerPanel', () => {
     const { control, toggleExclusiveLayer } = buildControl();
     render(<LayerPanel control={control} hasPhotos />);
 
+    expandSubsection('Aerial Photos (Ruhr, Germany)');
     fireEvent.click(screen.getByLabelText('1926'));
     expect(toggleExclusiveLayer).toHaveBeenCalledWith('Aerial Imagery', '1926');
   });
@@ -157,6 +167,7 @@ describe('LayerPanel', () => {
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.getByText('Aerial Imagery')).toBeInTheDocument();
+    expandSubsection('Aerial Photos (Ruhr, Germany)');
     expect(screen.queryByLabelText('1926')).not.toBeInTheDocument();
     expect(screen.getByLabelText('1934')).toBeInTheDocument();
     expect(screen.getByLabelText('1952')).toBeInTheDocument();
@@ -186,13 +197,17 @@ describe('LayerPanel', () => {
     ).toBeInTheDocument();
   });
 
-  it('splits Aerial Imagery entries into named Ruhr/NRW subsections, each selected independently', () => {
+  it('splits Aerial Imagery entries into named Ruhr/NRW subsections, collapsed until opened, each selected independently', () => {
     const { control, toggleExclusiveLayer } = buildControl();
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.getByText('Aerial Photos (Ruhr, Germany)')).toBeInTheDocument();
     expect(screen.getByText('Aerial Photos (NRW, Germany)')).toBeInTheDocument();
+    // Collapsed by default: neither subgroup's rows are in the DOM yet.
+    expect(screen.queryByLabelText('1926')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('1952 NRW')).not.toBeInTheDocument();
 
+    expandSubsection('Aerial Photos (NRW, Germany)');
     fireEvent.click(screen.getByLabelText('1952 NRW'));
     expect(toggleExclusiveLayer).toHaveBeenCalledWith('Aerial Imagery', '1952 NRW');
   });
@@ -201,6 +216,8 @@ describe('LayerPanel', () => {
     const { control } = buildControl({ activeAerialLayerNames: ['1926', '1952 NRW'] });
     render(<LayerPanel control={control} hasPhotos />);
 
+    expandSubsection('Aerial Photos (Ruhr, Germany)');
+    expandSubsection('Aerial Photos (NRW, Germany)');
     expect(screen.getByLabelText('1926')).toBeChecked();
     expect(screen.getByLabelText('1952 NRW')).toBeChecked();
     expect(screen.getByLabelText('1934')).not.toBeChecked();
@@ -243,6 +260,7 @@ describe('LayerPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /Topographical/ }));
 
     expect(screen.queryByLabelText('Positron Modern Topographical')).not.toBeInTheDocument();
+    expandSubsection('Aerial Photos (Ruhr, Germany)');
     expect(screen.getByLabelText('1926')).toBeInTheDocument();
   });
 
@@ -304,6 +322,38 @@ describe('LayerPanel', () => {
     expect(movePhysicalLayer).toHaveBeenCalledWith('ancientdata:swalmen', 'down');
   });
 
+  it('groups DEM layers sharing a collection into one named, collapsed-by-default area subsection', () => {
+    const { control, togglePhysicalCollection } = buildControl({
+      physicalLayers: [
+        buildPhysicalLayer({
+          source: 'ancientdata:swalmen-dem',
+          name: 'Swalmen DEM',
+          collection: 'Swalmen',
+        }),
+        buildPhysicalLayer({
+          source: 'ancientdata:swalmen-hillshade',
+          name: 'Swalmen Hillshade',
+          collection: 'Swalmen',
+          hillshade: true,
+        }),
+        buildPhysicalLayer({ source: 'ancientdata:standalone', name: 'Standalone DEM' }),
+      ],
+    });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('Swalmen')).toBeInTheDocument();
+    // Collapsed by default; the standalone (ungrouped) DEM renders flat, unaffected.
+    expect(screen.queryByLabelText('Swalmen DEM')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Standalone DEM')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Toggle all Swalmen sheets'));
+    expect(togglePhysicalCollection).toHaveBeenCalledWith('Swalmen');
+
+    expandSubsection('Swalmen');
+    expect(screen.getByLabelText('Swalmen DEM')).toBeInTheDocument();
+    expect(screen.getByLabelText('Swalmen Hillshade')).toBeInTheDocument();
+  });
+
   it('hides a gated-off Physical row entirely and shows its reason as a fallback message (E3-7)', () => {
     const { control } = buildControl({
       physicalLayers: [
@@ -352,7 +402,9 @@ describe('LayerPanel', () => {
     expect(screen.getAllByText('Historical Maps')).toHaveLength(1);
     // Existing exclusive NRW basemap picker still renders in the same section.
     expect(screen.getByLabelText('1801–1828: Kartenaufnahme der Rheinlande')).toBeInTheDocument();
-    // New catalog-driven sheets render alongside it, with opacity/reorder controls.
+    // New catalog-driven sheets render alongside it (inside their own collapsed-by-default
+    // atlas subsection), with opacity/reorder controls.
+    expandSubsection('1818 De Man - Nijmegen');
     expect(screen.getByLabelText('Sheet A2')).toBeInTheDocument();
     expect(screen.getByLabelText('Sheet A2 opacity')).toBeInTheDocument();
   });
@@ -363,6 +415,7 @@ describe('LayerPanel', () => {
     });
     render(<LayerPanel control={control} hasPhotos />);
 
+    expandSubsection('1818 De Man - Nijmegen');
     fireEvent.click(screen.getByLabelText('Sheet A2'));
     expect(toggleHistoricalMapSheet).toHaveBeenCalledWith('ancientdata:1818-de-man-a2');
   });
@@ -373,6 +426,7 @@ describe('LayerPanel', () => {
     });
     render(<LayerPanel control={control} hasPhotos />);
 
+    expandSubsection('1818 De Man - Nijmegen');
     fireEvent.change(screen.getByLabelText('Sheet A2 opacity'), { target: { value: '0.5' } });
     expect(setHistoricalMapSheetOpacity).toHaveBeenCalledWith('ancientdata:1818-de-man-a2', 0.5);
   });
@@ -386,6 +440,7 @@ describe('LayerPanel', () => {
     });
     render(<LayerPanel control={control} hasPhotos />);
 
+    expandSubsection('1818 De Man - Nijmegen');
     expect(screen.getByLabelText('Move Sheet A2 up')).toBeDisabled();
     expect(screen.getByLabelText('Move Sheet A3 down')).toBeDisabled();
 
