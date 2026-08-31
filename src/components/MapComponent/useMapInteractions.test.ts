@@ -3,7 +3,9 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { rasterService } from '../../services/RasterService';
 import type { RasterLayer } from '../../types/raster';
+import { layersConfig, WmsLayerConfig } from './layersConfig';
 import {
+  gateExclusiveLayerConfig,
   gateHistoricalMapSheet,
   gatePhysicalLayer,
   HISTORICAL_MAP_SHEET_GATE_HINT,
@@ -398,5 +400,148 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
 
     expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
     expect(result.current.state.historicalMapSheets[1].visible).toBe(false);
+  });
+});
+
+// E3-9: extends E3-7/E3-8's viewport-gating principle to the static `layersConfig`-driven
+// "Aerial Imagery" exclusive group (the three Ruhr `lubi_*` WMS layers only cover the Ruhr
+// metropolitan area). Unlike the DB-backed raster catalog, there's no per-instance `visible`
+// flag - `isActive` takes its place, checked against the single `activeAerialLayer` name.
+const lubi1926 = layersConfig.find(
+  (config): config is WmsLayerConfig => config.group === 'Aerial Imagery' && config.name === '1926'
+) as WmsLayerConfig;
+const ruhrZoom = lubi1926.zoom as { min: number; max: number };
+// `inViewViewport`/`outOfViewViewport` above are scoped to `swalmenBounds`, not the real Ruhr
+// bounding box (`lubi1926.bounds`), so gateExclusiveLayerConfig's tests need their own.
+const ruhrInViewViewport = L.latLngBounds([51.4, 7.0], [51.6, 7.3]);
+
+describe('gateExclusiveLayerConfig (E3-9)', () => {
+  it('never gates the currently active layer, even below zoom.min and out of view', () => {
+    const result = gateExclusiveLayerConfig(lubi1926, true, fakeMap(1, outOfViewViewport));
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('does not gate when there is no map yet', () => {
+    const result = gateExclusiveLayerConfig(lubi1926, false, null);
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('never gates a config with no bounds (e.g. Topographical/ungated WMS entries)', () => {
+    const result = gateExclusiveLayerConfig({}, false, fakeMap(1, outOfViewViewport));
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('gates below the zoom floor with a zoom hint, regardless of bounds', () => {
+    const result = gateExclusiveLayerConfig(
+      lubi1926,
+      false,
+      fakeMap(ruhrZoom.min - 1, ruhrInViewViewport)
+    );
+    expect(result).toEqual({ disabled: true, disabledReason: 'Zoom in further to enable this layer.' });
+  });
+
+  it('does not gate on zoom exactly at the floor', () => {
+    const result = gateExclusiveLayerConfig(lubi1926, false, fakeMap(ruhrZoom.min, ruhrInViewViewport));
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it('gates an out-of-view layer at/above the zoom floor with a pan hint', () => {
+    const result = gateExclusiveLayerConfig(lubi1926, false, fakeMap(ruhrZoom.min, outOfViewViewport));
+    expect(result).toEqual({
+      disabled: true,
+      disabledReason: "Pan the map to this layer's area to enable it.",
+    });
+  });
+
+  it('does not gate a layer that is in view and at/above the zoom floor', () => {
+    const result = gateExclusiveLayerConfig(lubi1926, false, fakeMap(ruhrZoom.min, ruhrInViewViewport));
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+});
+
+describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', () => {
+  const insideRuhrBounds: [number, number] = [51.5, 7.0];
+
+  let container: HTMLDivElement;
+  let map: L.Map;
+
+  beforeEach(() => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([]);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    map = L.map(container);
+  });
+
+  afterEach(() => {
+    map.remove();
+    container.remove();
+  });
+
+  it('gatedAerialLayerNames lists all three Ruhr entries when out of range, none when in range', async () => {
+    map.setView(outsideSwalmenBounds, ruhrZoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+    expect([...result.current.state.gatedAerialLayerNames].sort()).toEqual(['1926', '1934', '1952']);
+
+    act(() => map.setView(insideRuhrBounds, ruhrZoom.min));
+    await waitFor(() => expect(result.current.state.gatedAerialLayerNames).toEqual([]));
+  });
+
+  it('blocks activating an out-of-view layer, and allows it once panned into view', async () => {
+    map.setView(outsideSwalmenBounds, ruhrZoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBeNull();
+
+    act(() => map.setView(insideRuhrBounds, ruhrZoom.min));
+    await waitFor(() => expect(result.current.state.gatedAerialLayerNames).not.toContain('1926'));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBe('1926');
+  });
+
+  it('blocks activating any Aerial Imagery layer below its zoom floor', () => {
+    map.setView(insideRuhrBounds, ruhrZoom.min - 1);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBeNull();
+  });
+
+  it('auto-deactivates the active layer once panned out of view, and it re-activates normally once back in range', async () => {
+    map.setView(insideRuhrBounds, ruhrZoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBe('1926');
+
+    // Panning away must not leave it active-but-hidden forever requesting tiles for wherever
+    // the user now is - it should deactivate itself, not just become un-toggleable.
+    act(() => map.setView(outsideSwalmenBounds, ruhrZoom.min));
+    await waitFor(() => expect(result.current.state.activeAerialLayer).toBeNull());
+
+    act(() => map.setView(insideRuhrBounds, ruhrZoom.min));
+    await waitFor(() => expect(result.current.state.gatedAerialLayerNames).not.toContain('1926'));
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBe('1926');
+  });
+
+  it('auto-deactivates the active layer once zoomed below its floor', async () => {
+    map.setView(insideRuhrBounds, ruhrZoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    expect(result.current.state.activeAerialLayer).toBe('1926');
+
+    act(() => map.setView(insideRuhrBounds, ruhrZoom.min - 1));
+    await waitFor(() => expect(result.current.state.activeAerialLayer).toBeNull());
+  });
+
+  it('never gates the "Topographical" group, which has no bounds/zoom on its entries', () => {
+    map.setView(outsideSwalmenBounds, 1);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.selectBaseLayer('Open Street Map Topographical'));
+    expect(result.current.state.activeBaseLayer).toBe('Open Street Map Topographical');
   });
 });

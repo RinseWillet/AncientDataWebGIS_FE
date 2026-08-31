@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { QueryItem, SearchItem } from './mapTypes';
-import { isBaseLayerConfig, LayerGroupName, layersConfig } from './layersConfig';
+import { isBaseLayerConfig, LayerConfig, LayerGroupName, layersConfig, WmsLayerConfig } from './layersConfig';
 import { boundsIntersectViewport, buildLayer, buildPhysicalLayer } from './mapUtils';
 import { rasterService } from '../../services/RasterService';
 import { RasterBounds, RasterLayerCategory, RasterZoom } from '../../types/raster';
@@ -220,6 +220,33 @@ export const gateHistoricalMapSheet = (
   return { disabled: false, disabledReason: null };
 };
 
+/**
+ * Decides whether a static `layersConfig` exclusive-group entry (e.g. an "Aerial Imagery"
+ * layer) should be gated off (E3-9), mirroring `gateHistoricalMapSheet`'s bounds + per-entry
+ * `zoom.min` shape. Entries with no `bounds` (most `WmsLayerConfig` entries today) are never
+ * gated, so this is a safe no-op for every group except the ones that opt in. `isActive`
+ * takes the place of `PhysicalLayerState.visible`, since exclusive groups track a single
+ * active name rather than a `visible` flag per row.
+ */
+export const gateExclusiveLayerConfig = (
+  config: Pick<WmsLayerConfig, 'bounds' | 'zoom'>,
+  isActive: boolean,
+  map: L.Map | null
+): { disabled: boolean; disabledReason: string | null } => {
+  if (isActive || !map || !config.bounds) return { disabled: false, disabledReason: null };
+  if (config.zoom && map.getZoom() < config.zoom.min) {
+    return { disabled: true, disabledReason: 'Zoom in further to enable this layer.' };
+  }
+  if (!boundsIntersectViewport(config.bounds, map.getBounds())) {
+    return { disabled: true, disabledReason: "Pan the map to this layer's area to enable it." };
+  }
+  return { disabled: false, disabledReason: null };
+};
+
+const aerialImageryConfigs = layersConfig.filter(
+  (config): config is WmsLayerConfig => config.group === 'Aerial Imagery'
+);
+
 export interface LayerPanelState {
   activeBaseLayer: string;
   activeHistoricalLayer: string | null;
@@ -229,6 +256,8 @@ export interface LayerPanelState {
   physicalLayers: PhysicalLayerState[];
   /** HISTORICAL_MAP-category catalog entries only (rendered under "Historical Maps"). */
   historicalMapSheets: PhysicalLayerState[];
+  /** Names of "Aerial Imagery" `layersConfig` entries currently gated off by viewport/zoom (E3-9). */
+  gatedAerialLayerNames: string[];
 }
 
 export interface LayerPanelControl {
@@ -346,8 +375,14 @@ const createLayerGroupHandlers = (
     }),
 });
 
-const findLayerConfig = (group: LayerGroupName, name: string) =>
-  layersConfig.find((config) => config.group === group && config.name === name);
+// 'Historical Maps'/'Aerial Imagery' groups only ever contain `WmsLayerConfig` entries in
+// `layersConfig.ts`, so this overload lets gating call sites (which need `bounds`/`zoom`,
+// `WmsLayerConfig`-only fields) avoid a manual cast back to the general `LayerConfig` union.
+function findLayerConfig(group: ExclusiveGroupName, name: string): WmsLayerConfig | undefined;
+function findLayerConfig(group: LayerGroupName, name: string): LayerConfig | undefined;
+function findLayerConfig(group: LayerGroupName, name: string) {
+  return layersConfig.find((config) => config.group === group && config.name === name);
+}
 
 const defaultBaseLayerName = (): string =>
   layersConfig.find((config) => isBaseLayerConfig(config) && config.checked)?.name ??
@@ -501,6 +536,15 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
         });
         return changed ? next : prev;
       });
+      // Same auto-off principle extended to the "Aerial Imagery" exclusive group (E3-9):
+      // an active Ruhr lubi layer that's panned/zoomed out of its own coverage area is
+      // deactivated rather than left checked-but-hidden from the filtered LayerPanel list.
+      setActiveAerialLayer((current) => {
+        if (!current) return current;
+        const config = findLayerConfig('Aerial Imagery', current);
+        if (!config) return current;
+        return gateExclusiveLayerConfig(config, false, map).disabled ? null : current;
+      });
     };
     map.on('moveend', onViewportChange);
     map.on('zoomend', onViewportChange);
@@ -523,10 +567,25 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [historicalMapSheets, map, viewportVersion]
   );
+  // "Aerial Imagery" `layersConfig` entries decorated the same way (E3-9) - most have no
+  // `bounds` and so are never gated; only the three Ruhr lubi layers opt in.
+  const gatedAerialLayerNames = useMemo(
+    () =>
+      aerialImageryConfigs
+        .filter((config) => gateExclusiveLayerConfig(config, config.name === activeAerialLayer, map).disabled)
+        .map((config) => config.name),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [map, viewportVersion, activeAerialLayer]
+  );
 
   const toggleExclusiveLayer = (group: ExclusiveGroupName, name: string) => {
     const setActive = group === 'Historical Maps' ? setActiveHistoricalLayer : setActiveAerialLayer;
-    setActive((prev) => (prev === name ? null : name));
+    setActive((prev) => {
+      if (prev === name) return null;
+      const config = findLayerConfig(group, name);
+      if (config && gateExclusiveLayerConfig(config, false, map).disabled) return prev;
+      return name;
+    });
   };
 
   const toggleOverlay = (key: OverlayKey) => {
@@ -566,6 +625,7 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
       overlayVisibility,
       physicalLayers: gatedPhysicalLayers,
       historicalMapSheets: gatedHistoricalMapSheets,
+      gatedAerialLayerNames,
     },
     selectBaseLayer: setActiveBaseLayer,
     toggleExclusiveLayer,

@@ -216,8 +216,11 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
 
   /** Renders a plain exclusive-select (radio-like) section from `layersConfig`; skipped entirely if empty. */
   const renderExclusiveSection = (group: 'Topographical' | 'Aerial Imagery') => {
-    const entries = layersConfig.filter((config) => config.group === group);
-    if (entries.length === 0) return null;
+    const allEntries = layersConfig.filter((config) => config.group === group);
+    if (allEntries.length === 0) return null;
+    // Hide (not disable) any entry currently gated off by viewport/zoom (E3-9) - only
+    // populated for "Aerial Imagery" today, so this is a no-op for "Topographical".
+    const entries = allEntries.filter((entry) => !state.gatedAerialLayerNames.includes(entry.name));
     const isSectionCollapsed = collapsedSections.has(group);
 
     return (
@@ -261,6 +264,11 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
               );
             })}
           </ul>
+        )}
+        {!isSectionCollapsed && entries.length === 0 && allEntries.length > 0 && (
+          <p className="layer-panel__section-empty-hint">
+            Pan or zoom in to this layer&apos;s coverage area to enable it.
+          </p>
         )}
       </section>
     );
