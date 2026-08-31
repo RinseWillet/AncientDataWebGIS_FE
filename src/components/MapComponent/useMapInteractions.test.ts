@@ -1,5 +1,5 @@
 import L from 'leaflet';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { rasterService } from '../../services/RasterService';
 import type { RasterLayer } from '../../types/raster';
@@ -406,7 +406,8 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
 // E3-9: extends E3-7/E3-8's viewport-gating principle to the static `layersConfig`-driven
 // "Aerial Imagery" exclusive group (the three Ruhr `lubi_*` WMS layers only cover the Ruhr
 // metropolitan area). Unlike the DB-backed raster catalog, there's no per-instance `visible`
-// flag - `isActive` takes its place, checked against the single `activeAerialLayer` name.
+// flag - `isActive` takes its place, checked against that layer's own subgroup slot in
+// `activeAerialLayerNames`.
 const lubi1926 = layersConfig.find(
   (config): config is WmsLayerConfig => config.group === 'Aerial Imagery' && config.name === '1926'
 ) as WmsLayerConfig;
@@ -473,6 +474,10 @@ describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', ()
   });
 
   afterEach(() => {
+    // Unmount the hook (and its `moveend`/`zoomend` listeners) before tearing down the map:
+    // `activeAerialLayersBySubgroup` now changes identity on every toggle, so a stray listener
+    // left over from a prior test's un-unmounted hook can fire against an already-removed map.
+    cleanup();
     map.remove();
     container.remove();
   });
@@ -491,13 +496,13 @@ describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', ()
     const { result } = renderHook(() => useLayerPanelControl(map));
 
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBeNull();
+    expect(result.current.state.activeAerialLayerNames).toEqual([]);
 
     act(() => map.setView(insideRuhrBounds, ruhrZoom.min));
     await waitFor(() => expect(result.current.state.gatedAerialLayerNames).not.toContain('1926'));
 
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBe('1926');
+    expect(result.current.state.activeAerialLayerNames).toEqual(['1926']);
   });
 
   it('blocks activating any Aerial Imagery layer below its zoom floor', () => {
@@ -505,7 +510,7 @@ describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', ()
     const { result } = renderHook(() => useLayerPanelControl(map));
 
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBeNull();
+    expect(result.current.state.activeAerialLayerNames).toEqual([]);
   });
 
   it('auto-deactivates the active layer once panned out of view, and it re-activates normally once back in range', async () => {
@@ -513,17 +518,17 @@ describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', ()
     const { result } = renderHook(() => useLayerPanelControl(map));
 
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBe('1926');
+    expect(result.current.state.activeAerialLayerNames).toEqual(['1926']);
 
     // Panning away must not leave it active-but-hidden forever requesting tiles for wherever
     // the user now is - it should deactivate itself, not just become un-toggleable.
     act(() => map.setView(outsideSwalmenBounds, ruhrZoom.min));
-    await waitFor(() => expect(result.current.state.activeAerialLayer).toBeNull());
+    await waitFor(() => expect(result.current.state.activeAerialLayerNames).toEqual([]));
 
     act(() => map.setView(insideRuhrBounds, ruhrZoom.min));
     await waitFor(() => expect(result.current.state.gatedAerialLayerNames).not.toContain('1926'));
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBe('1926');
+    expect(result.current.state.activeAerialLayerNames).toEqual(['1926']);
   });
 
   it('auto-deactivates the active layer once zoomed below its floor', async () => {
@@ -531,10 +536,24 @@ describe('useLayerPanelControl Aerial Imagery exclusive-layer gating (E3-9)', ()
     const { result } = renderHook(() => useLayerPanelControl(map));
 
     act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
-    expect(result.current.state.activeAerialLayer).toBe('1926');
+    expect(result.current.state.activeAerialLayerNames).toEqual(['1926']);
 
     act(() => map.setView(insideRuhrBounds, ruhrZoom.min - 1));
-    await waitFor(() => expect(result.current.state.activeAerialLayer).toBeNull());
+    await waitFor(() => expect(result.current.state.activeAerialLayerNames).toEqual([]));
+  });
+
+  it('keeps a Ruhr and an NRW layer active at once, and only swaps within a subgroup', () => {
+    map.setView(insideRuhrBounds, ruhrZoom.min);
+    const { result } = renderHook(() => useLayerPanelControl(map));
+
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1926'));
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1952 NRW'));
+    expect([...result.current.state.activeAerialLayerNames].sort()).toEqual(['1926', '1952 NRW']);
+
+    // Selecting a different Ruhr year swaps it out within the Ruhr subgroup only, leaving
+    // the active NRW layer untouched.
+    act(() => result.current.toggleExclusiveLayer('Aerial Imagery', '1934'));
+    expect([...result.current.state.activeAerialLayerNames].sort()).toEqual(['1934', '1952 NRW']);
   });
 
   it('never gates the "Topographical" group, which has no bounds/zoom on its entries', () => {

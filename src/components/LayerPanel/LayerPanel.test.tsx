@@ -42,7 +42,7 @@ const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
       state: {
         activeBaseLayer: 'Positron Modern Topographical',
         activeHistoricalLayer: null,
-        activeAerialLayer: null,
+        activeAerialLayerNames: [],
         overlayVisibility,
         physicalLayers: [],
         historicalMapSheets: [],
@@ -163,7 +163,19 @@ describe('LayerPanel', () => {
   });
 
   it('shows the empty-state hint when every Aerial Imagery entry is gated off (E3-9)', () => {
-    const { control } = buildControl({ gatedAerialLayerNames: ['1926', '1934', '1952', '1952 Köln'] });
+    const { control } = buildControl({
+      gatedAerialLayerNames: [
+        '1926',
+        '1934',
+        '1952',
+        '1952 NRW',
+        '1956 NRW',
+        '1957 NRW',
+        '1958 NRW',
+        '1959 NRW',
+        '1961 NRW',
+      ],
+    });
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.queryByLabelText('1926')).not.toBeInTheDocument();
@@ -172,6 +184,26 @@ describe('LayerPanel', () => {
     expect(
       screen.getByText("Pan or zoom in to this layer's coverage area to enable it.")
     ).toBeInTheDocument();
+  });
+
+  it('splits Aerial Imagery entries into named Ruhr/NRW subsections, each selected independently', () => {
+    const { control, toggleExclusiveLayer } = buildControl();
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByText('Aerial Photos (Ruhr, Germany)')).toBeInTheDocument();
+    expect(screen.getByText('Aerial Photos (NRW, Germany)')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('1952 NRW'));
+    expect(toggleExclusiveLayer).toHaveBeenCalledWith('Aerial Imagery', '1952 NRW');
+  });
+
+  it('checks an Aerial Imagery row whenever its name is in activeAerialLayerNames, across subgroups', () => {
+    const { control } = buildControl({ activeAerialLayerNames: ['1926', '1952 NRW'] });
+    render(<LayerPanel control={control} hasPhotos />);
+
+    expect(screen.getByLabelText('1926')).toBeChecked();
+    expect(screen.getByLabelText('1952 NRW')).toBeChecked();
+    expect(screen.getByLabelText('1934')).not.toBeChecked();
   });
 
   it('never gates the Topographical section, which has no bounds/zoom on its entries (E3-9)', () => {

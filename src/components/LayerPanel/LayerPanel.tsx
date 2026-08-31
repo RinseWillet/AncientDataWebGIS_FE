@@ -26,7 +26,7 @@ const isLayerChecked = (
 ): boolean => {
   if (group === 'Topographical') return state.activeBaseLayer === entryName;
   if (group === 'Historical Maps') return state.activeHistoricalLayer === entryName;
-  return state.activeAerialLayer === entryName;
+  return state.activeAerialLayerNames.includes(entryName);
 };
 
 const overlayRows: { key: OverlayKey; label: string }[] = [
@@ -214,7 +214,15 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
     );
   }
 
-  /** Renders a plain exclusive-select (radio-like) section from `layersConfig`; skipped entirely if empty. */
+  /**
+   * Renders a plain exclusive-select (radio-like) section from `layersConfig`; skipped
+   * entirely if empty. Entries are further split by `groupLabel` into named, collapsible
+   * subsections (e.g. "Aerial Imagery"'s Ruhr vs. NRW WMS sources) whenever more than one
+   * label is present among the section's entries - each subgroup is selected independently
+   * of its siblings (see `toggleExclusiveLayer`'s per-subgroup handling). A single label
+   * (as for "Topographical", or an "Aerial Imagery" region on its own) renders flat with no
+   * subheader, matching the section's original plain-list appearance.
+   */
   const renderExclusiveSection = (group: 'Topographical' | 'Aerial Imagery') => {
     const allEntries = layersConfig.filter((config) => config.group === group);
     if (allEntries.length === 0) return null;
@@ -222,6 +230,48 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
     // populated for "Aerial Imagery" today, so this is a no-op for "Topographical".
     const entries = allEntries.filter((entry) => !state.gatedAerialLayerNames.includes(entry.name));
     const isSectionCollapsed = collapsedSections.has(group);
+
+    const subgroupOrder: string[] = [];
+    const entriesBySubgroup = new Map<string, typeof entries>();
+    entries.forEach((entry) => {
+      const label = entry.groupLabel ?? entry.group;
+      if (!entriesBySubgroup.has(label)) {
+        subgroupOrder.push(label);
+        entriesBySubgroup.set(label, []);
+      }
+      entriesBySubgroup.get(label)?.push(entry);
+    });
+
+    const renderEntryRows = (list: typeof entries) => (
+      <ul className="layer-panel__section-body">
+        {list.map((entry) => {
+          const inputId = `layer-panel-${group}-${entry.name}`;
+          const checked = isLayerChecked(group, entry.name, state);
+
+          return (
+            <li className="layer-panel__row" key={entry.name}>
+              <input
+                id={inputId}
+                className="layer-panel__row-input"
+                type={group === 'Topographical' ? 'radio' : 'checkbox'}
+                name={group === 'Topographical' ? 'layer-panel-base' : undefined}
+                checked={checked}
+                onChange={() => {
+                  if (group === 'Topographical') {
+                    selectBaseLayer(entry.name);
+                  } else if (isExclusiveGroup(group)) {
+                    toggleExclusiveLayer(group, entry.name);
+                  }
+                }}
+              />
+              <label className="layer-panel__row-label" htmlFor={inputId}>
+                {entry.name}
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+    );
 
     return (
       <section className="layer-panel__section" key={group}>
@@ -235,36 +285,29 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
           <span className="layer-panel__section-caret">{isSectionCollapsed ? '▸' : '▾'}</span>
         </button>
 
-        {!isSectionCollapsed && (
-          <ul className="layer-panel__section-body">
-            {entries.map((entry) => {
-              const inputId = `layer-panel-${group}-${entry.name}`;
-              const checked = isLayerChecked(group, entry.name, state);
+        {!isSectionCollapsed && subgroupOrder.length > 1 &&
+          subgroupOrder.map((label) => {
+            const subsectionKey = `${group}:${label}`;
+            const isSubsectionCollapsed = collapsedSections.has(subsectionKey);
 
-              return (
-                <li className="layer-panel__row" key={entry.name}>
-                  <input
-                    id={inputId}
-                    className="layer-panel__row-input"
-                    type={group === 'Topographical' ? 'radio' : 'checkbox'}
-                    name={group === 'Topographical' ? 'layer-panel-base' : undefined}
-                    checked={checked}
-                    onChange={() => {
-                      if (group === 'Topographical') {
-                        selectBaseLayer(entry.name);
-                      } else if (isExclusiveGroup(group)) {
-                        toggleExclusiveLayer(group, entry.name);
-                      }
-                    }}
-                  />
-                  <label className="layer-panel__row-label" htmlFor={inputId}>
-                    {entry.name}
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+            return (
+              <div className="layer-panel__subsection" key={label}>
+                <button
+                  type="button"
+                  className="layer-panel__section-header"
+                  onClick={() => toggleSection(subsectionKey)}
+                  aria-expanded={!isSubsectionCollapsed}
+                >
+                  <span className="layer-panel__section-title">{label}</span>
+                  <span className="layer-panel__section-caret">
+                    {isSubsectionCollapsed ? '▸' : '▾'}
+                  </span>
+                </button>
+                {!isSubsectionCollapsed && renderEntryRows(entriesBySubgroup.get(label) ?? [])}
+              </div>
+            );
+          })}
+        {!isSectionCollapsed && subgroupOrder.length <= 1 && renderEntryRows(entries)}
         {!isSectionCollapsed && entries.length === 0 && allEntries.length > 0 && (
           <p className="layer-panel__section-empty-hint">
             Pan or zoom in to this layer&apos;s coverage area to enable it.
