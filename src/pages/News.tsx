@@ -34,6 +34,11 @@ const newsItems: NewsItem[] = [
     body: 'A GeoServer container has been added to the deployment and configured to serve raster data layers, laying the groundwork for elevation models and historical map imagery on the map.',
   },
   {
+    date: '2026-08-10',
+    title: 'Map Clarity & Layer Control redesign',
+    body: 'The layer selector has been redesigned into a grouped, collapsible LayerPanel, and a new map legend was added to explain what each symbol and colour on the map means.',
+  },
+  {
     date: '2026-08-07',
     title: 'The site is live at rinsewillet.net',
     body: (
@@ -47,6 +52,11 @@ const newsItems: NewsItem[] = [
         }
       </>
     ),
+  },
+  {
+    date: '2026-08-06',
+    title: 'Mobile map details now open as a bottom sheet',
+    body: 'On mobile, tapping a site or road now opens its details as a draggable bottom sheet instead of a desktop-style side panel, with larger, easier-to-tap buttons and controls throughout.',
   },
   {
     date: '2026-05-01',
