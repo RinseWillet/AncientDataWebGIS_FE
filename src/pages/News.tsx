@@ -9,6 +9,31 @@ interface NewsItem {
 
 const newsItems: NewsItem[] = [
   {
+    date: '2026-08-31',
+    title: 'Aerial photographs for the Ruhr and NRW added',
+    body: 'Aerial photographs covering the Ruhr area and the wider Nordrhein-Westfalen region have been added as a new imagery layer.',
+  },
+  {
+    date: '2026-08-31',
+    title: 'Basemap switched to open-source vector tiles',
+    body: 'The topographical basemap now runs on OpenFreeMap’s open-source "Positron" vector tiles instead of CARTO’s raster tiles, removing a dependency on a paid API key and giving smoother, sharper rendering at all zoom levels.',
+  },
+  {
+    date: '2026-08-20',
+    title: 'Historical maps added: De Man (1818) and the Reichswald atlas (1740)',
+    body: 'Two historical map sets are now browsable on the map: the 1818 De Man map of the Nijmegen area, and an atlas of the area south of Kleve (Reichswald) from 1740.',
+  },
+  {
+    date: '2026-08-18',
+    title: 'Digital elevation models with hillshade now available',
+    body: 'Digital elevation models (DEMs) with hillshade rendering have been added for eastern Gelderland / western Nordrhein-Westfalen, the Swalmen area, the Venlo-Geldern area, and the area around Mönchengladbach.',
+  },
+  {
+    date: '2026-08-11',
+    title: 'GeoServer added for raster data layers',
+    body: 'A GeoServer container has been added to the deployment and configured to serve raster data layers, laying the groundwork for elevation models and historical map imagery on the map.',
+  },
+  {
     date: '2026-08-07',
     title: 'The site is live at rinsewillet.net',
     body: (
