@@ -118,6 +118,14 @@ const Home = () => {
             <p>Updates on the project&apos;s development and deployment.</p>
           </Link>
         </section>
+
+        <p className="home-license-note">
+          All text and images across this website are © Rinse Willet, released under{' '}
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+            CC BY 4.0
+          </a>
+          : free to reuse, share, and adapt, provided this work is credited as the source.
+        </p>
       </main>
     </div>
   );
