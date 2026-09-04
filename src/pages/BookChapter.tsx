@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router';
 import ReactMarkdown from 'react-markdown';
 import { MarkdownImage } from '../components/Book/MarkdownImage';
@@ -25,9 +26,14 @@ const BookChapter = () => {
   const { slug } = useParams<{ slug: string }>();
   const source = findChapterSource(slug);
   const meta = chapters.find((chapter) => chapter.slug === slug);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    pageRef.current?.scrollTo(0, 0);
+  }, [slug]);
 
   return (
-    <div className="pagebox">
+    <div className="pagebox" ref={pageRef}>
       <main className="book-layout">
         <TableOfContents />
         <article className="book-chapter">

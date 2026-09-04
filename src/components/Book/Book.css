@@ -50,6 +50,12 @@
   margin: 0 auto;
 }
 
+.book-chapter a {
+  color: var(--font-color-3-accent, #333);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 .book-figure {
   margin: 2rem 0;
   text-align: center;

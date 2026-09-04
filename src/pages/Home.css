@@ -168,6 +168,19 @@
   margin: 0;
 }
 
+/* ── license note ─────────────────────────────────────── */
+.home-license-note {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 0;
+}
+
+.home-license-note a {
+  color: var(--font-color-3-accent, #333);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 /* ── responsive ───────────────────────────────────────── */
 @media screen and (max-width: 850px) {
   .home-hero h1 {

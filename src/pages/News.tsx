@@ -9,6 +9,11 @@ interface NewsItem {
 
 const newsItems: NewsItem[] = [
   {
+    date: '2026-09-04',
+    title: 'Work-in-progress manuscript added to the Research page',
+    body: 'A work-in-progress manuscript on Roman roads in the Nijmegen-Xanten area has been added under "Research", covering the geography of the research area, historical river reconstructions, vegetation, pre-Roman land use, and the current state of research on prehistoric roads, with a full bibliography. This is an evolving text and more chapters will be added as the manuscript is expanded.',
+  },
+  {
     date: '2026-08-31',
     title: 'Aerial photographs for the Ruhr and NRW added',
     body: 'Aerial photographs covering the Ruhr area and the wider Nordrhein-Westfalen region have been added as a new imagery layer.',
