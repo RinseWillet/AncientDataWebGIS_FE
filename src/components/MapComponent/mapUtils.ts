@@ -1,8 +1,16 @@
 import L from 'leaflet';
+import { setWorkerUrl } from 'maplibre-gl';
+// A literal `?url` import so Vite/Rollup can statically trace and copy the worker
+// file into the production build - maplibre-gl computes its own worker URL from
+// import.meta.url at runtime, which Rollup can't detect, so without this the
+// worker script is silently missing from `dist/assets/` in production.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url';
 import { maplibreGL } from '@maplibre/maplibre-gl-leaflet';
 import { LayerConfig } from './layersConfig';
 import { apiBaseUrl } from '../../api/config';
 import { RasterBounds } from '../../types/raster';
+
+setWorkerUrl(maplibreWorkerUrl);
 
 /** Builds a Leaflet tile/vector/WMS layer instance from a `layersConfig` entry. */
 export const buildLayer = (config: LayerConfig): L.Layer => {
