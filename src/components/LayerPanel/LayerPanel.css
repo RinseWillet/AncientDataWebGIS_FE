@@ -11,6 +11,7 @@
   z-index: 999;
   width: 260px;
   overflow-y: auto;
+  touch-action: pan-y;
   background: #fff;
   border-radius: 0 6px 6px 0;
   box-shadow: 2px 0 10px 2px var(--shadow-color);
@@ -35,19 +36,26 @@
   text-orientation: mixed;
 }
 
+/* 3-column grid (not flex + space-between) so the title sits truly centered
+   in the header regardless of the collapse button's width, instead of just
+   flush against the opposite edge - the empty 3rd column balances it. */
 .layer-panel__header {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid #ddd;
 }
 
 .layer-panel__title {
+  grid-column: 2;
+  text-align: center;
   font-weight: var(--font-bold, 700);
 }
 
 .layer-panel__collapse-btn {
+  grid-column: 3;
+  justify-self: end;
   background: none;
   border: none;
   cursor: pointer;

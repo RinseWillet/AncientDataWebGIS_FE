@@ -117,9 +117,7 @@ const NavbarHook = () => {
   return (
     <header className="header">
       <nav className="nav container">
-        <NavLink to="/" className="nav__logo">
-          Navigation Bar
-        </NavLink>
+        <NavLink to="/" className="nav__logo" aria-label="Home" />
 
         {isMobile && (
           <button className="nav__toggle" id="nav-toggle" onClick={toggleMenu} aria-label="Open menu">

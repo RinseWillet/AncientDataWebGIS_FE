@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from 'react-responsive';
+import L from 'leaflet';
 import { layersConfig, LayerGroupName } from '../MapComponent/layersConfig';
 import {
   HISTORICAL_MAP_SHEET_GATE_HINT,
@@ -225,7 +227,10 @@ const CollectionSubsection = ({
  * SiteInfo keep using `BaseLayers` (the plugin-based control) unchanged.
  */
 const LayerPanel = ({ control, hasPhotos, onWidthChange = () => {} }: LayerPanelProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts collapsed on mobile viewports so it doesn't cover most of the screen on open;
+  // only seeds the initial value, so a user's own toggle survives later resizes/rotation.
+  const isMobile = useMediaQuery({ maxWidth: '600px' });
+  const [collapsed, setCollapsed] = useState(isMobile);
   // Top-level sections (Topographical, Historical Maps, Aerial Imagery, Physical, ...):
   // default expanded, so membership here means "explicitly collapsed".
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
@@ -248,6 +253,11 @@ const LayerPanel = ({ control, hasPhotos, onWidthChange = () => {} }: LayerPanel
       resizeObserverRef.current?.disconnect();
       resizeObserverRef.current = null;
       if (!node) return;
+      // Stops mouse-wheel/touch/click events on the panel from bubbling up to the Leaflet
+      // map underneath (which would zoom/pan instead of scrolling the panel's own content) -
+      // the same fix Leaflet's own controls (e.g. L.Control.Layers) apply to themselves.
+      L.DomEvent.disableScrollPropagation(node);
+      L.DomEvent.disableClickPropagation(node);
       onWidthChange(node.getBoundingClientRect().width);
       if (typeof ResizeObserver === 'undefined') return; // not available in the jsdom test env
       const observer = new ResizeObserver(([entry]) => {
