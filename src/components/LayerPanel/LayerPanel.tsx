@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { layersConfig, LayerGroupName } from '../MapComponent/layersConfig';
 import {
   HISTORICAL_MAP_SHEET_GATE_HINT,
@@ -225,7 +226,10 @@ const CollectionSubsection = ({
  * SiteInfo keep using `BaseLayers` (the plugin-based control) unchanged.
  */
 const LayerPanel = ({ control, hasPhotos, onWidthChange = () => {} }: LayerPanelProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts collapsed on mobile viewports so it doesn't cover most of the screen on open;
+  // only seeds the initial value, so a user's own toggle survives later resizes/rotation.
+  const isMobile = useMediaQuery({ maxWidth: '600px' });
+  const [collapsed, setCollapsed] = useState(isMobile);
   // Top-level sections (Topographical, Historical Maps, Aerial Imagery, Physical, ...):
   // default expanded, so membership here means "explicitly collapsed".
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());

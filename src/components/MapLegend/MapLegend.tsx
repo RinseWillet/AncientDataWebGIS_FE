@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMediaQuery } from 'react-responsive';
 import { siteTypeEntries } from '../../utils/siteTypesConfig';
 import { roadStyleEntries } from '../../utils/roadTypes';
 import { useActiveDemLayer } from './useActiveDemLayer';
@@ -36,7 +37,10 @@ const MapLegend = ({
   showSites = true,
   showRoads = true,
 }: MapLegendProps) => {
-  const [collapsed, setCollapsed] = useState(false);
+  // Starts collapsed on mobile viewports so it doesn't cover most of the screen on open;
+  // only seeds the initial value, so a user's own toggle survives later resizes/rotation.
+  const isMobile = useMediaQuery({ maxWidth: '600px' });
+  const [collapsed, setCollapsed] = useState(isMobile);
   const [prevHasSelection, setPrevHasSelection] = useState(hasSelection);
   const activeDemLayer = useActiveDemLayer(activeDemLayerName);
 
@@ -65,15 +69,15 @@ const MapLegend = ({
   return (
     <div className="map-legend">
       <div className="map-legend__header">
-        <span className="map-legend__title">Legend</span>
         <button
           type="button"
           className="map-legend__collapse-btn"
           onClick={() => setCollapsed(true)}
           aria-label="Collapse legend"
         >
-          &times;
+          &raquo;
         </button>
+        <span className="map-legend__title">Legend</span>
       </div>
 
       {showSites && (

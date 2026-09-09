@@ -15,7 +15,7 @@ describe('App smoke test', () => {
       </Provider>
     );
 
-    expect(await screen.findByText(/Navigation Bar/i)).toBeInTheDocument();
+    expect((await screen.findAllByRole('link', { name: 'Home' })).length).toBeGreaterThan(0);
   });
 });
 
