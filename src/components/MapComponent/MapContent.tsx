@@ -61,7 +61,8 @@ const MapContent = ({
 }: MapContentProps) => {
   const map = useMap();
   const roadLayersRef: MutableRefObject<Record<string | number, L.Layer>> = useRef({});
-  const layerPanelControl = useLayerPanelControl(layerPanel ? map : null);
+  const [panelWidthPx, setPanelWidthPx] = useState(0);
+  const layerPanelControl = useLayerPanelControl(layerPanel ? map : null, layerPanel ? panelWidthPx : 0);
 
   // queryItem drives the "arrived via SiteInfo/RoadInfo" highlight + zoom.
   // focusItem is zoom-only (e.g. after closing back to the plain atlas):
@@ -204,7 +205,11 @@ const MapContent = ({
             Leaflet layer control: drives the active base/historical/aerial
             layer itself, and exposes sites/roads/photos visibility so we
             can mount/unmount those GeoJSON layers below. */}
-        <LayerPanel control={layerPanelControl} hasPhotos={photoMarkers.length > 0} />
+        <LayerPanel
+          control={layerPanelControl}
+          hasPhotos={photoMarkers.length > 0}
+          onWidthChange={setPanelWidthPx}
+        />
         <MapLegend
           hasSelection={Boolean(searchItem?.type)}
           activeDemLayerName={activeDemLayer?.name ?? null}

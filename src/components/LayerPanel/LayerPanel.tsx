@@ -1,16 +1,23 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { layersConfig, LayerGroupName } from '../MapComponent/layersConfig';
-import type {
-  LayerPanelControl,
-  LayerPanelState,
-  OverlayKey,
-  PhysicalLayerState,
+import {
+  HISTORICAL_MAP_SHEET_GATE_HINT,
+  type LayerPanelControl,
+  type LayerPanelState,
+  type OverlayKey,
+  type PhysicalLayerState,
 } from '../MapComponent/useMapInteractions';
 import './LayerPanel.css';
 
 interface LayerPanelProps {
   control: LayerPanelControl;
   hasPhotos: boolean;
+  /** Called with this panel's own rendered width (CSS px) on mount and whenever it resizes
+   * (including collapsing/expanding, which swaps to/from a much narrower vertical tab). Feeds
+   * `useLayerPanelControl`'s viewport-occlusion gating input (see `effectiveViewportBounds` in
+   * `mapUtils.ts`) so gating accounts for the map area this panel visually covers. Optional,
+   * no-op default so callers/tests that don't care about width don't need to pass it. */
+  onWidthChange?: (widthPx: number) => void;
 }
 
 const isExclusiveGroup = (
@@ -217,7 +224,7 @@ const CollectionSubsection = ({
  * Atlas map. Replaces the Leaflet grouped-layer control there; RoadInfo/
  * SiteInfo keep using `BaseLayers` (the plugin-based control) unchanged.
  */
-const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
+const LayerPanel = ({ control, hasPhotos, onWidthChange = () => {} }: LayerPanelProps) => {
   const [collapsed, setCollapsed] = useState(false);
   // Top-level sections (Topographical, Historical Maps, Aerial Imagery, Physical, ...):
   // default expanded, so membership here means "explicitly collapsed".
@@ -228,6 +235,31 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   // pop open showing every layer inside it, rather than staying tucked away until the user
   // asks to see it - confirmed with the project owner as the preferred, less-cluttered default.
   const [expandedSubsections, setExpandedSubsections] = useState<Set<string>>(new Set());
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
+  // Measures this panel's own rendered width so the gating hook can exclude the map area it
+  // visually covers (see `onWidthChange` doc comment above). A callback ref, not `useRef` +
+  // effect, is required: `collapsed` swaps the mounted root element type (`<button>` below vs
+  // `<div>` further down), so React unmounts/remounts at this position on every toggle, and a
+  // callback ref picks that transition up automatically (called with `null`, then the new
+  // node) - attach it to both roots below.
+  const panelRootRef = useCallback(
+    (node: HTMLElement | null) => {
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
+      if (!node) return;
+      onWidthChange(node.getBoundingClientRect().width);
+      if (typeof ResizeObserver === 'undefined') return; // not available in the jsdom test env
+      const observer = new ResizeObserver(([entry]) => {
+        if (entry) onWidthChange(entry.contentRect.width);
+      });
+      observer.observe(node);
+      resizeObserverRef.current = observer;
+    },
+    [onWidthChange]
+  );
+
+  useEffect(() => () => resizeObserverRef.current?.disconnect(), []);
 
   const {
     state,
@@ -273,6 +305,7 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   if (collapsed) {
     return (
       <button
+        ref={panelRootRef}
         type="button"
         className="layer-panel layer-panel--collapsed"
         onClick={() => setCollapsed(false)}
@@ -388,8 +421,8 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
   const hasHistoricalMapsContent = historicalMapEntries.length > 0 || state.historicalMapSheets.length > 0;
   const isHistoricalMapsCollapsed = collapsedSections.has('Historical Maps');
 
-  // Only list currently-selectable Historical Maps sheets (E3-8, extending E3-7's viewport-
-  // gating with each entry's own zoom.min): out-of-view/below-its-own-floor sheets are hidden
+  // Only list currently-selectable Historical Maps sheets: sheets that don't cover enough of
+  // the current viewport (see `HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT`) are hidden
   // entirely rather than shown disabled, matching the Physical group's E3-7 follow-up. Since
   // `groupLayersByCollection` only creates a collection entry for sheets actually present in
   // its input, filtering here first also means an atlas with zero currently-selectable sheets
@@ -413,7 +446,7 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
     'No Physical layers available here.';
 
   return (
-    <div className="layer-panel">
+    <div ref={panelRootRef} className="layer-panel">
       <div className="layer-panel__header">
         <span className="layer-panel__title">Layers</span>
         <button
@@ -472,7 +505,7 @@ const LayerPanel = ({ control, hasPhotos }: LayerPanelProps) => {
               {selectableHistoricalMapSheets.length === 0 && state.historicalMapSheets.length > 0 && (
                 <p className="layer-panel__section-empty-hint">
                   {state.historicalMapSheets.find((layer) => layer.disabled)?.disabledReason ??
-                    'No historical maps match this area/zoom — pan or zoom in to reveal sheets.'}
+                    HISTORICAL_MAP_SHEET_GATE_HINT}
                 </p>
               )}
               {ungroupedSheets.length > 0 && (

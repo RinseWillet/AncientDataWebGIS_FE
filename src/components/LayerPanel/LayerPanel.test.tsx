@@ -1,10 +1,11 @@
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import LayerPanel from './LayerPanel';
-import type {
-  LayerPanelControl,
-  OverlayVisibility,
-  PhysicalLayerState,
+import {
+  HISTORICAL_MAP_SHEET_GATE_HINT,
+  type LayerPanelControl,
+  type OverlayVisibility,
+  type PhysicalLayerState,
 } from '../MapComponent/useMapInteractions';
 
 const buildControl = (overrides: Partial<LayerPanelControl['state']> = {}): {
@@ -513,7 +514,7 @@ describe('LayerPanel', () => {
         buildHistoricalMapSheet({
           collection: undefined,
           disabled: true,
-          disabledReason: 'No historical maps match this area/zoom — pan or zoom in to reveal sheets.',
+          disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT,
         }),
       ],
     });
@@ -521,9 +522,7 @@ describe('LayerPanel', () => {
 
     expect(screen.getByText('Historical Maps')).toBeInTheDocument();
     expect(screen.queryByLabelText('Sheet A2')).not.toBeInTheDocument();
-    expect(
-      screen.getByText('No historical maps match this area/zoom — pan or zoom in to reveal sheets.')
-    ).toBeInTheDocument();
+    expect(screen.getByText(HISTORICAL_MAP_SHEET_GATE_HINT)).toBeInTheDocument();
   });
 
   it('only lists the currently-selectable Historical Maps sheets when some are gated and some are not', () => {
@@ -558,8 +557,94 @@ describe('LayerPanel', () => {
     render(<LayerPanel control={control} hasPhotos />);
 
     expect(screen.queryByText('1818 De Man - Nijmegen')).not.toBeInTheDocument();
-    expect(
-      screen.getByText('No historical maps match this area/zoom — pan or zoom in to reveal sheets.')
-    ).toBeInTheDocument();
+    expect(screen.getByText(HISTORICAL_MAP_SHEET_GATE_HINT)).toBeInTheDocument();
+  });
+
+  describe('panel width measurement', () => {
+    class FakeResizeObserver {
+      static instances: FakeResizeObserver[] = [];
+      callback: ResizeObserverCallback;
+      observedNode: Element | null = null;
+      disconnect = vi.fn();
+
+      constructor(callback: ResizeObserverCallback) {
+        this.callback = callback;
+        FakeResizeObserver.instances.push(this);
+      }
+
+      observe(node: Element) {
+        this.observedNode = node;
+      }
+
+      unobserve() {}
+    }
+
+    afterEach(() => {
+      FakeResizeObserver.instances = [];
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    });
+
+    it("calls onWidthChange with the panel's rendered width on mount", () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        width: 260,
+      } as DOMRect);
+      const { control } = buildControl();
+      const onWidthChange = vi.fn();
+
+      render(<LayerPanel control={control} hasPhotos onWidthChange={onWidthChange} />);
+
+      expect(onWidthChange).toHaveBeenCalledWith(260);
+    });
+
+    it('calls onWidthChange again when the observed ResizeObserver entry reports a new width', () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        width: 260,
+      } as DOMRect);
+      const { control } = buildControl();
+      const onWidthChange = vi.fn();
+
+      render(<LayerPanel control={control} hasPhotos onWidthChange={onWidthChange} />);
+      const observer = FakeResizeObserver.instances[0];
+
+      observer.callback(
+        [{ contentRect: { width: 180 } } as ResizeObserverEntry],
+        observer as unknown as ResizeObserver
+      );
+
+      expect(onWidthChange).toHaveBeenCalledWith(180);
+    });
+
+    it('disconnects the old observer and creates a new one when the panel collapses', () => {
+      vi.stubGlobal('ResizeObserver', FakeResizeObserver);
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        width: 260,
+      } as DOMRect);
+      const { control } = buildControl();
+
+      render(<LayerPanel control={control} hasPhotos />);
+      const firstObserver = FakeResizeObserver.instances[0];
+
+      fireEvent.click(screen.getByLabelText('Collapse layer panel'));
+
+      expect(firstObserver.disconnect).toHaveBeenCalled();
+      expect(FakeResizeObserver.instances).toHaveLength(2);
+    });
+
+    it('does not throw and still reports width when ResizeObserver is unavailable', () => {
+      vi.stubGlobal('ResizeObserver', undefined);
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+        width: 260,
+      } as DOMRect);
+      const { control } = buildControl();
+      const onWidthChange = vi.fn();
+
+      expect(() =>
+        render(<LayerPanel control={control} hasPhotos onWidthChange={onWidthChange} />)
+      ).not.toThrow();
+      expect(onWidthChange).toHaveBeenCalledWith(260);
+    });
   });
 });

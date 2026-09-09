@@ -95,6 +95,60 @@ export const boundsIntersectViewport = (bounds: RasterBounds, viewport: L.LatLng
   bounds.south <= viewport.getNorth() &&
   bounds.north >= viewport.getSouth();
 
+/**
+ * Percentage (0-100) of `viewport`'s area covered by the intersection of `bounds` and
+ * `viewport` - same simple, un-projected degree-box math as `boundsIntersectViewport` above
+ * (no latitude/cos-correction: the research area doesn't cross the antimeridian, and a "more
+ * correct" projected-area calculation here would be inconsistent with the rest of this file's
+ * intentionally approximate area handling). Used to gate Historical Maps sheet selectability
+ * by how much of the currently-visible map a sheet would actually cover, replacing a per-sheet
+ * zoom floor that didn't scale across wildly different sheet sizes.
+ *
+ * Returns 0 for no overlap (including edge-touching, i.e. zero-width/height intersection -
+ * unlike `boundsIntersectViewport`, a literal edge touch contributes 0% area, which is
+ * mathematically correct for a percentage even though it counts as "intersecting" there).
+ *
+ * If `viewport` itself has zero area (a real map always has a non-zero container size, but a
+ * jsdom-mounted one in tests reports 0x0, degenerating `map.getBounds()`/
+ * `effectiveViewportBounds` to a single point), there's no meaningful percentage of a
+ * zero-area region - falls back to plain point-containment via `boundsIntersectViewport` (100%
+ * if the point is within `bounds`, 0% otherwise), so this function's threshold check agrees
+ * with what `boundsIntersectViewport` alone would have said in that situation.
+ */
+export const viewportCoveragePercent = (bounds: RasterBounds, viewport: L.LatLngBounds): number => {
+  const viewportArea = (viewport.getEast() - viewport.getWest()) * (viewport.getNorth() - viewport.getSouth());
+  if (viewportArea <= 0) return boundsIntersectViewport(bounds, viewport) ? 100 : 0;
+
+  const intersectWidth = Math.min(bounds.east, viewport.getEast()) - Math.max(bounds.west, viewport.getWest());
+  const intersectHeight = Math.min(bounds.north, viewport.getNorth()) - Math.max(bounds.south, viewport.getSouth());
+  if (intersectWidth <= 0 || intersectHeight <= 0) return 0;
+
+  return ((intersectWidth * intersectHeight) / viewportArea) * 100;
+};
+
+/**
+ * The geographic bounds of the portion of the map container actually visible to the user -
+ * `map.getBounds()` narrowed to exclude the strip on the left currently covered by the
+ * always-left-docked `LayerPanel` overlay (see `LayerPanel.css`). Plain `map.getBounds()`
+ * returns the *entire* container's bounds regardless of what's visually occluded by chrome
+ * sitting on top of it, which is misleading input for viewport-based gating
+ * (`boundsIntersectViewport`, `viewportCoveragePercent`) - a sheet only "in view" behind the
+ * panel isn't actually visible to the user.
+ *
+ * `occludedLeftPx <= 0` (no panel, or not yet measured) short-circuits to plain
+ * `map.getBounds()` - both to avoid the extra `containerPointToLatLng` calls when there's
+ * nothing to account for, and so every zero-occlusion caller behaves exactly as before this
+ * function existed. An `occludedLeftPx` at/beyond the container's own pixel width is clamped
+ * to that width, degenerating to a zero-area viewport at the container's right edge rather
+ * than an inverted box.
+ */
+export const effectiveViewportBounds = (map: L.Map, occludedLeftPx: number): L.LatLngBounds => {
+  if (occludedLeftPx <= 0) return map.getBounds();
+  const size = map.getSize();
+  const left = Math.min(occludedLeftPx, size.x);
+  return L.latLngBounds(map.containerPointToLatLng([left, 0]), map.containerPointToLatLng([size.x, size.y]));
+};
+
 /** fitBounds a map to the given bounds using responsive padding. */
 export const fitBoundsWithPadding = (
   map: L.Map,

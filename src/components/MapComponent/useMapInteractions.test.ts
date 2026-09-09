@@ -8,6 +8,7 @@ import {
   gateExclusiveLayerConfig,
   gateHistoricalMapSheet,
   gatePhysicalLayer,
+  HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT,
   HISTORICAL_MAP_SHEET_GATE_HINT,
   PHYSICAL_MIN_ZOOM_FLOOR,
   useLayerPanelControl,
@@ -25,6 +26,19 @@ const fakeMap = (zoom: number, bounds: L.LatLngBounds): L.Map =>
   ({
     getZoom: () => zoom,
     getBounds: () => bounds,
+  }) as unknown as L.Map;
+
+/** A stub map that also supports `effectiveViewportBounds`'s `getSize`/`containerPointToLatLng`
+ * calls (used whenever `occludedLeftPx > 0`), for tests covering the panel-occlusion fix.
+ * `containerPointToLatLng` here is deliberately a constant far-away point rather than a real
+ * projection - these tests only need the effective viewport to land somewhere that does/doesn't
+ * overlap a given layer, not a geometrically accurate one. */
+const fakeMapWithSize = (zoom: number, bounds: L.LatLngBounds): L.Map =>
+  ({
+    getZoom: () => zoom,
+    getBounds: () => bounds,
+    getSize: () => L.point(1000, 500),
+    containerPointToLatLng: () => L.latLng(0, 0),
   }) as unknown as L.Map;
 
 describe('gatePhysicalLayer (E3-7)', () => {
@@ -76,6 +90,21 @@ describe('gatePhysicalLayer (E3-7)', () => {
       { visible: false, bounds: swalmenBounds },
       fakeMap(PHYSICAL_MIN_ZOOM_FLOOR, inViewViewport)
     );
+    expect(result).toEqual({ disabled: false, disabledReason: null });
+  });
+
+  it("gates a layer that's in view by raw map.getBounds() but fully behind the occluded panel strip", () => {
+    const map = fakeMapWithSize(PHYSICAL_MIN_ZOOM_FLOOR, inViewViewport);
+    const result = gatePhysicalLayer({ visible: false, bounds: swalmenBounds }, map, 400);
+    expect(result).toEqual({
+      disabled: true,
+      disabledReason: "Pan the map to this layer's area to enable it.",
+    });
+  });
+
+  it('does not gate the same layer once occludedLeftPx is 0 (falls back to raw map.getBounds())', () => {
+    const map = fakeMapWithSize(PHYSICAL_MIN_ZOOM_FLOOR, inViewViewport);
+    const result = gatePhysicalLayer({ visible: false, bounds: swalmenBounds }, map, 0);
     expect(result).toEqual({ disabled: false, disabledReason: null });
   });
 });
@@ -213,9 +242,11 @@ describe('useLayerPanelControl Physical-layer toggle gating (E3-7)', () => {
   });
 });
 
-// E3-8: extends E3-7's viewport gating to Historical Maps sheets, but against each entry's own
-// `zoom.min` instead of one shared floor - a small cadastral sheet stays gated at a wide zoom
-// where a De Man-scale historical topo sheet would already be selectable.
+// Historical Maps sheets extend E3-7's viewport gating with a coverage-percentage floor
+// instead of a shared/per-sheet zoom floor: a sheet is selectable once the intersection of its
+// bounds and the viewport covers at least HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT of
+// the viewport's area - this scales automatically between wildly different sheet sizes without
+// per-sheet tuning, unlike the zoom.min floor it replaced.
 const deManSheetA2: RasterLayer = {
   name: 'Sheet A2',
   source: 'ancientdata:1818-de-man-a2',
@@ -227,75 +258,65 @@ const deManSheetA2: RasterLayer = {
   hillshade: false,
 };
 
-describe('gateHistoricalMapSheet (E3-8)', () => {
-  it('never gates an already-visible sheet, even below its own zoom floor and out of view', () => {
-    const result = gateHistoricalMapSheet(
-      { visible: true, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(1, outOfViewViewport)
-    );
+// A 2 (longitude) x 1 (latitude) degree viewport, used by the threshold-boundary tests below so
+// a sheet's width alone determines its exact coverage percentage (width / 2 * 100).
+const thresholdViewport = L.latLngBounds([50, 5], [51, 7]);
+
+describe('gateHistoricalMapSheet', () => {
+  it('never gates an already-visible sheet, even out of view', () => {
+    const result = gateHistoricalMapSheet({ visible: true, bounds: swalmenBounds }, fakeMap(1, outOfViewViewport));
     expect(result).toEqual({ disabled: false, disabledReason: null });
   });
 
   it('does not gate when there is no map yet', () => {
-    const result = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      null
-    );
+    const result = gateHistoricalMapSheet({ visible: false, bounds: swalmenBounds }, null);
     expect(result).toEqual({ disabled: false, disabledReason: null });
   });
 
-  it("gates below the sheet's own zoom.min, regardless of bounds", () => {
-    const result = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(deManSheetA2.zoom.min - 1, inViewViewport)
-    );
+  it('gates a sheet covering less than the 15% threshold', () => {
+    // width 0.2 of the 2-wide viewport, full height overlap -> 0.2 / 2 * 100 = 10%.
+    const bounds = { south: 50, west: 5.2, north: 51, east: 5.4 };
+    const result = gateHistoricalMapSheet({ visible: false, bounds }, fakeMap(14, thresholdViewport));
     expect(result).toEqual({ disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT });
   });
 
-  it('does not gate on zoom exactly at the sheet own zoom.min', () => {
-    const result = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(deManSheetA2.zoom.min, inViewViewport)
-    );
+  it('does not gate a sheet covering comfortably above the 15% threshold', () => {
+    // width 0.5 -> 25%.
+    const bounds = { south: 50, west: 5.5, north: 51, east: 6.0 };
+    const result = gateHistoricalMapSheet({ visible: false, bounds }, fakeMap(14, thresholdViewport));
     expect(result).toEqual({ disabled: false, disabledReason: null });
   });
 
-  it('gates an out-of-view sheet at/above its own zoom.min', () => {
-    const result = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(deManSheetA2.zoom.min, outOfViewViewport)
-    );
-    expect(result).toEqual({ disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT });
-  });
-
-  it('does not gate a sheet that is in view and at/above its own zoom.min', () => {
-    const result = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(deManSheetA2.zoom.min, inViewViewport)
-    );
+  it('does not gate a sheet covering exactly the 15% threshold', () => {
+    // width 0.3 -> 0.3 / 2 * 100 = HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT exactly.
+    const bounds = { south: 50, west: 5.35, north: 51, east: 5.65 };
+    const result = gateHistoricalMapSheet({ visible: false, bounds }, fakeMap(14, thresholdViewport));
+    expect(HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT).toBe(15);
     expect(result).toEqual({ disabled: false, disabledReason: null });
   });
 
-  it("a tiny cadastral-scale sheet stays gated at a wide zoom that already selects a city-scale sheet", () => {
-    // Both sheets' bounds are fully inside a BENELUX-wide viewport (containment, not just
-    // overlap) - only the per-entry zoom floor tells them apart, which is the whole point of
-    // this story: a single shared floor couldn't distinguish them.
-    const wideViewport = L.latLngBounds([50, 3], [53, 8]);
-    const cadastralZoom = { min: 18, max: 20 };
-    const cityScale = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: deManSheetA2.zoom },
-      fakeMap(14, wideViewport)
+  it('reads the effective (panel-occluded) viewport, not the raw map bounds', () => {
+    // Comfortably >= 15% of the raw viewport...
+    const bounds = { south: 50, west: 5.5, north: 51, east: 6.0 };
+    const withoutOcclusion = gateHistoricalMapSheet(
+      { visible: false, bounds },
+      fakeMapWithSize(14, thresholdViewport),
+      0
     );
-    const cadastral = gateHistoricalMapSheet(
-      { visible: false, bounds: swalmenBounds, zoom: cadastralZoom },
-      fakeMap(14, wideViewport)
+    expect(withoutOcclusion).toEqual({ disabled: false, disabledReason: null });
+
+    // ...but once the panel occludes part of the viewport, `fakeMapWithSize`'s
+    // `containerPointToLatLng` puts the effective viewport nowhere near this sheet.
+    const withOcclusion = gateHistoricalMapSheet(
+      { visible: false, bounds },
+      fakeMapWithSize(14, thresholdViewport),
+      400
     );
-    expect(cityScale.disabled).toBe(false);
-    expect(cadastral.disabled).toBe(true);
+    expect(withOcclusion).toEqual({ disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT });
   });
 });
 
-describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () => {
+describe('useLayerPanelControl Historical Maps sheet toggle gating', () => {
   let container: HTMLDivElement;
   let map: L.Map;
 
@@ -312,7 +333,7 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
 
   it('blocks turning on an out-of-view sheet, and allows it once panned into view', async () => {
     vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
-    map.setView(outsideSwalmenBounds, deManSheetA2.zoom.min);
+    map.setView(outsideSwalmenBounds, 12);
     const { result } = renderHook(() => useLayerPanelControl(map));
     await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
     expect(result.current.state.historicalMapSheets[0].disabled).toBe(true);
@@ -320,34 +341,55 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
     act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
     expect(result.current.state.historicalMapSheets[0].visible).toBe(false);
 
-    act(() => map.setView(insideSwalmenBounds, deManSheetA2.zoom.min));
+    act(() => map.setView(insideSwalmenBounds, 12));
     await waitFor(() => expect(result.current.state.historicalMapSheets[0].disabled).toBe(false));
 
     act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
     expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
   });
 
-  it("blocks turning on a sheet below its own zoom.min", async () => {
+  it('auto-turns off an already-visible sheet once panned out of coverage, and it re-enables once back in range', async () => {
     vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
-    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min - 1);
-    const { result } = renderHook(() => useLayerPanelControl(map));
-    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
-    expect(result.current.state.historicalMapSheets[0].disabledReason).toBe(HISTORICAL_MAP_SHEET_GATE_HINT);
-
-    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
-    expect(result.current.state.historicalMapSheets[0].visible).toBe(false);
-  });
-
-  it('auto-turns off an already-visible sheet once zoomed below its own zoom.min', async () => {
-    vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
-    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    map.setView(insideSwalmenBounds, 12);
     const { result } = renderHook(() => useLayerPanelControl(map));
     await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
 
     act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
     expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
 
-    act(() => map.setView(insideSwalmenBounds, deManSheetA2.zoom.min - 1));
+    // Panning away must not leave it checked-but-hidden forever requesting tiles for
+    // wherever the user now is - it should turn itself off, not just become un-toggleable.
+    act(() => map.setView(outsideSwalmenBounds, 12));
+    await waitFor(() => expect(result.current.state.historicalMapSheets[0].visible).toBe(false));
+
+    act(() => map.setView(insideSwalmenBounds, 12));
+    await waitFor(() => expect(result.current.state.historicalMapSheets[0].disabled).toBe(false));
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
+  });
+
+  it('re-checks gating when occludedLeftPx changes alone, without a moveend/zoomend event', async () => {
+    vi.mocked(rasterService.getCatalog).mockResolvedValue([deManSheetA2]);
+    map.setView(insideSwalmenBounds, 12);
+    // jsdom's own map container is 0x0, so `getBounds()` (used when occludedLeftPx is 0)
+    // degenerates to a single point at the map center - overridden here only for the
+    // occludedLeftPx > 0 path, matching `fakeMapWithSize`'s approach above: a constant
+    // far-away point is enough to prove the effective viewport moved, without needing a real
+    // pixel-to-latlng projection.
+    map.getSize = () => L.point(1000, 500);
+    map.containerPointToLatLng = (() => L.latLng(0, 0)) as typeof map.containerPointToLatLng;
+
+    const { result, rerender } = renderHook(
+      ({ occludedLeftPx }) => useLayerPanelControl(map, occludedLeftPx),
+      { initialProps: { occludedLeftPx: 0 } }
+    );
+    await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(1));
+
+    act(() => result.current.toggleHistoricalMapSheet(deManSheetA2.source));
+    expect(result.current.state.historicalMapSheets[0].visible).toBe(true);
+
+    // No map.setView/moveend/zoomend here - only the panel-width input changes.
+    rerender({ occludedLeftPx: 200 });
     await waitFor(() => expect(result.current.state.historicalMapSheets[0].visible).toBe(false));
   });
 
@@ -367,7 +409,7 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
     };
     vi.mocked(rasterService.getCatalog).mockResolvedValue([sheetA, sheetB, sheetC]);
 
-    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    map.setView(insideSwalmenBounds, 12);
     const { result } = renderHook(() => useLayerPanelControl(map));
     await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(3));
     expect(result.current.state.historicalMapSheets[1].disabled).toBe(true);
@@ -391,7 +433,7 @@ describe('useLayerPanelControl Historical Maps sheet toggle gating (E3-8)', () =
     };
     vi.mocked(rasterService.getCatalog).mockResolvedValue([sheetInView, sheetOutOfView]);
 
-    map.setView(insideSwalmenBounds, deManSheetA2.zoom.min);
+    map.setView(insideSwalmenBounds, 12);
     const { result } = renderHook(() => useLayerPanelControl(map));
     await waitFor(() => expect(result.current.state.historicalMapSheets).toHaveLength(2));
     expect(result.current.state.historicalMapSheets[1].disabled).toBe(true);
