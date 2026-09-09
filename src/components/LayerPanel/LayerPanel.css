@@ -11,6 +11,7 @@
   z-index: 999;
   width: 260px;
   overflow-y: auto;
+  touch-action: pan-y;
   background: #fff;
   border-radius: 0 6px 6px 0;
   box-shadow: 2px 0 10px 2px var(--shadow-color);

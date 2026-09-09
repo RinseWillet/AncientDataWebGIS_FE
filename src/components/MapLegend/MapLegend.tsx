@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
+import L from 'leaflet';
 import { siteTypeEntries } from '../../utils/siteTypesConfig';
 import { roadStyleEntries } from '../../utils/roadTypes';
 import { useActiveDemLayer } from './useActiveDemLayer';
@@ -44,6 +45,17 @@ const MapLegend = ({
   const [prevHasSelection, setPrevHasSelection] = useState(hasSelection);
   const activeDemLayer = useActiveDemLayer(activeDemLayerName);
 
+  // Stops mouse-wheel/touch/click events on the legend from bubbling up to the Leaflet map
+  // underneath (which would zoom/pan instead of scrolling the legend's own content) - the
+  // same fix Leaflet's own controls (e.g. L.Control.Layers) apply to themselves. A callback
+  // ref, not `useRef` + effect, is required: `collapsed` swaps the mounted root element
+  // (`<button>` vs `<div>` below), so attach it to both roots.
+  const legendRootRef = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    L.DomEvent.disableScrollPropagation(node);
+    L.DomEvent.disableClickPropagation(node);
+  }, []);
+
   if (hasSelection !== prevHasSelection) {
     setPrevHasSelection(hasSelection);
     if (hasSelection) setCollapsed(true);
@@ -56,6 +68,7 @@ const MapLegend = ({
   if (collapsed) {
     return (
       <button
+        ref={legendRootRef}
         type="button"
         className="map-legend map-legend--collapsed"
         onClick={() => setCollapsed(false)}
@@ -67,7 +80,7 @@ const MapLegend = ({
   }
 
   return (
-    <div className="map-legend">
+    <div ref={legendRootRef} className="map-legend">
       <div className="map-legend__header">
         <button
           type="button"
