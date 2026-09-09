@@ -9,6 +9,11 @@ interface NewsItem {
 
 const newsItems: NewsItem[] = [
   {
+    date: '2026-09-09',
+    title: 'Layers and Legend panels improved for mobile',
+    body: 'On mobile, the Layers and Legend panels no longer pop open automatically and cover most of the screen — they now start tucked away as a small tab and open only when tapped. Scrolling a long layer list, on both mobile and desktop, also no longer accidentally zooms or pans the map underneath.',
+  },
+  {
     date: '2026-09-04',
     title: 'Work-in-progress manuscript added to the Research page',
     body: 'A work-in-progress manuscript on Roman roads in the Nijmegen-Xanten area has been added under "Research", covering the geography of the research area, historical river reconstructions, vegetation, pre-Roman land use, and the current state of research on prehistoric roads, with a full bibliography. This is an evolving text and more chapters will be added as the manuscript is expanded.',
