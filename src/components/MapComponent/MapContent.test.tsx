@@ -41,9 +41,11 @@ const renderMapContent = (props: Partial<Parameters<typeof MapContent>[0]> = {})
   const siteMarkersRef: MutableRefObject<Record<string | number, L.Marker>> = { current: {} };
 
   const result = render(
-    // zoom 12 matches buildRasterLayer's default zoom.min, so a default HISTORICAL_MAP
-    // fixture stays selectable under E3-8's per-sheet zoom gate (still >= E3-7's Physical
-    // floor of 8, so DEM fixtures are unaffected).
+    // zoom 12 is >= E3-7's Physical floor of 8, so DEM fixtures are unaffected. jsdom mounts
+    // the map at a 0x0 container size, degenerating `map.getBounds()` to the single point at
+    // the map center - `viewportCoveragePercent`'s zero-area-viewport fallback then treats a
+    // default HISTORICAL_MAP fixture as selectable whenever that center point falls within its
+    // bounds (see `mapUtils.ts`), independent of the zoom level itself.
     <MapContainer center={[51.8, 5.8]} zoom={12}>
       <MapContent
         siteData={siteData}

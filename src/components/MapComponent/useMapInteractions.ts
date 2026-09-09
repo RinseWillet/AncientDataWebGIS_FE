@@ -4,7 +4,13 @@ import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { QueryItem, SearchItem } from './mapTypes';
 import { isBaseLayerConfig, LayerConfig, LayerGroupName, layersConfig, WmsLayerConfig } from './layersConfig';
-import { boundsIntersectViewport, buildLayer, buildPhysicalLayer } from './mapUtils';
+import {
+  boundsIntersectViewport,
+  buildLayer,
+  buildPhysicalLayer,
+  effectiveViewportBounds,
+  viewportCoveragePercent,
+} from './mapUtils';
 import { rasterService } from '../../services/RasterService';
 import { RasterBounds, RasterLayerCategory, RasterZoom } from '../../types/raster';
 
@@ -130,20 +136,21 @@ export interface PhysicalLayerState {
    * with a multiply blend over whatever's beneath it. See E3-2's `hillshade`. */
   hillshade: boolean;
   /** WGS84 extent, from the catalog's `RasterBoundsDTO`. Used to gate both Physical-layer
-   * (E3-7, against a shared global floor) and Historical Maps sheet (E3-8, against this
-   * entry's own `zoom.min`) selectability by viewport. */
+   * (against a shared global zoom floor, E3-7) and Historical Maps sheet (against a shared
+   * viewport-coverage-percentage floor) selectability by viewport. */
   bounds: RasterBounds;
-  /** Curated display zoom range, from the catalog's `RasterZoomDTO`. `zoom.min` is used as
-   * this entry's own per-layer zoom floor for Historical Maps sheet gating (E3-8) - unlike
-   * Physical/DEM's shared `PHYSICAL_MIN_ZOOM_FLOOR`, sheet scale varies too widely (city-scale
-   * historical topo sheets vs. much larger-scale cadastral maps) for one global floor to work.
-   * `zoom.max` is unused for gating either group. */
+  /** Curated display zoom range, from the catalog's `RasterZoomDTO`. Dead for gating: Historical
+   * Maps sheets used to gate on `zoom.min` (a per-sheet floor that didn't scale - a tiny
+   * cadastral sheet and a large atlas sheet both became selectable at the same zoom), now
+   * replaced by `viewportCoveragePercent`-based coverage gating instead; Physical/DEM never
+   * gated on a per-entry zoom field either (see the shared `PHYSICAL_MIN_ZOOM_FLOOR` constant
+   * below). Kept on the type/DTO as potentially-useful curated metadata, not deleted. */
   zoom: RasterZoom;
   /** Whether this row's toggle is currently blocked from being turned on: below the
-   * applicable zoom floor, or its `bounds` don't intersect the current viewport (Physical:
-   * E3-7's global floor; Historical Maps sheets: E3-8's own `zoom.min`). Never `true` for an
-   * already-visible layer: panning/zooming away from an enabled layer must not trap the user
-   * unable to turn it back off, so gating only blocks the on-transition. */
+   * applicable zoom floor (Physical only), doesn't cover enough of the viewport (Historical
+   * Maps sheets only), or its `bounds` don't intersect the current viewport at all. Never
+   * `true` for an already-visible layer: panning/zooming away from an enabled layer must not
+   * trap the user unable to turn it back off, so gating only blocks the on-transition. */
   disabled: boolean;
   /** User-facing explanation shown next to a `disabled` row; `null` when not disabled. */
   disabledReason: string | null;
@@ -161,11 +168,14 @@ export interface PhysicalLayerState {
 export const PHYSICAL_MIN_ZOOM_FLOOR = 8;
 
 /** Whether `bounds` currently satisfies both E3-7 gates: at/above the zoom floor and
- * intersecting the map's live viewport. Ignores visibility entirely - used both by
- * `gatePhysicalLayer` (for a not-yet-visible row) and by the auto-off effect below
- * (to decide whether an *already*-visible row needs to be turned off). */
-const isPhysicalLayerWithinGate = (bounds: RasterBounds, map: L.Map): boolean =>
-  map.getZoom() >= PHYSICAL_MIN_ZOOM_FLOOR && boundsIntersectViewport(bounds, map.getBounds());
+ * intersecting the map's live, panel-occlusion-adjusted viewport (`occludedLeftPx` is the
+ * `LayerPanel`'s own measured width when it's docked over the map's left edge - see
+ * `effectiveViewportBounds`). Ignores visibility entirely - used both by `gatePhysicalLayer`
+ * (for a not-yet-visible row) and by the auto-off effect below (to decide whether an
+ * *already*-visible row needs to be turned off). */
+const isPhysicalLayerWithinGate = (bounds: RasterBounds, map: L.Map, occludedLeftPx: number): boolean =>
+  map.getZoom() >= PHYSICAL_MIN_ZOOM_FLOOR &&
+  boundsIntersectViewport(bounds, effectiveViewportBounds(map, occludedLeftPx));
 
 /**
  * Decides whether one Physical-group row should be gated off (E3-7). Pure
@@ -174,47 +184,56 @@ const isPhysicalLayerWithinGate = (bounds: RasterBounds, map: L.Map): boolean =>
  */
 export const gatePhysicalLayer = (
   layer: Pick<PhysicalLayerState, 'visible' | 'bounds'>,
-  map: L.Map | null
+  map: L.Map | null,
+  occludedLeftPx = 0
 ): { disabled: boolean; disabledReason: string | null } => {
   if (layer.visible || !map) return { disabled: false, disabledReason: null };
   if (map.getZoom() < PHYSICAL_MIN_ZOOM_FLOOR) {
     return { disabled: true, disabledReason: 'Zoom in further to enable Physical layers.' };
   }
-  if (!boundsIntersectViewport(layer.bounds, map.getBounds())) {
+  if (!boundsIntersectViewport(layer.bounds, effectiveViewportBounds(map, occludedLeftPx))) {
     return { disabled: true, disabledReason: "Pan the map to this layer's area to enable it." };
   }
   return { disabled: false, disabledReason: null };
 };
 
-/** Fallback message (E3-8) shown when gating leaves a Historical Maps section/collection with
- * nothing selectable. Unlike E3-7's two distinct zoom/pan hints, this is a single message: with
- * a per-sheet zoom floor instead of one shared constant, a mixed set of hidden sheets in the
- * same collection can be gated off for different reasons (some too-zoomed-out, some out of
- * view), so there's no one specific instruction that's always correct - "pan or zoom" covers
- * both without guessing which applies. */
-export const HISTORICAL_MAP_SHEET_GATE_HINT =
-  'No historical maps match this area/zoom — pan or zoom in to reveal sheets.';
+/** Coverage threshold for Historical Maps sheet gating: a sheet becomes selectable once the
+ * intersection of its own `bounds` and the current (panel-occlusion-adjusted) viewport covers
+ * at least this percentage of that viewport's area. Superseded a per-sheet `zoom.min` floor
+ * that required hand-tuning every sheet and didn't scale between wildly different sheet sizes
+ * (a small cadastral-scale sheet and a large atlas sheet both became selectable at the same
+ * zoom) - this scales automatically: zooming in shrinks the geographic viewport for a
+ * fixed-size sheet, raising its coverage %. Confirmed with the project owner. */
+export const HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT = 15;
 
-/** Whether `layer` currently satisfies both E3-8 gates: at/above its own `zoom.min` and
- * intersecting the map's live viewport. Mirrors `isPhysicalLayerWithinGate`, but reads the
- * zoom floor off the layer itself instead of the shared `PHYSICAL_MIN_ZOOM_FLOOR`, since sheet
- * scale varies too widely for one global floor (see `PhysicalLayerState.zoom` doc comment). */
+/** Fallback message shown when gating leaves a Historical Maps section/collection with nothing
+ * selectable. */
+export const HISTORICAL_MAP_SHEET_GATE_HINT =
+  'No historical maps cover enough of this view — pan or zoom in to reveal sheets.';
+
+/** Whether `layer` covers at least `HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT` of the
+ * map's live, panel-occlusion-adjusted viewport. Mirrors `isPhysicalLayerWithinGate`, but uses
+ * a coverage percentage instead of a zoom floor (see `HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT`). */
 const isHistoricalSheetWithinGate = (
-  layer: Pick<PhysicalLayerState, 'bounds' | 'zoom'>,
-  map: L.Map
-): boolean => map.getZoom() >= layer.zoom.min && boundsIntersectViewport(layer.bounds, map.getBounds());
+  layer: Pick<PhysicalLayerState, 'bounds'>,
+  map: L.Map,
+  occludedLeftPx: number
+): boolean =>
+  viewportCoveragePercent(layer.bounds, effectiveViewportBounds(map, occludedLeftPx)) >=
+  HISTORICAL_MAP_SHEET_COVERAGE_THRESHOLD_PERCENT;
 
 /**
- * Decides whether one Historical Maps sheet row should be gated off (E3-8), extending E3-7's
- * viewport-gating principle with a per-entry zoom floor (`layer.zoom.min`) instead of a shared
- * constant. Pure function, mirroring `gatePhysicalLayer`.
+ * Decides whether one Historical Maps sheet row should be gated off, extending E3-7's
+ * viewport-gating principle with a coverage-percentage floor instead of a zoom floor. Pure
+ * function, mirroring `gatePhysicalLayer`.
  */
 export const gateHistoricalMapSheet = (
-  layer: Pick<PhysicalLayerState, 'visible' | 'bounds' | 'zoom'>,
-  map: L.Map | null
+  layer: Pick<PhysicalLayerState, 'visible' | 'bounds'>,
+  map: L.Map | null,
+  occludedLeftPx = 0
 ): { disabled: boolean; disabledReason: string | null } => {
   if (layer.visible || !map) return { disabled: false, disabledReason: null };
-  if (!isHistoricalSheetWithinGate(layer, map)) {
+  if (!isHistoricalSheetWithinGate(layer, map, occludedLeftPx)) {
     return { disabled: true, disabledReason: HISTORICAL_MAP_SHEET_GATE_HINT };
   }
   return { disabled: false, disabledReason: null };
@@ -287,6 +306,23 @@ export interface LayerPanelControl {
 
 /** Stacks the "Historical Maps" sheets group above any number of "Physical" (DEM) layers. */
 const HISTORICAL_MAP_SHEET_ZINDEX_BASE = 1000;
+
+/** Turns off any already-visible layer in `layers` that no longer satisfies `withinGate`.
+ * Returns the same array reference if nothing changed (avoids an unnecessary re-render/re-sync
+ * when nothing actually needs to turn off). Shared by the moveend/zoomend- and
+ * occludedLeftPx-change-driven auto-off passes in `useLayerPanelControl`. */
+const turnOffLayersOutOfGate = (
+  layers: PhysicalLayerState[],
+  withinGate: (layer: PhysicalLayerState) => boolean
+): PhysicalLayerState[] => {
+  let changed = false;
+  const next = layers.map((layer) => {
+    if (!layer.visible || withinGate(layer)) return layer;
+    changed = true;
+    return { ...layer, visible: false };
+  });
+  return changed ? next : layers;
+};
 
 /** Adds/removes/opacity-syncs/z-indexes a toggleable raster layer group's Leaflet tiles to match state. */
 const syncLayerGroupToMap = (
@@ -405,7 +441,7 @@ const defaultBaseLayerName = (): string =>
  * Sites/roads/photos visibility is tracked here too, but toggling those is
  * left to the caller (MapContent renders/unmounts its own GeoJSON layers).
  */
-export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
+export const useLayerPanelControl = (map: L.Map | null, occludedLeftPx = 0): LayerPanelControl => {
   const [activeBaseLayer, setActiveBaseLayer] = useState<string>(defaultBaseLayerName);
   const [activeHistoricalLayer, setActiveHistoricalLayer] = useState<string | null>(null);
   /** One active layer name per "Aerial Imagery" subgroup (keyed by `aerialSubgroupLabel`),
@@ -527,35 +563,31 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
   // `map.getZoom()`/`getBounds()` are live reads off a mutable Leaflet instance, not
   // reactive state, so `gatedPhysicalLayers`/`gatedHistoricalMapSheets` below need an explicit
   // nudge to recompute whenever the viewport actually changes (E3-7, extended to Historical
-  // Maps sheets by E3-8). The same handler also auto-turns a visible layer in either group
-  // back off once it stops satisfying its own gate (E3-7 follow-up, confirmed with the
-  // project owner): otherwise it would keep requesting WMS tiles for wherever the user has
-  // since panned/zoomed to - defeating the point of gating enablement in the first place -
-  // and its row would stay checked but hidden from the filtered LayerPanel list below.
-  // Re-enabling it once back in range is a normal toggle.
+  // Maps sheets). The same handler also auto-turns a visible layer in either group back off
+  // once it stops satisfying its own gate (E3-7 follow-up, confirmed with the project owner):
+  // otherwise it would keep requesting WMS tiles for wherever the user has since panned/zoomed
+  // to - defeating the point of gating enablement in the first place - and its row would stay
+  // checked but hidden from the filtered LayerPanel list below. Re-enabling it once back in
+  // range is a normal toggle.
+  //
+  // `occludedLeftPx` (the LayerPanel's own measured width, when it's docked over the map) can
+  // change independent of any Leaflet pan/zoom event - e.g. the panel collapsing/expanding, or
+  // a window resize - so this effect also re-runs and eagerly re-checks gating whenever it
+  // changes, not just on the moveend/zoomend listeners below.
   const [viewportVersion, setViewportVersion] = useState(0);
   useEffect(() => {
     if (!map) return;
+    const runAutoOff = () => {
+      setPhysicalLayers((prev) =>
+        turnOffLayersOutOfGate(prev, (layer) => isPhysicalLayerWithinGate(layer.bounds, map, occludedLeftPx))
+      );
+      setHistoricalMapSheets((prev) =>
+        turnOffLayersOutOfGate(prev, (layer) => isHistoricalSheetWithinGate(layer, map, occludedLeftPx))
+      );
+    };
     const onViewportChange = () => {
       setViewportVersion((version) => version + 1);
-      setPhysicalLayers((prev) => {
-        let changed = false;
-        const next = prev.map((layer) => {
-          if (!layer.visible || isPhysicalLayerWithinGate(layer.bounds, map)) return layer;
-          changed = true;
-          return { ...layer, visible: false };
-        });
-        return changed ? next : prev;
-      });
-      setHistoricalMapSheets((prev) => {
-        let changed = false;
-        const next = prev.map((layer) => {
-          if (!layer.visible || isHistoricalSheetWithinGate(layer, map)) return layer;
-          changed = true;
-          return { ...layer, visible: false };
-        });
-        return changed ? next : prev;
-      });
+      runAutoOff();
       // Same auto-off principle extended to the "Aerial Imagery" exclusive subgroups (E3-9):
       // an active Ruhr lubi layer that's panned/zoomed out of its own coverage area is
       // deactivated rather than left checked-but-hidden from the filtered LayerPanel list.
@@ -574,26 +606,28 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
         return changed ? next : prev;
       });
     };
+    runAutoOff();
     map.on('moveend', onViewportChange);
     map.on('zoomend', onViewportChange);
     return () => {
       map.off('moveend', onViewportChange);
       map.off('zoomend', onViewportChange);
     };
-  }, [map]);
+  }, [map, occludedLeftPx]);
 
   // Physical (DEM) layers decorated with live viewport/zoom gating against the shared global
   // floor (E3-7); Historical Maps sheets decorated the same way but against each entry's own
   // `zoom.min` (E3-8).
   const gatedPhysicalLayers = useMemo(
-    () => physicalLayers.map((layer) => ({ ...layer, ...gatePhysicalLayer(layer, map) })),
+    () => physicalLayers.map((layer) => ({ ...layer, ...gatePhysicalLayer(layer, map, occludedLeftPx) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [physicalLayers, map, viewportVersion]
+    [physicalLayers, map, viewportVersion, occludedLeftPx]
   );
   const gatedHistoricalMapSheets = useMemo(
-    () => historicalMapSheets.map((layer) => ({ ...layer, ...gateHistoricalMapSheet(layer, map) })),
+    () =>
+      historicalMapSheets.map((layer) => ({ ...layer, ...gateHistoricalMapSheet(layer, map, occludedLeftPx) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [historicalMapSheets, map, viewportVersion]
+    [historicalMapSheets, map, viewportVersion, occludedLeftPx]
   );
   // "Aerial Imagery" `layersConfig` entries decorated the same way (E3-9) - most have no
   // `bounds` and so are never gated; only the three Ruhr lubi layers opt in.
@@ -636,11 +670,11 @@ export const useLayerPanelControl = (map: L.Map | null): LayerPanelControl => {
 
   const physicalLayerHandlers = createLayerGroupHandlers(
     setPhysicalLayers,
-    (layer) => !map || !isPhysicalLayerWithinGate(layer.bounds, map)
+    (layer) => !map || !isPhysicalLayerWithinGate(layer.bounds, map, occludedLeftPx)
   );
   const historicalMapSheetHandlers = createLayerGroupHandlers(
     setHistoricalMapSheets,
-    (layer) => !map || !isHistoricalSheetWithinGate(layer, map)
+    (layer) => !map || !isHistoricalSheetWithinGate(layer, map, occludedLeftPx)
   );
 
   // Blocks turning a gated-off Physical row on (E3-7's "enabling one is blocked");
