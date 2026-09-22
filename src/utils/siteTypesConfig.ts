@@ -9,6 +9,8 @@ import pvilla from '../assets/pvilla.png';
 import legfort from '../assets/legfort.png';
 import settS from '../assets/settS.png';
 import sett from '../assets/sett.png';
+import psett from '../assets/psett.png';
+import bridge from '../assets/bridge.png';
 import tumulus from '../assets/tumulus.png';
 import ptumulus from '../assets/ptumulus.png';
 import cemetery from '../assets/cemetery.png';
@@ -57,6 +59,8 @@ export const siteTypeEntries: SiteTypeEntry[] = [
   { type: 'villa', label: 'villa', icon: makeIcon(villa), iconUrl: villa },
   { type: 'pvilla', label: 'possible villa', icon: makeIcon(pvilla), iconUrl: pvilla },
   { type: 'sett', label: 'settlement', icon: makeIcon(sett), iconUrl: sett },
+  { type: 'psett', label: 'possible settlement', icon: makeIcon(psett), iconUrl: psett },
+  { type: 'bridge', label: 'bridge', icon: makeIcon(bridge), iconUrl: bridge },
   {
     type: 'settS',
     label: 'settlement with stone buildings',
