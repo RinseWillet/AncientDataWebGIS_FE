@@ -114,15 +114,46 @@ const MapContent = ({
     zoomToPlace
   );
 
+  // Site markers' click hit-areas can still overlap (dense clusters, zoomed
+  // out - see MapContent.css's site-type-icon rule for the other half of this
+  // fix, which shrinks that overlap in the first place but can't eliminate
+  // it). Native DOM hit-testing picks whichever marker's box happens to be
+  // topmost in Leaflet's z-order (roughly "further down the screen"), which
+  // isn't necessarily the one the user was actually aiming for. Since the
+  // click event already carries the exact pixel clicked (`containerPoint`),
+  // re-resolve to whichever marker's own on-screen position is genuinely
+  // closest to that pixel, rather than trusting which DOM element the browser
+  // happened to route the event to.
+  const nearestSiteMarker = (clickPoint: L.Point): L.Marker | null => {
+    let closest: L.Marker | null = null;
+    let closestDistSq = Infinity;
+    Object.values(siteMarkersRef.current).forEach((marker) => {
+      const markerPoint = map.latLngToContainerPoint(marker.getLatLng());
+      const distSq = (markerPoint.x - clickPoint.x) ** 2 + (markerPoint.y - clickPoint.y) ** 2;
+      if (distSq < closestDistSq) {
+        closestDistSq = distSq;
+        closest = marker;
+      }
+    });
+    return closest;
+  };
+
   const clickSite = (e: LeafletMouseEvent) => {
     pendingAutoZoom.current = false;
-    const id = (
-      e.sourceTarget as L.Marker & { feature?: { properties?: { id?: string | number } } }
-    ).feature?.properties?.id;
+    const marker = nearestSiteMarker(e.containerPoint) ?? (e.target as L.Marker);
+    const id = (marker as L.Marker & { feature?: { properties?: { id?: string | number } } })
+      .feature?.properties?.id;
     setQueryDismissed(true);
     setSearchItem({ type: 'site', id: id ?? '' });
-    const marker = e.target as L.Marker;
-    fitBoundsWithPadding(map, L.latLngBounds([marker.getLatLng()]), { maxZoom: 14 });
+    // A single-point bounds has zero size, so fitBounds always wants to zoom
+    // in as far as it can - `maxZoom` is effectively the target zoom, not a
+    // cap, every time. Using max(currentZoom, 14) instead of a flat 14 means
+    // it still zooms IN to a sensible level when arriving from further out,
+    // but never zooms back OUT if the user was already closer than that (e.g.
+    // zoomed in to disambiguate a tight cluster of sites).
+    fitBoundsWithPadding(map, L.latLngBounds([marker.getLatLng()]), {
+      maxZoom: Math.max(map.getZoom(), 14),
+    });
     setTimeout(() => setShowInfoCard(true), 100);
   };
 

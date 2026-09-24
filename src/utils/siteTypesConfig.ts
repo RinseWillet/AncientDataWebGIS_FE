@@ -1,31 +1,33 @@
 import { DivIcon, Icon } from 'leaflet';
-import { makeIcon, siteIcon } from '../components/MapComponent/Styles/markerStyles';
-import fort from '../assets/fort.png';
-import pfort from '../assets/pfort.png';
-import watchtower from '../assets/watchtower.png';
-import city from '../assets/city.png';
-import villa from '../assets/villa.png';
-import pvilla from '../assets/pvilla.png';
-import legfort from '../assets/legfort.png';
-import settS from '../assets/settS.png';
-import sett from '../assets/sett.png';
-import psett from '../assets/psett.png';
-import bridge from '../assets/bridge.png';
-import tumulus from '../assets/tumulus.png';
-import ptumulus from '../assets/ptumulus.png';
-import cemetery from '../assets/cemetery.png';
-import sanctuary from '../assets/sanctuary.png';
-import ship from '../assets/ship.png';
-import pship from '../assets/pship.png';
-import site from '../assets/site.png';
-import milestone from '../assets/milestone.png';
+import { makeSvgIcon, svgToDataUri } from '../components/MapComponent/Styles/markerStyles';
+import {
+  CONFIRMED_FILL,
+  POSSIBLE_FILL,
+  POSSIBLE_STROKE,
+  svgBollard,
+  svgCircle,
+  svgConcentricCircles,
+  svgCross,
+  svgDiamond,
+  svgDome,
+  svgHull,
+  svgNestedSquare,
+  svgPlus,
+  svgPortal,
+  svgSquare,
+  svgTemple,
+  svgTower,
+  svgTriangle,
+} from '../components/MapComponent/Styles/svgIconShapes';
 
 /**
  * To add, rename, or restyle a site type: edit `siteTypeEntries` below only.
- * - New type: import its marker PNG above, add a row with a unique `type`
- *   (the backend's `siteType` code), a `label`, and an icon built via `makeIcon`.
+ * - New type: pick (or add) a shape generator from `svgIconShapes.ts`, add a
+ *   row with a unique `type` (the backend's `siteType` code), a `label`, and
+ *   build its entry via `svgEntry`.
  * - Rename: change `label`.
- * - Restyle: swap the PNG import used by `icon`/`iconUrl`.
+ * - Restyle (size/color): change the shape generator's arguments
+ *   (`fillColor`/`strokeColor`/`sizePercent`) - no image file involved (E16).
  * Every consumer (map markers, MapInfoCard, SiteInfo, MapLegend, Dashboard)
  * reads from this array, so nothing else needs to change.
  */
@@ -36,43 +38,85 @@ export interface SiteTypeEntry {
   iconUrl: string;
 }
 
+/** Builds one registry row from a type code, label, and SVG markup - the
+ * `icon` (live marker) and `iconUrl` (legend `<img>`, via `svgToDataUri`) both
+ * derive from the same `svgMarkup`, so they can't disagree with each other. */
+const svgEntry = (type: string, label: string, svgMarkup: string): SiteTypeEntry => ({
+  type,
+  label,
+  icon: makeSvgIcon(svgMarkup),
+  iconUrl: svgToDataUri(svgMarkup),
+});
+
 /**
  * Canonical `siteType` -> label/icon/iconUrl registry. This is the single
  * place to touch when adding, renaming, or restyling a site type: add/edit a
  * row here and every consumer (map markers, MapInfoCard, SiteInfo, MapLegend,
  * Dashboard) picks it up automatically.
+ *
+ * (E16) Icons are inline SVG `DivIcon`s built from `svgIconShapes.ts`'s
+ * generators, not PNG image files - size and color are config values here
+ * (the `sizePercent`/`fillColor`/`strokeColor` arguments below), not baked
+ * into a redrawn asset.
  */
 export const siteTypeEntries: SiteTypeEntry[] = [
-  { type: 'castellum', label: 'castellum', icon: makeIcon(fort), iconUrl: fort },
-  { type: 'pos_castellum', label: 'possible castellum', icon: makeIcon(pfort), iconUrl: pfort },
-  {
-    type: 'legfort',
-    label: 'legionary fortress / castra',
-    icon: makeIcon(legfort),
-    iconUrl: legfort,
-  },
-  { type: 'watchtower', label: 'watchtower', icon: makeIcon(watchtower), iconUrl: watchtower },
-  { type: 'city', label: 'autonomous city', icon: makeIcon(city), iconUrl: city },
-  { type: 'cem', label: '(Roman) cemetery', icon: makeIcon(cemetery), iconUrl: cemetery },
-  { type: 'ptum', label: 'possible barrow', icon: makeIcon(ptumulus), iconUrl: ptumulus },
-  { type: 'tum', label: '(Prehistoric?) barrow', icon: makeIcon(tumulus), iconUrl: tumulus },
-  { type: 'villa', label: 'villa', icon: makeIcon(villa), iconUrl: villa },
-  { type: 'pvilla', label: 'possible villa', icon: makeIcon(pvilla), iconUrl: pvilla },
-  { type: 'sett', label: 'settlement', icon: makeIcon(sett), iconUrl: sett },
-  { type: 'psett', label: 'possible settlement', icon: makeIcon(psett), iconUrl: psett },
-  { type: 'bridge', label: 'bridge', icon: makeIcon(bridge), iconUrl: bridge },
-  {
-    type: 'settS',
-    label: 'settlement with stone buildings',
-    icon: makeIcon(settS),
-    iconUrl: settS,
-  },
-  { type: 'sanctuary', label: 'sanctuary', icon: makeIcon(sanctuary), iconUrl: sanctuary },
-  { type: 'ship', label: 'shipwreck', icon: makeIcon(ship), iconUrl: ship },
-  { type: 'pship', label: 'possible shipwreck', icon: makeIcon(pship), iconUrl: pship },
-  { type: 'site', label: 'generic site', icon: siteIcon, iconUrl: site },
-  { type: 'milestone', label: 'milestone', icon: makeIcon(milestone), iconUrl: milestone },
+  svgEntry('castellum', 'castellum', svgTriangle({ fillColor: CONFIRMED_FILL, sizePercent: 31 })),
+  svgEntry(
+    'pos_castellum',
+    'possible castellum',
+    svgTriangle({ fillColor: POSSIBLE_FILL, strokeColor: POSSIBLE_STROKE, sizePercent: 31 })
+  ),
+  svgEntry(
+    'legfort',
+    'legionary fortress / castra',
+    svgNestedSquare({ fillColor: CONFIRMED_FILL, sizePercent: 44 })
+  ),
+  svgEntry('watchtower', 'watchtower', svgTower()),
+  svgEntry('city', 'autonomous city', svgConcentricCircles()),
+  svgEntry('cem', '(Roman) cemetery', svgPlus()),
+  svgEntry(
+    'ptum',
+    'possible barrow',
+    svgDome({ fillColor: POSSIBLE_FILL, strokeColor: POSSIBLE_STROKE, sizePercent: 31 })
+  ),
+  svgEntry('tum', '(Prehistoric?) barrow', svgDome({ fillColor: CONFIRMED_FILL, sizePercent: 31 })),
+  svgEntry('villa', 'villa', svgDiamond({ fillColor: CONFIRMED_FILL, sizePercent: 31 })),
+  svgEntry(
+    'pvilla',
+    'possible villa',
+    svgDiamond({ fillColor: POSSIBLE_FILL, strokeColor: POSSIBLE_STROKE, sizePercent: 31 })
+  ),
+  // Relative sizes tuned this session: settS is the baseline (31% canvas
+  // fill), sett is 75% of that (23%), psett is 50% of that (16%).
+  svgEntry(
+    'sett',
+    'settlement',
+    svgSquare({ fillColor: '#ffffff', strokeColor: CONFIRMED_FILL, sizePercent: 23 })
+  ),
+  svgEntry(
+    'psett',
+    'possible settlement',
+    svgSquare({ fillColor: POSSIBLE_FILL, strokeColor: POSSIBLE_STROKE, sizePercent: 16 })
+  ),
+  svgEntry('bridge', 'bridge', svgPortal({ fillColor: CONFIRMED_FILL, sizePercent: 23 })),
+  svgEntry(
+    'histSett',
+    'settlement attested only by historical sources',
+    svgCircle({ fillColor: CONFIRMED_FILL, sizePercent: 24 })
+  ),
+  // Solid black fill (vs. sett's white-fill/black-outline above) so the two
+  // are distinguishable by more than size alone - stone buildings read as
+  // "more substantial", matching the PNG-era intent before both types
+  // happened to converge on the same outline style. Per user feedback.
+  svgEntry('settS', 'settlement with stone buildings', svgSquare({ fillColor: CONFIRMED_FILL, sizePercent: 31 })),
+  svgEntry('sanctuary', 'sanctuary', svgTemple()),
+  svgEntry('ship', 'shipwreck', svgHull(CONFIRMED_FILL)),
+  svgEntry('pship', 'possible shipwreck', svgHull(POSSIBLE_FILL)),
+  svgEntry('site', 'generic site', svgCross({ fillColor: CONFIRMED_FILL, sizePercent: 31 })),
+  svgEntry('milestone', 'milestone', svgBollard()),
 ];
+
+const siteIcon: DivIcon = siteTypeEntries.find((entry) => entry.type === 'site')!.icon as DivIcon;
 
 /** Resolve the marker icon for a given site type, defaulting to the generic site icon. */
 export const getSiteIcon = (type?: string): Icon | DivIcon =>

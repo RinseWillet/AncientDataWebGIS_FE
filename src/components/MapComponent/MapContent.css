@@ -1,3 +1,17 @@
+/* Site markers opt out of the global `[role="button"] { min-width/height: 44px }`
+   a11y rule (App.css) down to a more modest floor. A dense point map with many
+   nearby sites needs smaller click targets to keep overlap/mis-click rates down;
+   see clickSite's nearest-marker resolution in MapContent.tsx for the other half
+   of this fix (handles the cases where hit-areas still overlap). Selector
+   specificity (two classes) beats the global rule's single attribute selector
+   without !important. No tag qualifier (not `img.leaflet-marker-icon...`) so this
+   matches both legacy image-based `Icon`s (`<img>`, via makeIcon) and E16's
+   inline-SVG `DivIcon`s (`<div>`, via makeSvgIcon) the same way. */
+.leaflet-marker-icon.site-type-icon {
+  min-width: 26px;
+  min-height: 26px;
+}
+
 .popup .leaflet-popup-content-wrapper {
   font-size: 1rem;
   border-radius: 0;
