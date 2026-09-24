@@ -15,8 +15,13 @@ export const photoPinIcon = L.divIcon({
   iconAnchor: [14, 28],
 });
 
-export const makeIcon = (iconUrl: string): Icon =>
-  new Icon({ iconUrl, iconSize: [30, 30] });
+// className lets MapComponent.css target just these icons (not the highlighted
+// pulse marker, the photo pin, or any leaflet-draw edit handle) to relax the
+// global `[role="button"] { min-width/min-height: 44px }` a11y rule down to
+// something more reasonable for a dense point map -- see the click-precision
+// fix in MapContent.tsx's clickSite, which this pairs with.
+export const makeIcon = (iconUrl: string, size = 30): Icon =>
+  new Icon({ iconUrl, iconSize: [size, size], className: 'site-type-icon' });
 
 /** Generic fallback marker: used for the 'site' type and any unrecognized `siteType`. */
 export const siteIcon = makeIcon(site);

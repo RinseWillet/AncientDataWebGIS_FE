@@ -11,6 +11,7 @@ import settS from '../assets/settS.png';
 import sett from '../assets/sett.png';
 import psett from '../assets/psett.png';
 import bridge from '../assets/bridge.png';
+import histSett from '../assets/histSett.png';
 import tumulus from '../assets/tumulus.png';
 import ptumulus from '../assets/ptumulus.png';
 import cemetery from '../assets/cemetery.png';
@@ -58,9 +59,23 @@ export const siteTypeEntries: SiteTypeEntry[] = [
   { type: 'tum', label: '(Prehistoric?) barrow', icon: makeIcon(tumulus), iconUrl: tumulus },
   { type: 'villa', label: 'villa', icon: makeIcon(villa), iconUrl: villa },
   { type: 'pvilla', label: 'possible villa', icon: makeIcon(pvilla), iconUrl: pvilla },
+  // iconSize is kept at the shared default (30px) for every type, matching
+  // every other marker -- a global a11y rule (`[role="button"] { min-width/
+  // min-height: 44px }`) clamps the *click target* up to 44px regardless of
+  // iconSize anyway, so varying iconSize can't actually shrink a marker on
+  // screen (confirmed: it silently clamped straight back up). The relative
+  // sizing the visual differences (sett at 75%, psett at 50% of settS) is
+  // done inside the PNG artwork instead -- how much of the fixed-size canvas
+  // the glyph itself fills -- which isn't subject to that clamp.
   { type: 'sett', label: 'settlement', icon: makeIcon(sett), iconUrl: sett },
   { type: 'psett', label: 'possible settlement', icon: makeIcon(psett), iconUrl: psett },
   { type: 'bridge', label: 'bridge', icon: makeIcon(bridge), iconUrl: bridge },
+  {
+    type: 'histSett',
+    label: 'settlement attested only by historical sources',
+    icon: makeIcon(histSett),
+    iconUrl: histSett,
+  },
   {
     type: 'settS',
     label: 'settlement with stone buildings',
