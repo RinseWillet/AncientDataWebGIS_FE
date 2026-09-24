@@ -3,7 +3,7 @@ import L from 'leaflet';
 import MapBuilder from './MapBuilder';
 import MapInfoCard from './MapInfoCard';
 import { MapContainer } from 'react-leaflet';
-import { siteIcon } from './Styles/markerStyles';
+import { getSiteIcon } from '../../utils/siteTypesConfig';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import './MapComponent.css';
@@ -48,7 +48,9 @@ const MapComponent = ({
     if (searchItem.type === 'site') {
       const marker = siteMarkersRef.current[searchItem.id];
       if (marker) {
-        marker.setIcon(siteIcon);
+        const feature = (marker as L.Marker & { feature?: { properties?: { siteType?: string } } })
+          .feature;
+        marker.setIcon(getSiteIcon(feature?.properties?.siteType));
       }
     }
     setSearchItem({ type: '', id: '' });

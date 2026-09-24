@@ -1,6 +1,6 @@
 import { Dispatch, MutableRefObject, SetStateAction, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
-import { highlightedSiteIcon, siteIcon } from './Styles/markerStyles';
+import { highlightedSiteIcon } from './Styles/markerStyles';
 import { getSiteIcon } from '../../utils/siteTypesConfig';
 import { QueryItem, SearchItem } from './mapTypes';
 import { isBaseLayerConfig, LayerConfig, LayerGroupName, layersConfig, WmsLayerConfig } from './layersConfig';
@@ -40,7 +40,7 @@ export const useMarkerHighlight = (
       } else {
         const feature = (marker as L.Marker & { feature?: { properties?: { siteType?: string } } })
           .feature;
-        marker.setIcon(feature?.properties?.siteType ? getSiteIcon(feature.properties.siteType) : siteIcon);
+        marker.setIcon(getSiteIcon(feature?.properties?.siteType));
       }
     });
   }, [searchItem, effectiveQueryItem, map, siteMarkersRef]);
