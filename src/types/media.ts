@@ -14,5 +14,6 @@ export interface MediaAsset {
   visibilityStatus: string;
   createdAt: string;
   updatedAt: string;
+  resized: boolean;
 }
 

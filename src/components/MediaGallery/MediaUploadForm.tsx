@@ -56,6 +56,7 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCent
   const [uploading, setUploading] = useState(false);
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [resizedNotice, setResizedNotice] = useState(false);
 
   const resetForm = () => {
     setFile(null);
@@ -80,7 +81,7 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCent
     setUploading(true);
 
     try {
-      await MediaService.upload({
+      const uploaded = await MediaService.upload({
         file,
         targetType,
         targetId,
@@ -94,8 +95,14 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCent
         isCover,
       });
       resetForm();
-      setIsOpen(false);
       onUploadSuccess();
+      if (uploaded.resized) {
+        // Keep the panel open with a notice instead of closing outright — the admin
+        // picked a different file (in bytes) than what got stored, so say so.
+        setResizedNotice(true);
+      } else {
+        setIsOpen(false);
+      }
     } catch (error) {
       setErrorMessage(extractErrorMessage(error));
       setIsErrorModalOpen(true);
@@ -109,10 +116,28 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCent
       <button
         type="button"
         className="info-btn media-upload__toggle"
-        onClick={() => setIsOpen(true)}
+        onClick={() => { setResizedNotice(false); setIsOpen(true); }}
       >
         Add Photo
       </button>
+    );
+  }
+
+  if (resizedNotice) {
+    return (
+      <div className="media-upload">
+        <p className="media-upload__notice">
+          Your photo was larger than our size limit, so it was automatically resized
+          to fit — the stored copy may look smaller on disk than the original file.
+        </p>
+        <button
+          type="button"
+          className="info-btn"
+          onClick={() => { setResizedNotice(false); setIsOpen(false); }}
+        >
+          Done
+        </button>
+      </div>
     );
   }
 
@@ -211,7 +236,7 @@ const MediaUploadForm = ({ targetType, targetId, onUploadSuccess, initialMapCent
         <button
           type="button"
           className="info-btn delete"
-          onClick={() => { resetForm(); setIsOpen(false); }}
+          onClick={() => { resetForm(); setResizedNotice(false); setIsOpen(false); }}
           disabled={uploading}
         >
           Cancel
