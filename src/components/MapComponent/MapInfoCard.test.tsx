@@ -157,6 +157,7 @@ describe('MapInfoCard', () => {
         visibilityStatus: 'APPROVED',
         createdAt: '',
         updatedAt: '',
+        resized: false,
       },
       {
         id: 2,
@@ -174,6 +175,7 @@ describe('MapInfoCard', () => {
         visibilityStatus: 'APPROVED',
         createdAt: '',
         updatedAt: '',
+        resized: false,
       },
     ];
     vi.mocked(MediaService.findByTarget).mockResolvedValue(assets);
@@ -207,6 +209,7 @@ describe('MapInfoCard', () => {
         visibilityStatus: 'APPROVED',
         createdAt: '',
         updatedAt: '',
+        resized: false,
       },
     ];
     vi.mocked(MediaService.findByTarget).mockResolvedValue(assets);

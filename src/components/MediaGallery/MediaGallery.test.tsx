@@ -46,6 +46,7 @@ const mockAssets: MediaAsset[] = [
     visibilityStatus: 'APPROVED',
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
+    resized: false,
   },
   {
     id: 2,
@@ -63,6 +64,7 @@ const mockAssets: MediaAsset[] = [
     visibilityStatus: 'APPROVED',
     createdAt: '2026-01-02T00:00:00Z',
     updatedAt: '2026-01-02T00:00:00Z',
+    resized: false,
   },
 ];
 describe('MediaGallery', () => {

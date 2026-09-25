@@ -82,6 +82,7 @@ describe('MediaUploadForm', () => {
       visibilityStatus: 'APPROVED',
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
+      resized: false,
     });
 
     render(<MediaUploadForm targetType="SITE" targetId="42" onUploadSuccess={mockOnSuccess} initialMapCenter={CENTER} />);
@@ -102,6 +103,44 @@ describe('MediaUploadForm', () => {
     await waitFor(() => {
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
     });
+
+    expect(screen.queryByText('Upload Photo')).not.toBeInTheDocument();
+  });
+
+  it('shows a resize notice and keeps the panel open when the upload was resized', async () => {
+    vi.mocked(MediaService.upload).mockResolvedValue({
+      id: 99,
+      targetType: 'SITE',
+      targetId: 42,
+      fullUrl: 'http://localhost:8080/api/media/files/site/42/new.jpg',
+      caption: null,
+      author: null,
+      source: null,
+      license: null,
+      dateTaken: null,
+      latitude: null,
+      longitude: null,
+      isCover: false,
+      visibilityStatus: 'APPROVED',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+      resized: true,
+    });
+
+    render(<MediaUploadForm targetType="SITE" targetId="42" onUploadSuccess={mockOnSuccess} initialMapCenter={CENTER} />);
+    fireEvent.click(screen.getByText('Add Photo'));
+
+    const file = new File(['pixels'], 'photo.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('File *'), { target: { files: [file] } });
+    fireEvent.click(screen.getByText('Upload'));
+
+    await waitFor(() => {
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+    });
+    expect(screen.getByText(/automatically resized/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Done'));
+    expect(screen.getByText('Add Photo')).toBeInTheDocument();
   });
 
   it('shows error message on upload failure', async () => {
@@ -146,6 +185,7 @@ describe('MediaUploadForm', () => {
       visibilityStatus: 'APPROVED',
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
+      resized: false,
     });
 
     render(<MediaUploadForm targetType="SITE" targetId="42" onUploadSuccess={mockOnSuccess} initialMapCenter={CENTER} />);

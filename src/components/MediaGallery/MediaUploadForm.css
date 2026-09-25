@@ -26,3 +26,13 @@
   margin-top: 0.75rem;
 }
 
+.media-upload__notice {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  background: #eef6ff;
+  border: 1px solid #bcdcff;
+  color: #1a4a7a;
+  font-size: 0.9rem;
+}
+
