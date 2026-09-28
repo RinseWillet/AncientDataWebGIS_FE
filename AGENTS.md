@@ -98,6 +98,7 @@ Adding, renaming, or restyling a type means touching only the relevant file; eve
 | Feature backlog | `../AncientDataWebGIS/docs/features/FEATURE-SPEC-BACKLOG.md` |
 | Feature specs | `../AncientDataWebGIS/docs/features/README.md` |
 | TypeScript migration | `docs/typescript-migration-evaluation.md` |
+| Book content backup expectation | `README.md` § "Book Content Backup" |
 
 ## API Integration Change Mode
 
