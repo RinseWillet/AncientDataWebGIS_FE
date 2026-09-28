@@ -76,6 +76,10 @@ npm run build
 
 See `docs/typescript-migration-evaluation.md` for the incremental migration recommendation.
 
+## Book Content Backup
+
+Chapter Markdown (`src/content/book/*.md`) and bundled illustrative images (`src/assets/book/`) are versioned as ordinary files in this git repository — there is no separate database or NAS backup path for them, unlike uploaded `MediaAsset` photos. **Git (commit + push to the remote) is the backup mechanism for this content.** Work on new/edited chapters is only as safe as the last push — don't leave chapter edits uncommitted/unpushed for extended periods. See `../AncientDataWebGIS/docs/architecture/adr/ADR-011-book-content-storage-and-backup.md` for the full decision record.
+
 ## License
 
 Source code is licensed under the [Apache License 2.0](LICENSE).
