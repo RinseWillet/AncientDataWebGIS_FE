@@ -173,7 +173,7 @@ const SiteInfo = () => {
               <span>{siteTypeConverter(properties.siteType)}</span>
               {properties.description && <><h4>Description:</h4><span>{properties.description}</span></>}
               {properties.status && <><h4>Status:</h4><span>{properties.status}</span></>}
-              {properties.references && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={properties.references} /></>}
+              {(modRef.length > 0 || properties.references) && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={properties.references} /></>}
               {properties.province && <><h4>Province:</h4><span>{properties.province}</span></>}
               {properties.pleiadesId && <><h4>Pleiades:</h4><span>{properties.pleiadesId}</span></>}
             </>
