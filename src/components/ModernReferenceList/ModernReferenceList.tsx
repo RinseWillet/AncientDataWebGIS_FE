@@ -16,18 +16,22 @@ const ModernReferenceList = ({ references, fallback }: ModernReferenceListProps)
   if (references.length === 0) {
     return <span>{fallback}</span>;
   }
-  return references.map((ref) =>
-    ref.url ? (
-      <li key={ref.id}>
-        <a className="reference-listitem__link" href={ref.url}>
-          {ref.fullRef}
-        </a>
-      </li>
-    ) : (
-      <li key={ref.id} className="reference-listitem__nolink">
-        {ref.fullRef}
-      </li>
-    )
+  return (
+    <ul>
+      {references.map((ref) =>
+        ref.url ? (
+          <li key={ref.id}>
+            <a className="reference-listitem__link" href={ref.url}>
+              {ref.fullRef}
+            </a>
+          </li>
+        ) : (
+          <li key={ref.id} className="reference-listitem__nolink">
+            {ref.fullRef}
+          </li>
+        )
+      )}
+    </ul>
   );
 };
 

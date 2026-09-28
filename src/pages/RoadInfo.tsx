@@ -182,7 +182,7 @@ const RoadInfo = () => {
                   {location && <><h4>Location:</h4><span>{location}</span></>}
                   {description && <><h4>Description:</h4><span>{description}</span></>}
                   {date && <><h4>Date:</h4><span>{date}</span></>}
-                  {references && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={references} /></>}
+                  {(modRef.length > 0 || references) && <><h4>References:</h4><ModernReferenceList references={modRef} fallback={references} /></>}
                   {historicalReferences && <><h4>Historical references:</h4><span>{historicalReferences}</span></>}
                 </>
               )}
