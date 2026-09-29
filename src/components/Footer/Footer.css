@@ -1,5 +1,5 @@
 .footer {
-  background-color: var(--box-color-1);
+  background-color: var(--field);
   flex-shrink: 0; /* never let the footer compress */
 }
 
@@ -29,11 +29,11 @@
   display: flex;
   justify-content: flex-start;
   flex-direction: column;
-  color: var(--font-color-1);
+  color: var(--on-field);
 }
 
 a {
-  color: var(--font-color-2);
+  color: var(--on-field);
   text-decoration: none;
 }
 
@@ -53,7 +53,7 @@ a {
   font-size: 1.3rem;
   line-height: 2rem;
   margin: 0.2rem 0;
-  color: var(--font-color-1);
+  color: var(--on-field);
 }
 
 .sb__footer-links_div p {
@@ -64,7 +64,7 @@ a {
 }
 
 hr {
-  color: var(--font-color-2) !important;
+  color: var(--on-field) !important;
   width: 100%;
   opacity: 0.4;
 }
@@ -77,7 +77,7 @@ hr {
 .sb__footer-copyright p {
   font-size: 1.2rem;
   line-height: 1.8rem;
-  color: var(--font-color-2);
+  color: var(--on-field);
   font-weight: 400;
   text-align: center;
 }

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter } from 'react-router';
 import { Provider } from 'react-redux';
 import App from './App';
+import './theme/tokens.css';
 import './index.css';
 import { store } from './app/store';
 

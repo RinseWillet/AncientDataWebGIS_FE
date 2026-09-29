@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { IoClose, IoMenu } from 'react-icons/io5';
+import { IoClose, IoMenu, IoMoonOutline, IoSunnyOutline } from 'react-icons/io5';
 import { useMediaQuery } from 'react-responsive';
 import { logout } from '../../features/authentication/authSlice';
 import { selectAuthUser, selectIsAdmin } from '../../features/authentication/authSelectors';
@@ -8,9 +8,16 @@ import { resetSites } from '../../features/site/siteSlice';
 import { resetRoads } from '../../features/road/roadSlice';
 import { resetModRefs } from '../../features/modref/modRefSlice';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
+import type { Theme } from '../../theme/useTheme';
 import './NavbarHook.css';
 
-const NavbarHook = () => {
+interface NavbarHookProps {
+  theme: Theme;
+  onToggleNight: () => void;
+  onToggleHercules: () => void;
+}
+
+const NavbarHook = ({ theme, onToggleNight, onToggleHercules }: NavbarHookProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useMediaQuery({ maxWidth: '1150px' });
 
@@ -114,10 +121,33 @@ const NavbarHook = () => {
     );
   };
 
+  const isNight = theme === 'night';
+
   return (
     <header className="header">
       <nav className="nav container">
         <NavLink to="/" className="nav__logo" aria-label="Home" />
+
+        <div className="nav__theme-toggle">
+          <button
+            className="nav__theme-btn"
+            onClick={onToggleNight}
+            aria-pressed={isNight}
+            aria-label={isNight ? 'Switch to day theme' : 'Switch to night theme'}
+            title={isNight ? 'Switch to day theme' : 'Switch to night theme'}
+          >
+            {isNight ? <IoSunnyOutline /> : <IoMoonOutline />}
+          </button>
+          <button
+            className="nav__theme-btn nav__theme-btn--hercules"
+            onClick={onToggleHercules}
+            aria-pressed={theme === 'hercules'}
+            aria-label="Toggle Hercules mode (F9)"
+            title="Toggle Hercules mode (F9)"
+          >
+            F9
+          </button>
+        </div>
 
         {isMobile && (
           <button className="nav__toggle" id="nav-toggle" onClick={toggleMenu} aria-label="Open menu">
