@@ -1,0 +1,32 @@
+/* Margin references (the "Tufte CSS" float trick).
+   The reading column needs room on its right: e.g. max-width: 680px; margin-right: 380px. */
+.cited-text p { margin: 0 0 1em; }
+
+.cite {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+  text-decoration: underline dotted 1.5px; text-underline-offset: 3px;
+}
+.cite[aria-expanded='true'] { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+
+.sidenote {
+  display: block;
+  float: right; clear: right;
+  width: 320px; margin-right: -380px;
+  padding-left: 16px; border-left: 2px solid var(--rule);
+  font-family: var(--font-read); font-size: 15.5px; line-height: 1.45; color: var(--muted);
+}
+.sidenote--open { border-left-color: var(--ink); color: var(--ink); }
+.sidenote__short {
+  display: block; font-family: var(--font-display); font-size: var(--fs-label);
+  font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px;
+}
+
+/* Narrow screens: no margin — the note appears as a card only when the name is tapped. */
+@media (max-width: 1100px) {
+  .sidenote {
+    display: none; float: none; width: auto; margin: 10px 0;
+    padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--radius);
+    background: var(--card); color: var(--ink);
+  }
+  .sidenote--open { display: block; }
+}
