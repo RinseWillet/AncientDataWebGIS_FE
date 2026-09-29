@@ -3,7 +3,7 @@
   width: 100%;
   top: 0;
   left: 0;
-  background-color: var(--box-color-1);
+  background-color: var(--field);
   z-index: var(--z-fixed);
 }
 
@@ -24,10 +24,46 @@
 }
 
 .nav__logo {
-  color: var(--font-color-1);
+  color: var(--on-field);
   transition: color 0.4s;
   font-size: 2rem;
-  font-family: var(--project-font-family), sans-serif;
+  font-family: var(--font-display), sans-serif;
+}
+
+/* ── theme toggle ─────────────────────────────────────── */
+.nav__theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+.nav__theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  background: none;
+  border: 1px solid var(--on-field);
+  border-radius: var(--radius-s);
+  color: var(--on-field);
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: background-color 0.2s ease;
+}
+
+.nav__theme-btn:hover,
+.nav__theme-btn[aria-pressed='true'] {
+  background-color: var(--red);
+  border-color: var(--red);
+  color: var(--paper);
+}
+
+.nav__theme-btn--hercules {
+  font-family: var(--font-data), monospace;
+  font-size: 1.1rem;
 }
 
 /* ── mobile drawer ───────────────────────────────────── */
@@ -37,7 +73,7 @@
   right: -100%;
   width: min(75vw, 300px);
   height: 100vh;
-  background-color: var(--box-color-2);
+  background-color: var(--card);
   padding: calc(var(--header-height) + 1.5rem) 2rem 2rem;
   transition: right 0.35s ease;
   z-index: calc(var(--z-fixed) + 10);
@@ -61,7 +97,7 @@
 .nav__toggle,
 .nav__close {
   font-size: 2.4rem;
-  color: var(--accent-color);
+  color: var(--red);
   cursor: pointer;
   background: none;
   border: none;
@@ -82,17 +118,29 @@
 
 /* ── CTA button (To the Map) ─────────────────────────── */
 .nav__cta {
-  background-color: var(--background-color-1);
-  color: var(--font-color-1);
+  background-color: var(--red);
+  color: var(--paper);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-s);
   cursor: pointer;
   transition: background-color 0.3s ease;
   padding: 0.75rem 1.5rem;
 }
 
 .nav__cta:hover {
-  background-color: var(--background-color-2);
+  background-color: var(--slab-2);
+  color: var(--on-slab-2);
+}
+
+/* .nav__link.active (2 classes) otherwise beats .nav__cta (1 class) and
+   repaints this button's text var(--red) on top of its own var(--red)
+   background when "To the Map" is the active route. */
+.nav__link.active.nav__cta {
+  color: var(--paper);
+}
+
+.nav__link.active.nav__cta:hover {
+  color: var(--on-slab-2);
 }
 
 /* ── mobile list (vertical) ──────────────────────────── */
@@ -115,36 +163,36 @@
 
 /* ── link styles ─────────────────────────────────────── */
 .nav__link {
-  color: var(--font-color-1);
-  font-weight: var(--font-semi-bold);
+  color: var(--on-field);
+  font-weight: 500;
   transition: color 0.4s;
   font-size: 1.6rem;
 }
 
 .nav__link:hover,
 .nav__link.active {
-  color: var(--accent-color-2);
+  color: var(--red);
 }
 
 .welcome-message {
   font-size: 1.4rem;
-  color: var(--accent-color);
-  font-weight: var(--font-semi-bold);
+  color: var(--on-field);
+  font-weight: 500;
 }
 
 .logout-button {
   background: none;
   border: none;
-  color: var(--font-color-1);
+  color: var(--on-field);
   cursor: pointer;
-  font-weight: var(--font-semi-bold);
+  font-weight: 500;
   transition: color 0.3s ease;
   font-size: 1.6rem;
   min-height: 44px;
 }
 
 .logout-button:hover {
-  color: var(--accent-color-2);
+  color: var(--red);
 }
 
 /* ── large-screen tweaks ─────────────────────────────── */

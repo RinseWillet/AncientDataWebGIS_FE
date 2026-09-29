@@ -5,6 +5,7 @@ import { Route, Routes } from 'react-router';
 import NavbarHook from './components/NavBarHook/NavbarHook';
 import Footer from './components/Footer/Footer';
 import AdminRoute from './components/Routes/AdminRoute';
+import { useTheme } from './theme/useTheme';
 
 const About = lazy(() => import('./pages/About'));
 const Atlas = lazy(() => import('./pages/Atlas'));
@@ -21,9 +22,11 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const SuggestChange = lazy(() => import('./pages/SuggestChange'));
 
 const App = () => {
+  const { theme, toggleNight, toggleHercules } = useTheme();
+
   return (
     <div className="App">
-      <NavbarHook />
+      <NavbarHook theme={theme} onToggleNight={toggleNight} onToggleHercules={toggleHercules} />
 
       <Suspense fallback={<div className="pagebox">Loading...</div>}>
         <Routes>

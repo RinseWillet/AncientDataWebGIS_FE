@@ -1,0 +1,156 @@
+/* AncientData design tokens — Day (default), Night, Hercules.
+ * Load once (e.g. import './theme/tokens.css' in main.tsx) and switch with
+ * <html data-theme="day|night|hercules"> (see useTheme.ts).
+ * Fonts: add to index.html
+ * <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&family=VT323&display=swap">
+ */
+
+:root,
+[data-theme='day'] {
+  color-scheme: light;
+  /* surfaces */
+  --field: #a2ad84;      /* sage slab: header, hero, footer */
+  --paper: #f6f4ee;      /* page background */
+  --card: #ffffff;
+  --soft: #eeece4;       /* search field, quiet boxes */
+  /* ink */
+  --ink: #0a0e13;
+  --muted: #5a5e55;
+  --rule: #d8d6cc;
+  --on-field: #0a0e13;
+  /* accents */
+  --red: #d7261e;        /* sites, primary action */
+  --road: #f2e6c9;       /* road fill (cream) */
+  --road-casing: #0a0e13;
+  --slab-2: #26313f;     /* contrast slab (night blue) */
+  --on-slab-2: #f2e6c9;
+  /* map chrome */
+  --map-bg: #b2ba94;     /* = basemap background, avoids a flash while tiles load */
+  --shadow: 0 8px 24px rgba(10, 14, 19, 0.14);
+
+  /* type */
+  --font-display: 'Archivo', system-ui, sans-serif;   /* 800 for headings, 600 for UI */
+  --font-read: 'Newsreader', Georgia, serif;          /* long texts, captions */
+  --font-data: 'IBM Plex Mono', ui-monospace, monospace; /* ids, dates, coordinates, raw codes */
+  --fs-hero: clamp(56px, 7vw, 104px);
+  --fs-h1: clamp(36px, 4vw, 56px);
+  --fs-h2: 32px;
+  --fs-h3: 22px;
+  --fs-body: 16px;
+  --fs-read: 19px;       /* 21px in reading mode on desktop */
+  --fs-small: 13.5px;
+  --fs-label: 11.5px;    /* uppercase, letter-spacing .14em */
+  --lh-read: 1.55;
+  --measure: 68ch;       /* max line length for reading */
+
+  /* shape & space */
+  --radius-s: 4px;
+  --radius: 8px;
+  --radius-pill: 999px;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+}
+
+[data-theme='night'] {
+  color-scheme: dark;
+  --field: #26313f;
+  --paper: #121820;
+  --card: #1a222c;
+  --soft: #1f2833;
+  --ink: #f2e6c9;
+  --muted: #9ea9be;
+  --rule: #2f3b4b;
+  --on-field: #f2e6c9;
+  --red: #e0453c;
+  --road: #f2e6c9;
+  --road-casing: #0b1016;
+  --slab-2: #a2ad84;
+  --on-slab-2: #0a0e13;
+  --map-bg: #1e2733;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+/* Hercules: five phosphor greens on black. Colour is replaced by brightness + line style. */
+[data-theme='hercules'] {
+  color-scheme: dark;
+  --g0: #040904;  /* screen */
+  --g1: #0f3319;  /* faint: grid, modern roads */
+  --g2: #2c9a4c;  /* dim: contours, secondary text */
+  --g3: #3dd068;  /* mid: rivers, borders */
+  --g4: #8cffa6;  /* bright: roads, sites, text */
+  --g5: #d2ffdc;  /* highlight: cursor, scan line */
+  --field: var(--g4);   /* menu bar = inverse video */
+  --paper: var(--g0);
+  --card: var(--g0);
+  --soft: var(--g0);
+  --ink: var(--g4);
+  --muted: var(--g2);
+  --rule: var(--g2);
+  --on-field: var(--g0);
+  --red: var(--g4);
+  --road: var(--g4);
+  --road-casing: transparent;
+  --slab-2: var(--g4);
+  --on-slab-2: var(--g0);
+  --map-bg: var(--g0);
+  --shadow: none;
+  --font-display: 'VT323', ui-monospace, monospace;
+  --font-read: 'VT323', ui-monospace, monospace;
+  --font-data: 'VT323', ui-monospace, monospace;
+  --fs-body: 22px;       /* VT323 runs small: everything one step up */
+  --fs-read: 24px;
+  --fs-small: 20px;
+  --fs-label: 20px;
+  --lh-read: 1.12;
+  --radius-s: 0; --radius: 0; --radius-pill: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--fs-body);
+}
+
+.label {
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.read { font-family: var(--font-read); font-size: var(--fs-read); line-height: var(--lh-read); max-width: var(--measure); }
+.data { font-family: var(--font-data); }
+
+/* Evidence badges: attested / inferred / hypothetical (never colour alone) */
+.ev { display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: var(--radius-pill); font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.ev--attested { background: var(--ink); color: var(--paper); }
+.ev--inferred { border: 1.5px solid var(--ink); }
+.ev--hypothetical { border: 1.5px dashed var(--muted); color: var(--muted); }
+[data-theme='hercules'] .ev--inferred::before { content: '<'; }
+[data-theme='hercules'] .ev--inferred::after { content: '>'; }
+[data-theme='hercules'] .ev--hypothetical::before,
+[data-theme='hercules'] .ev--hypothetical::after { content: '?'; }
+
+/* Hercules screen effects — purely decorative overlays */
+[data-theme='hercules'] body { text-shadow: 0 0 6px rgba(140, 255, 166, 0.45); }
+/* .crt is set on the same <html> element as data-theme (see useTheme.ts),
+   so this can't be a descendant selector — .crt alone is enough since it's
+   only ever toggled on for the hercules theme. */
+.crt::after {
+  content: '';
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.28) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.55) 100%);
+}
+[data-theme='hercules'] .window { border: 3px double var(--g3); background: var(--g0); }
+[data-theme='hercules'] .window__title { background: var(--g4); color: var(--g0); padding: 0 8px; }
+.cursor { display: inline-block; width: 0.6em; height: 1em; background: currentColor; vertical-align: -2px; animation: ad-blink 1s steps(1) infinite; }
+@keyframes ad-blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+}
