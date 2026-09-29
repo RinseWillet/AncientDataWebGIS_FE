@@ -1,0 +1,21 @@
+.scan-image { position: relative; display: block; overflow: hidden; background: var(--g0, #040904); }
+.scan-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Green phosphor look — only in Hercules */
+[data-theme='hercules'] .scan-image img { filter: grayscale(1) contrast(1.5) brightness(0.95); }
+[data-theme='hercules'] .scan-image::after {
+  content: ''; position: absolute; inset: 0; background: var(--g3); mix-blend-mode: multiply; pointer-events: none;
+}
+
+.scan-image--waiting img { clip-path: inset(0 0 100% 0); }
+.scan-image--scanning img { animation: scan-reveal var(--scan-ms) steps(24) forwards; }
+.scan-image__line { position: absolute; left: 0; right: 0; top: 0; height: 3px; opacity: 0;
+  background: var(--g5, #d2ffdc); box-shadow: 0 0 10px var(--g4, #8cffa6); z-index: 1; }
+.scan-image--scanning .scan-image__line { animation: scan-line var(--scan-ms) steps(24) forwards; }
+
+@keyframes scan-reveal { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes scan-line { from { top: 0; opacity: 1; } 99% { opacity: 1; } to { top: 100%; opacity: 0; } }
+
+/* Outside Hercules: behave like a normal image */
+:root:not([data-theme='hercules']) .scan-image img { clip-path: none !important; animation: none !important; }
+:root:not([data-theme='hercules']) .scan-image__line { display: none; }
